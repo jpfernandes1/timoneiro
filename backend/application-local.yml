@@ -1,7 +1,0 @@
-# Perfil de desenvolvimento local
-spring:
-  profiles: dev
-  datasource:
-    url: jdbc:postgresql://localhost:5432/timoneiro_dev
-    username: usuario_dev
-    password: senha_dev
