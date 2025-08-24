@@ -1,15 +1,14 @@
-package com.jompastech.backend.model;
+package com.jompastech.backend.model.entity;
 
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name= "User")
+@Table(name = "\"User\"")
 @Data
 public class User {
 

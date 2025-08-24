@@ -1,4 +1,4 @@
-package com.jompastech.backend.model;
+package com.jompastech.backend.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
