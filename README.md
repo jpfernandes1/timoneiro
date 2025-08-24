@@ -115,10 +115,10 @@ Utiliza princípios **relacionais**, com relacionamentos, índices e constraints
 3. **BoatAvailability (Disponibilidade do Barco)**
     - Armazena os períodos de disponibilidade de cada barco.
     - Campos: `start_date`, `end_date`.
-    - Justificativa: Permite que o proprietário defina quando o barco está disponível, permitindo reservas somente em períodos válidos.
+    - Justificativa: Permite que o proprietário defina os dias e horários que o barco estara disponível, permitindo reservas somente em períodos válidos.
 
 4. **Booking (Reserva)**
-    - Registra as reservas feitas pelos usuários para barcos específicos.
+    - Registra as reservas feitas pelos usuários dentro da disponibilidade estipulada pelos proprietários
     - Campos: `user_id`, `boat_id`, `start_date`, `end_date`, `status`, `total_price`.
     - Justificativa: Conecta usuários e barcos para períodos de aluguel. O status e preço total são armazenados. A regra de impedir sobreposição de reservas é aplicada na aplicação.
 
