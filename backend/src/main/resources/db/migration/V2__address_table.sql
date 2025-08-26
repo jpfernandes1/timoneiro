@@ -1,5 +1,5 @@
 -- 1. Create Address table
-CREATE TABLE "Address" (
+CREATE TABLE "addresses" (
     address_id SERIAL PRIMARY KEY,
     cep VARCHAR(9) NOT NULL,
     number INT,
@@ -10,14 +10,14 @@ CREATE TABLE "Address" (
 );
 
 -- 2. Add adress_id column on Boat table
-ALTER TABLE "Boat"
+ALTER TABLE "boats"
 ADD COLUMN address_id INT;
 
 -- 3. Create the Foreign Key
-ALTER TABLE "Boat"
+ALTER TABLE "boats"
 ADD CONSTRAINT fk_boat_address
-FOREIGN KEY (address_id) REFERENCES "Address"(address_id);
+FOREIGN KEY (address_id) REFERENCES "addresses"(address_id);
 
 -- 4. REmove the old location column
-ALTER TABLE "Boat"
+ALTER TABLE "boats"
 DROP COLUMN location;
