@@ -14,7 +14,7 @@ public class Address {
     private long id;
 
     private String cep;
-    private int number;
+    private String number;
     private String street;
     private String neighborhood;
     private String city;
