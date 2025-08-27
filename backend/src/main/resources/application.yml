@@ -1,5 +1,5 @@
 # ==============================
-# Configuração dev local
+# Configuration dev local
 # ==============================
 spring:
   application:
@@ -7,11 +7,11 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    # url, username e password definidos no application-local.yml
+    # url, username and password defined on application-local.yml
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
       format_sql: true
 
   flyway:
@@ -20,4 +20,4 @@ spring:
     locations: classpath:db/migration
 
   config:
-    import: optional:application-local.yml  # arquivo local com as credenciais
+    import: optional:application-local.yml  #  local file with credentials

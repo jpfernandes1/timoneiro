@@ -1,5 +1,5 @@
 -- Users
-CREATE TABLE "User" (
+CREATE TABLE "users" (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "User" (
 );
 
 -- Boats
-CREATE TABLE "Boat" (
+CREATE TABLE "boats" (
     boat_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -19,13 +19,13 @@ CREATE TABLE "Boat" (
     price_per_hour NUMERIC(10,2),
     location VARCHAR(100),
     photo_url VARCHAR(255),
-    owner_id INT NOT NULL REFERENCES "User"(user_id)
+    owner_id INT NOT NULL REFERENCES "users"(user_id)
 );
 
 -- Boat Availability
-CREATE TABLE "BoatAvailability" (
+CREATE TABLE "boats_availability" (
     availability_id SERIAL PRIMARY KEY,
-    boat_id INT NOT NULL REFERENCES "Boat"(boat_id),
+    boat_id INT NOT NULL REFERENCES "boats"(boat_id),
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL
 );
@@ -33,10 +33,10 @@ CREATE TABLE "BoatAvailability" (
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- Bookings
-CREATE TABLE "Booking" (
+CREATE TABLE "bookings" (
     booking_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES "User"(user_id),
-    boat_id INT NOT NULL REFERENCES "Boat"(boat_id),
+    user_id INT NOT NULL REFERENCES "users"(user_id),
+    boat_id INT NOT NULL REFERENCES "boats"(boat_id),
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     status VARCHAR(20) DEFAULT 'pending',
@@ -44,42 +44,42 @@ CREATE TABLE "Booking" (
 );
 
 -- Reviews
-CREATE TABLE "Review" (
+CREATE TABLE "reviews" (
     review_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES "User"(user_id),
-    boat_id INT NOT NULL REFERENCES "Boat"(boat_id),
+    user_id INT NOT NULL REFERENCES "users"(user_id),
+    boat_id INT NOT NULL REFERENCES "boats"(boat_id),
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     date TIMESTAMP DEFAULT NOW()
 );
 
 -- Payments
-CREATE TABLE "Payment" (
+CREATE TABLE "payments" (
     payment_id SERIAL PRIMARY KEY,
-    booking_id INT NOT NULL REFERENCES "Booking"(booking_id),
+    booking_id INT NOT NULL REFERENCES "bookings"(booking_id),
     amount NUMERIC(10,2),
     status VARCHAR(20) DEFAULT 'pending',
     payment_date TIMESTAMP
 );
 
 -- Messages
-CREATE TABLE "Message" (
+CREATE TABLE "messages" (
     message_id SERIAL PRIMARY KEY,
-    booking_id INT NOT NULL REFERENCES "Booking"(booking_id),
-    sender_id INT NOT NULL REFERENCES "User"(user_id),
+    booking_id INT NOT NULL REFERENCES "bookings"(booking_id),
+    sender_id INT NOT NULL REFERENCES "users"(user_id),
     content TEXT,
     sent_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Indexes
-CREATE INDEX idx_boat_location_type ON "Boat"(location, type);
-CREATE INDEX idx_booking_boat_dates ON "Booking"(boat_id, start_date, end_date);
-CREATE INDEX idx_booking_user ON "Booking"(user_id);
-CREATE INDEX idx_payment_status ON "Payment"(status);
-CREATE INDEX idx_review_boat ON "Review"(boat_id);
+CREATE INDEX idx_boat_location_type ON "boats"(location, type);
+CREATE INDEX idx_booking_boat_dates ON "bookings"(boat_id, start_date, end_date);
+CREATE INDEX idx_booking_user ON "bookings"(user_id);
+CREATE INDEX idx_payment_status ON "payments"(status);
+CREATE INDEX idx_review_boat ON "reviews"(boat_id);
 
 -- Constraint to prevent overlapping bookings
-ALTER TABLE "Booking"
+ALTER TABLE "bookings"
 ADD CONSTRAINT booking_no_overlap
 EXCLUDE USING gist (
     boat_id WITH =,
