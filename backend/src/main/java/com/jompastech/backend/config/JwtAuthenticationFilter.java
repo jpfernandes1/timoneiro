@@ -25,13 +25,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Sua lógica de validação JWT aqui
+        // JWT validation
         String token = extractToken(request);
 
         if (token != null && jwtUtil.isValidToken(token)) {
-            // Autenticar usuário
+            // User authentication
             String username = jwtUtil.getUsername(token);
-            // ... sua lógica de autenticação
         }
 
         filterChain.doFilter(request, response);
