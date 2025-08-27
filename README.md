@@ -49,46 +49,28 @@ Verifique se o banco está populado e funcionando conforme esperado.
 
 ## Configurações Gerais
 
-### Perfis e Banco de Dados
-
-Este projeto utiliza Spring Boot com perfis separados (dev, test e prod) 
-para organizar as configurações de banco de dados de forma segura e prática. 
-
-O objetivo é manter as credenciais fora do Git e facilitar o desenvolvimento local sem precisar 
-setar variáveis de ambiente manualmente. 
-
-Criamos o arquivo `application.yml` principal com configurações comuns a todos os perfis e
-placeholders para produção, e importamos opcionalmente um arquivo `application-local.yml` 
-para desenvolvimento local. 
+Criamos o arquivo `application.yml` principal com configurações comuns e importamos opcionalmente um arquivo `application-local.yml` 
+contendo usuario e senha. Esta configuração traz vários benefícios: segurança (senhas não entram no Git), flexibilidade
+(caso queira separar perfis em dev, test e prod) e praticidade (desenvolvimento local sem precisar setar
+variáveis de ambiente toda vez).
 
 O arquivo `application-local.yml` contém as credenciais de desenvolvimento local e está listado 
 no `.gitignore` para não vazar senhas. 
-
-Os perfis disponíveis são: dev (PostgreSQL local para desenvolvimento), 
-test (H2 in-memory para testes automatizados) e prod (PostgreSQL de produção usando variáveis de ambiente).
 
 Para rodar localmente, clone o repositório com `git clone <URL_DO_REPOSITORIO>` e entre na pasta com 
 `cd timoneiro`. 
 
 Em seguida, crie o arquivo `application-local.yml` na raiz do projeto com suas credenciais locais 
 (não comitar), por exemplo:  
-`spring:`  
-`  profiles: dev`  
+`spring:`   
 `  datasource:`  
-`    url: jdbc:postgresql://localhost:5432/timoneiro_dev`  
+`    url: jdbc:postgresql://localhost:5432/boat_rental`  
 `    username: usuario_dev`  
-`    password: senha_dev`.  
+`    password: senha_dev`.
 
 Depois, rode a aplicação no perfil dev (padrão) com `mvn spring-boot:run`. 
 
-O Spring Boot carregará automaticamente o `application-local.yml` e usará o banco de desenvolvimento. 
-
-Para rodar outro perfil, como produção, use `java -jar timoneiro.jar --spring.profiles.active=prod`, 
-garantindo que as variáveis de ambiente do servidor estejam definidas (PROD_DB_HOST, PROD_DB_USER, PROD_DB_PASS etc.).
-
-Esta configuração traz vários benefícios: segurança (senhas não entram no Git), flexibilidade 
-(perfis separados para dev, test e prod) e praticidade (desenvolvimento local sem precisar setar 
-variáveis de ambiente toda vez).
+O Spring Boot carregará automaticamente o `application-local.yml` . 
 
 ## **Modelo de Banco de Dados**
 
@@ -156,3 +138,53 @@ Utiliza princípios **relacionais**, com relacionamentos, índices e constraints
 3. **Integridade de Dados:** Constraints em campos únicos (email), limites de rating e campos não nulos.
 4. **Extensibilidade:** Novos recursos (promoções, papéis adicionais) podem ser adicionados sem mudanças significativas no esquema.
 5. **Compatibilidade:** Script SQL para PostgreSQL, pronto para Flyway, permitindo controle de versão e deploy seguro.
+
+
+### Padrão de Projeto Utilizado:
+
+No backend do projeto, adotamos o padrão **MVC (Model-View-Controller)**.
+#### Justificativa para usar MVC
+
+- **Separação de responsabilidades:** Cada camada tem uma função clara, evitando misturar lógica de negócio, acesso a dados e tratamento de requisições.
+- **Manutenção facilitada:** Mudanças na lógica de negócio ou na forma de persistência não afetam o Controller.
+- **Testabilidade:** Serviços podem ser testados isoladamente sem depender do Controller ou do banco de dados.
+- **Escalabilidade:** O projeto pode crescer sem comprometer a organização do código.
+
+#### Componentes do MVC no nosso projeto
+
+- **Model (Entidades e DTOs):**  
+  Representa os dados do sistema.
+   - `User`, `Boat`, `Address`, `Booking`, etc.
+   - DTOs (`UserRequestDTO`, `UserResponseDTO`) para expor apenas os dados necessários ao front-end, evitando o vazamento de informações sensíveis.
+
+- **Controller:**  
+  Responsável por receber as requisições HTTP, delegar a lógica para os serviços e retornar respostas.  
+  Ele não deve conter lógica de negócio, apenas tratar requisições, respostas e erros.
+
+- **Service:**  
+  Camada intermediária onde a **lógica de negócio** é implementada.  
+  Recebe dados do controller, manipula entidades, chama repositórios e retorna resultados.  
+  Exemplo: `UserService` que salva, busca e deleta usuários.
+
+- **Repository:**  
+  Responsável pela comunicação com o banco de dados usando JPA/Hibernate.  
+  Interfaces que estendem `JpaRepository` permitem realizar operações CRUD sem precisar escrever SQL manualmente.
+
+
+
+#### Integração com MapStruct
+
+O uso do **MapStruct** se encaixa perfeitamente nesse padrão:
+- Os **mappers** atuam como uma ponte entre Model e DTOs, mantendo o Controller e o Service livres da lógica de conversão de dados.
+- Isso reforça a separação de responsabilidades e torna o código mais limpo e seguro.
+
+
+## Notas do Desenvolvedor
+
+Pontos de evolução pessoal nesse projeto:
+
+* Entendimento maior sobre autenticação com JWT
+
+   Pontos relevantes: 
+        - cors;
+        - Problemas com versões do Spring e JDK incompatíveis com algumas dependencias;
