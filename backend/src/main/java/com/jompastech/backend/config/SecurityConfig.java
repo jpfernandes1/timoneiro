@@ -1,5 +1,6 @@
 package com.jompastech.backend.config;
 
+import com.jompastech.backend.security.filter.JwtAuthenticationFilter;
 import com.jompastech.backend.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,7 @@ public class SecurityConfig {
                                 "/api/users/register",
                                 "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/api/boats/**").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
