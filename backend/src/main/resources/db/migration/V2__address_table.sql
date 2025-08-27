@@ -2,7 +2,7 @@
 CREATE TABLE "addresses" (
     address_id SERIAL PRIMARY KEY,
     cep VARCHAR(9) NOT NULL,
-    number INT,
+    number VARCHAR(10),
     street VARCHAR(128) NOT NULL,
     neighborhood VARCHAR(40) NOT NULL,
     city VARCHAR(40) NOT NULL,
