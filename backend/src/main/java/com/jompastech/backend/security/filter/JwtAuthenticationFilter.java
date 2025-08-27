@@ -1,4 +1,4 @@
-package com.jompastech.backend.config;
+package com.jompastech.backend.security.filter;
 
 import com.jompastech.backend.security.util.JwtUtil;
 import com.jompastech.backend.security.service.UserDetailsServiceImpl;
