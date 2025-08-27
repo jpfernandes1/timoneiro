@@ -82,7 +82,7 @@ Utiliza princípios **relacionais**, com relacionamentos, índices e constraints
 
 ---
 
-### **Entidades e Propósito**
+### **Entidades**
 
 1. **User (Usuário)**
     - Armazena todos os usuários do sistema (clientes e proprietários de barcos).
@@ -139,8 +139,7 @@ Utiliza princípios **relacionais**, com relacionamentos, índices e constraints
 4. **Extensibilidade:** Novos recursos (promoções, papéis adicionais) podem ser adicionados sem mudanças significativas no esquema.
 5. **Compatibilidade:** Script SQL para PostgreSQL, pronto para Flyway, permitindo controle de versão e deploy seguro.
 
-
-### Padrão de Projeto Utilizado:
+## Padrão de Projeto
 
 No backend do projeto, adotamos o padrão **MVC (Model-View-Controller)**.
 #### Justificativa para usar MVC
@@ -177,6 +176,31 @@ No backend do projeto, adotamos o padrão **MVC (Model-View-Controller)**.
 O uso do **MapStruct** se encaixa perfeitamente nesse padrão:
 - Os **mappers** atuam como uma ponte entre Model e DTOs, mantendo o Controller e o Service livres da lógica de conversão de dados.
 - Isso reforça a separação de responsabilidades e torna o código mais limpo e seguro.
+
+### EndPoints
+
+## Authentication & User Endpoints
+
+Esta seção documenta todos os endpoints relacionados à autenticação e gerenciamento de usuários do sistema.
+
+| Endpoint | Method | Access | Request Body | Response |
+|----------|--------|--------|--------------|----------|
+| `/api/auth/login` | POST | Public | `{ "email": "user@example.com", "password": "string" }` | `{ "userId": 1, "nome": "João", "email": "user@example.com", "token": "jwt-token-aqui" }` |
+| `/api/users/register` | POST | Public | `{ "name": "João", "email": "joao@example.com", "password": "senha123", "telefone": "11999999999" }` | `{ "userId": 2, "nome": "João", "email": "joao@example.com", "telefone": "11999999999", "criadoEm": "2025-08-27T12:00:00", "token": "jwt-token-aqui" }` |
+| `/api/users` | POST | Admin | `{ "name": "Maria", "email": "maria@example.com", "password": "senha123", "telefone": "11988888888" }` | `{ "userId": 3, "nome": "Maria", "email": "maria@example.com", "telefone": "11988888888", "criadoEm": "2025-08-27T12:05:00", "token": "jwt-token-aqui" }` |
+| `/api/users` | GET | Admin | - | `[ { "id": 1, "nome": "João", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" }, { "id": 3, "nome": "Maria", "telefone": "11988888888", "email": "maria@example.com", "criadoEm": "2025-08-27T12:05:00" } ]` |
+| `/api/users/search?name={name}` | GET | Admin | - | `[ { "id": 1, "nome": "João", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" } ]` |
+| `/api/users/email/{email}` | GET | Admin | - | `{ "id": 1, "nome": "João", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" }` |
+| `/api/users/{id}` | PUT | Admin ou Self | `{ "name": "João Atualizado", "email": "joao@example.com", "telefone": "11999999999" }` | `{ "id": 1, "nome": "João Atualizado", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" }` |
+| `/api/users/{id}` | DELETE | Admin | - | `204 No Content` |
+| `/api/users/profile` | GET | Authenticated | - | `{ "id": 1, "nome": "João", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" }` |
+| `/api/users/profile` | PUT | Authenticated | `{ "name": "João Atualizado", "email": "joao@example.com", "telefone": "11999999999" }` | `{ "id": 1, "nome": "João Atualizado", "telefone": "11999999999", "email": "joao@example.com", "criadoEm": "2025-08-27T12:00:00" }` |
+
+> **Observações:**
+> - "Admin" significa que apenas usuários com `ROLE_ADMIN` podem acessar.
+> - "Self" significa que o usuário pode acessar seu próprio recurso (perfil ou atualização) mesmo sem ser admin.
+> - `AuthResponseDTO` contém `userId`, `nome`, `email`, e `token`.
+> - `UserResponseDTO` contém `id`, `nome`, `telefone`, `email` e `criadoEm`.
 
 
 ## Notas do Desenvolvedor
