@@ -177,11 +177,9 @@ O uso do **MapStruct** se encaixa perfeitamente nesse padrão:
 - Os **mappers** atuam como uma ponte entre Model e DTOs, mantendo o Controller e o Service livres da lógica de conversão de dados.
 - Isso reforça a separação de responsabilidades e torna o código mais limpo e seguro.
 
-### EndPoints
+# EndPoints
 
-## Authentication & User Endpoints
-
-Esta seção documenta todos os endpoints relacionados à autenticação e gerenciamento de usuários do sistema.
+## Authentication & User
 
 | Endpoint | Method | Access | Request Body | Response |
 |----------|--------|--------|--------------|----------|
@@ -201,6 +199,24 @@ Esta seção documenta todos os endpoints relacionados à autenticação e geren
 > - "Self" significa que o usuário pode acessar seu próprio recurso (perfil ou atualização) mesmo sem ser admin.
 > - `AuthResponseDTO` contém `userId`, `nome`, `email`, e `token`.
 > - `UserResponseDTO` contém `id`, `nome`, `telefone`, `email` e `criadoEm`.
+
+### 🚤 Boats Endpoints
+
+| Endpoint | Method | Access | Request Body | Response |
+|----------|--------|--------|--------------|----------|
+| `/api/boats` | GET | Public | - | `[ { "id": 1, "name": "Sea Ray 510", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, "photoUrl": "https://example.com/sea-ray.jpg", "ownerId": 5, "addressId": 1 }, ... ]` |
+| `/api/boats/{id}` | GET | Public | - | `{ "id": 1, "name": "Sea Ray 510", "description": "Luxuoso iate motorizado...", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, "photoUrl": "https://example.com/sea-ray.jpg", "ownerId": 5, "addressId": 1 }` |
+| `/api/boats` | POST | **ROLE_OWNER** | `{ "name": "Novo Barco", "description": "Descrição...", "type": "Sailboat", "capacity": 6, "pricePerHour": 200.00, "photoUrl": "https://...", "ownerId": 5, "addressId": 1 }` | `{ "id": 11, "name": "Novo Barco", "description": "Descrição...", "type": "Sailboat", "capacity": 6, "pricePerHour": 200.00, "photoUrl": "https://...", "ownerId": 5, "addressId": 1 }` |
+| `/api/boats/{id}` | PUT | **ROLE_OWNER** (dono) | `{ "name": "Barco Atualizado", "pricePerHour": 380.00, ... }` | `{ "id": 1, "name": "Barco Atualizado", "description": "...", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 380.00, ... }` |
+| `/api/boats/{id}` | DELETE | **ROLE_OWNER** (dono) | - | `204 No Content` |
+| `/api/boats/type/{type}` | GET | Public | - | `[ { "id": 2, "name": "Jeanneau 64", "type": "Sailing Yacht", "capacity": 8, "pricePerHour": 280.00, ... }, ... ]` |
+| `/api/boats/owner/{ownerId}` | GET | **ROLE_OWNER** (dono) ou **ROLE_ADMIN** | - | `[ { "id": 1, "name": "Sea Ray 510", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, ... }, ... ]` |
+
+
+
+
+
+
 
 
 ## Notas do Desenvolvedor
