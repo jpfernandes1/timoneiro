@@ -1,9 +1,13 @@
 package com.jompastech.backend.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Data
+@Table(name="boats_availability")
 public class BoatAvailability {
 
     @Id

@@ -3,12 +3,14 @@ package com.jompastech.backend.model.entity;
 import com.jompastech.backend.model.enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.annotation.TypeAlias;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Table(name= "bookings")
 public class Booking {
 
     @Id

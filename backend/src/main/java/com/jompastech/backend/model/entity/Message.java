@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Table(name = "messages")
 public class Message {
 
     @Id
