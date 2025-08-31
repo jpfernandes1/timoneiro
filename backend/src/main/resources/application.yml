@@ -21,3 +21,14 @@ spring:
 
   config:
     import: optional:application-local.yml  #  local file with credentials
+
+  logging:
+    level:
+      com.jompastech.backend.security.filter.JwtAuthenticationFilter: DEBUG
+      com.jompastech.backend.security.service.UserDetailsServiceImpl: DEBUG
+      com.jompastech.backend.repository: DEBUG
+      org.springframework.security: DEBUG
+    file:
+      name: logs/application.log
+    pattern:
+      console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
