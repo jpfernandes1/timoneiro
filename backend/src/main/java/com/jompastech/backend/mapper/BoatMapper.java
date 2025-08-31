@@ -6,8 +6,6 @@ import com.jompastech.backend.model.entity.Boat;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.Optional;
-
 @Mapper(componentModel = "spring")
 public interface BoatMapper {
 
