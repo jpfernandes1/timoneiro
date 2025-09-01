@@ -16,9 +16,13 @@ public class BoatAvailability {
     private long id;
 
     @ManyToOne
-    private Boat boat_id;
+    @JoinColumn(name = "boat_id")
+    private Boat boat;
 
-    private LocalDateTime start_date;
-    private LocalDateTime end_date;
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
 
 }
