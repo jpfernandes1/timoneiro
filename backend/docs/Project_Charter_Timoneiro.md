@@ -121,7 +121,7 @@ Criar o "Airbnb dos barcos" - um marketplace seguro e intuitivo para aluguel de 
 - [ ] Dashboard de gestão
 
 #### 💰 Módulo de Pagamentos
-- [ ] Integração com gateway de pagamento (Stripe, PagSeguro)
+- [ ] Integração com gateway de pagamento (PagSeguro)
 - [ ] Pagamentos seguros com proteção ao consumidor
 - [ ] Sistema de caução/depósito seguros
 - [ ] Sistema de reembolsos
@@ -268,7 +268,7 @@ Criar o "Airbnb dos barcos" - um marketplace seguro e intuitivo para aluguel de 
 - **Database**: PostgreSQL com PostGIS para geolocalização
 - **Cache**: Redis para sessões e performance
 - **Search**: Elasticsearch para buscas avançadas
-- **Storage**: AWS S3 para mídia e documentos
+- **Storage**: CloudFlare R2
 - **Mobile**: React Native (proximos passos)
 
-*Documento criado em [15/08/2025] - Versão 1.0*
+*Documento editado em [02/10/2025] - Versão 1.1*
