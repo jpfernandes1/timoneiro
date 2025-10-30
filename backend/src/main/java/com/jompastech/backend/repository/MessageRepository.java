@@ -7,39 +7,30 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Repository for Message entity operations with context-specific query methods.
- *
- * Implements separate query strategies for booking-related and advertisement-related
- * messages to maintain clear separation of concerns and optimize database performance.
- * This approach avoids complex conditional queries in favor of explicit, focused
- * methods that are easier to maintain and optimize with database indexes.
+ * Repository for Message entity operations.
  */
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     /**
-     * Retrieves all messages associated with a specific booking for post-booking conversations.
+     * Finds all messages associated with a specific booking.
      *
-     * Used when displaying message history for confirmed bookings, allowing sailors
-     * and boat owners to communicate about specific reservation details, changes,
-     * or post-booking arrangements. Results are automatically ordered by sent date
-     * to maintain chronological conversation flow.
+     * Used for post-booking conversations where messages are related
+     * to an existing boat reservation.
      *
-     * @param bookingId the identifier of the booking to retrieve messages for
-     * @return chronologically ordered list of messages related to the specified booking
+     * @param bookingId the ID of the booking to search messages for
+     * @return list of messages associated with the booking
      */
     List<Message> findByBookingId(Long bookingId);
 
     /**
-     * Retrieves all messages associated with a specific boat advertisement for pre-booking inquiries.
+     * Finds all messages associated with a specific boat.
      *
-     * Supports initial conversations between potential sailors and boat owners before
-     * booking confirmation. Enables discussion of availability, boat features, pricing,
-     * and other pre-booking considerations. Message ordering preserves the natural
-     * conversation timeline for easy follow-up.
+     * Used for pre-booking conversations where users are discussing
+     * potential reservations before booking confirmation.
      *
-     * @param adId the identifier of the boat advertisement to retrieve messages for
-     * @return chronologically ordered list of messages related to the specified advertisement
+     * @param boatId the ID of the boat to search messages for
+     * @return list of messages associated with the boat
      */
-    List<Message> findByAdId(Long adId);
+    List<Message> findByBoatId(Long boatId);
 }

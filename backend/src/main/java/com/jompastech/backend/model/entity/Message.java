@@ -39,6 +39,15 @@ public class Message {
     private Booking booking;
 
     /**
+     * Boat associated with the message for pre-booking conversations.
+     * When provided, indicates the conversation is about a specific boat
+     * before a booking is confirmed.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "boat_id")
+    private Boat boat;
+
+    /**
      * User who sent the message.
      *
      * Can be either the sailor or the boat owner. Role differentiation

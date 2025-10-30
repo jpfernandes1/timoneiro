@@ -53,5 +53,11 @@ public record MessageResponseDTO(
          * post-booking conversation. When null, indicates a
          * pre-booking inquiry about an advertisement.
          */
-        Long bookingId
+        Long bookingId,
+
+        /**
+         * Optional boat ID associated with the message.
+         * Null for post-booking conversations.
+         */
+        Long boatId
 ) {}
