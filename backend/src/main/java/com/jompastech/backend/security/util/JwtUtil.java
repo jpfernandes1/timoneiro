@@ -15,24 +15,24 @@ public class JwtUtil {
     private final Long expiration = 86400000L; // 24 horas em milissegundos
 
     public JwtUtil() {
-        // ✅ Gera automaticamente uma chave segura de 512 bits
+        // Generates a 512 bits keys
         this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
         System.out.println("✅ JWT Secret Key generated successfully");
     }
 
     /**
-     * Gera um token JWT para o usuário
+     * Generates a JWT toker for the user
      */
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     /**
-     * Valida se um token JWT é válido
+     * Checks if the JWT token is valid
      */
     public boolean isValidToken(String token) {
         try {
@@ -47,9 +47,9 @@ public class JwtUtil {
     }
 
     /**
-     * Extrai o username (email) de um token JWT
+     * Extracts the  email from a JWT token
      */
-    public String getUsername(String token) {
+    public String getEmail(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -59,7 +59,7 @@ public class JwtUtil {
     }
 
     /**
-     * Extrai a data de expiração de um token JWT
+     * Extracts the expiration date from the JWT Token
      */
     public Date getExpirationDate(String token) {
         return Jwts.parserBuilder()
@@ -71,7 +71,7 @@ public class JwtUtil {
     }
 
     /**
-     * Verifica se um token JWT está expirado
+     * Checks if the JWT token is expired
      */
     public boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDate(token);

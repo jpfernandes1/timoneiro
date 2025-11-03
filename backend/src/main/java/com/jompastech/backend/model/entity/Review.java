@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Min;
 
 @Entity
 @Data
+@Table(name = "reviews")
 public class Review {
 
     @Id

@@ -1,6 +1,96 @@
 # Timoneiro 
 
+## 🎯 **Stack Escolhida**
+- **Java + Spring Boot** - API REST
+- **PostgreSQL** - Dados relacionais e metadados
+- **CloudFlare R2** - Armazenamento de imagens e vídeos
+- **Railway/Render** - Deploy (free tier)
 
+## 🔄 **ANÁLISE DE TRADE-OFFS**
+
+### **🏗️ Arquitetura "PostgreSQL + R2"**
+| **Vantagens** | **Desvantagens** |
+|---------------|------------------|
+| Separação de concerns clara | Complexidade aumentada |
+| Performance otimizada | Mais pontos de falha |
+| Custos previsíveis | Consistência distribuída complexa |
+| Escalabilidade independente | Backup precisa ser coordenado |
+
+### **🗄️ PostgreSQL**
+| **Prós** | **Contras** |
+|----------|-------------|
+| ACID guarantees | Overkill para volume baixo |
+| Relationships e constraints | Complexidade de configuração |
+| Migrations robustas | Performance em alta concorrência precisa tuning |
+| JSONB para flexibilidade | Deployment gratuito tem limites |
+
+Escala verticalmente bem, mas precisa de replicação para alta disponibilidade.
+
+### **☁️ CloudFlare R2**
+| **Prós** | **Contras** |
+|----------|-------------|
+| Zero custo de egress | Vendor lock-in leve |
+| 10GB free generoso | Menos maduro que AWS S3 |
+| Integração com CDN nativa | API menos documentada |
+| Rate limiting básico incluído | Menos opções de segurança avançada |
+
+Em produção usaria AWS S3 + CloudFront + WAF para proteção enterprise.
+
+### **⚙️ Spring Boot**
+| **Prós** | **Contras** |
+|----------|-------------|
+| Ecossistema maduro | Startup time mais lento |
+| Segurança robusta | Memory footprint maior |
+| Production-ready por padrão | Curva de aprendizado |
+| Boa documentação e comunidade | Overengineering para CRUD simples |
+
+É padrão enterprise, mas pode ser pesado para microsserviços leves;
+
+## 🚨 **PONTOS DE ATENÇÃO**
+
+### **Riscos Técnicos:**
+- Consistência entre PostgreSQL e R2 - Deletar embarcação deve deletar imagens
+- Rate limiting necessário - Proteger contra uploads maliciosos
+- Backup coordenado - PostgreSQL dump + R2 bucket sync
+- Monitoramento distribuído
+
+### **Riscos de Custo:**
+- PostgreSQL gratuito tem limites (10GB)
+- R2 free tier (10GB storage)
+- Deploy platform pode cobrar por build minutes
+
+## 🛡️ **MITIGAÇÕES IMPLEMENTADAS**
+- Validações de tamanho de arquivo no backend
+- Limites por usuário no upload
+- Monitoramento básico de storage
+- Arquitetura preparada para migração
+
+
+## 🎯 **JUSTIFICATIVA DA ESCOLHA**
+**Para Portfolio:**
+- Arquitetura production-ready
+- Custo zero durante desenvolvimento
+- Stack valorizada no mercado
+- Base para evolução futura
+
+**No Mundo Real:**
+- Arquitetura comprovada em escala
+- Separação adequada de concerns
+- Facilidade de contratação de devs
+- Ecossistema maduro de ferramentas
+
+# ⚖️ Trade-offs: Sistema de pagamentos
+
+O **PagSeguro** permite demonstrar a integração real com um gateway de pagamento brasileiro, usando seu ambiente de Sandbox sem custos e com total segurança.
+
+✅ Vantagens:
+
+- Sandbox para testes: Permite simular todo o fluxo de pagamento sem usar dados ou dinheiro real
+- Foco no Brasil: Demonstra conhecimento do mercado local, um diferencial para oportunidades domésticas
+- Documentação em Português: Facilita a implementação e entendimento
+
+⚠️ Desvantagens/Riscos:
+- Menor reconhecimento global: Stripe teria maior escalabilidade para mercado internacional
 
 ## **Como reproduzir na sua máquina**
 
@@ -177,11 +267,9 @@ O uso do **MapStruct** se encaixa perfeitamente nesse padrão:
 - Os **mappers** atuam como uma ponte entre Model e DTOs, mantendo o Controller e o Service livres da lógica de conversão de dados.
 - Isso reforça a separação de responsabilidades e torna o código mais limpo e seguro.
 
-### EndPoints
+# EndPoints
 
-## Authentication & User Endpoints
-
-Esta seção documenta todos os endpoints relacionados à autenticação e gerenciamento de usuários do sistema.
+## Authentication & User
 
 | Endpoint | Method | Access | Request Body | Response |
 |----------|--------|--------|--------------|----------|
@@ -201,6 +289,24 @@ Esta seção documenta todos os endpoints relacionados à autenticação e geren
 > - "Self" significa que o usuário pode acessar seu próprio recurso (perfil ou atualização) mesmo sem ser admin.
 > - `AuthResponseDTO` contém `userId`, `nome`, `email`, e `token`.
 > - `UserResponseDTO` contém `id`, `nome`, `telefone`, `email` e `criadoEm`.
+
+### 🚤 Boats Endpoints
+
+| Endpoint | Method | Access | Request Body | Response |
+|----------|--------|--------|--------------|----------|
+| `/api/boats` | GET | Public | - | `[ { "id": 1, "name": "Sea Ray 510", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, "photoUrl": "https://example.com/sea-ray.jpg", "ownerId": 5, "addressId": 1 }, ... ]` |
+| `/api/boats/{id}` | GET | Public | - | `{ "id": 1, "name": "Sea Ray 510", "description": "Luxuoso iate motorizado...", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, "photoUrl": "https://example.com/sea-ray.jpg", "ownerId": 5, "addressId": 1 }` |
+| `/api/boats` | POST | **ROLE_OWNER** | `{ "name": "Novo Barco", "description": "Descrição...", "type": "Sailboat", "capacity": 6, "pricePerHour": 200.00, "photoUrl": "https://...", "ownerId": 5, "addressId": 1 }` | `{ "id": 11, "name": "Novo Barco", "description": "Descrição...", "type": "Sailboat", "capacity": 6, "pricePerHour": 200.00, "photoUrl": "https://...", "ownerId": 5, "addressId": 1 }` |
+| `/api/boats/{id}` | PUT | **ROLE_OWNER** (dono) | `{ "name": "Barco Atualizado", "pricePerHour": 380.00, ... }` | `{ "id": 1, "name": "Barco Atualizado", "description": "...", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 380.00, ... }` |
+| `/api/boats/{id}` | DELETE | **ROLE_OWNER** (dono) | - | `204 No Content` |
+| `/api/boats/type/{type}` | GET | Public | - | `[ { "id": 2, "name": "Jeanneau 64", "type": "Sailing Yacht", "capacity": 8, "pricePerHour": 280.00, ... }, ... ]` |
+| `/api/boats/owner/{ownerId}` | GET | **ROLE_OWNER** (dono) ou **ROLE_ADMIN** | - | `[ { "id": 1, "name": "Sea Ray 510", "type": "Motor Yacht", "capacity": 10, "pricePerHour": 350.00, ... }, ... ]` |
+
+
+
+
+
+
 
 
 ## Notas do Desenvolvedor

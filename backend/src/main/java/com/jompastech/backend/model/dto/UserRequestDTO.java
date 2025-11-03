@@ -18,7 +18,6 @@ public class UserRequestDTO {
     @Size(max = 100)
     private String email;
 
-    // 8–72 por conta do limite do BCrypt (não seja mão aberta com senha)
     @NotBlank @Size(min = 8, max = 72)
     private String password;
 
