@@ -35,5 +35,3 @@ COMMENT ON CONSTRAINT fk_boat_address ON "boats" IS 'Links boats to their physic
 -- 4. Remove legacy location column after data migration
 ALTER TABLE "boats"
 DROP COLUMN location;
-
-COMMENT ON COLUMN "boats".location IS 'Legacy location field replaced by structured address';
