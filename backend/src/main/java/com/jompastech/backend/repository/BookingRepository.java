@@ -45,4 +45,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findConflictingBookings(@Param("boat") Boat boat,
                                           @Param("startDate") LocalDateTime startDate,
                                           @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Checks if a completed booking exists for the user-boat combination.
+     * Used for review eligibility validation.
+     */
+    boolean existsByUserIdAndBoatIdAndStatus(Long userId, Long boatId, String status);
+
+    /**
+     * Counts completed bookings for user-boat combination.
+     * Provides additional business context for validation.
+     */
+    long countByUserIdAndBoatIdAndStatus(Long userId, Long boatId, String status);
 }
