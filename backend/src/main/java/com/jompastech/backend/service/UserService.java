@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,18 @@ public class UserService {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    /**
+     * Finds a user by ID without throwing exceptions for query operations.
+     * Used by other services that need to validate user existence.
+     *
+     * @param userId the user identifier
+     * @return Optional containing user if found, empty otherwise
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findById(Long userId) {
+        return userRepository.findById(userId);
     }
 
     public AuthResponseDTO register(UserRequestDTO dto) {
