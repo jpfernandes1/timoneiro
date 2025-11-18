@@ -62,12 +62,9 @@ public class ReviewService {
      * @throws EntityNotFoundException if referenced entities don't exist
      */
     public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequest, Long authenticatedUserId) {
-        // Validate user exists and is authorized
-        User user = userService.findById(authenticatedUserId);
 
-        // Validate boat exists
-        Boat boat = boatService.findByIdOptional(reviewRequest.getBoatId())
-                .orElseThrow(() -> new EntityNotFoundException("Boat not found with id: " + reviewRequest.getBoatId()));
+        User user = userService.findById(authenticatedUserId);
+        Boat boat = boatService.findById(reviewRequest.getBoatId());
 
         // Business rule: user must have rented this boat to review it
         validateUserRentedBoat(authenticatedUserId, reviewRequest.getBoatId());
