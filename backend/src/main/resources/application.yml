@@ -32,3 +32,18 @@ spring:
       name: logs/application.log
     pattern:
       console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  payment:
+    pagseguro:
+      sandbox:
+        url: "https://sandbox.pagseguro.uol.com.br/v2/transactions"
+        token: "${PAGSEGURO_SANDBOX_TOKEN:dev_token_${random.value}}"
+        timeout-ms: 10000
+      production:
+        enabled: false
+        url: "https://ws.pagseguro.uol.com.br/v2/transactions"
+        token: "${PAGSEGURO_PRODUCTION_TOKEN:}"
+    policies:
+      max-retries: 3
+      retry-delay-ms: 1000
