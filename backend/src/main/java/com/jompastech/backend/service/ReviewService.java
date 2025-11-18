@@ -63,8 +63,7 @@ public class ReviewService {
      */
     public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequest, Long authenticatedUserId) {
         // Validate user exists and is authorized
-        User user = userService.findById(authenticatedUserId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + authenticatedUserId));
+        User user = userService.findById(authenticatedUserId);
 
         // Validate boat exists
         Boat boat = boatService.findByIdOptional(reviewRequest.getBoatId())

@@ -45,11 +45,12 @@ public class UserService {
      * Used by other services that need to validate user existence.
      *
      * @param userId the user identifier
-     * @return Optional containing user if found, empty otherwise
+     * @return User if found, Exception otherwise
      */
     @Transactional(readOnly = true)
-    public Optional<User> findById(Long userId) {
-        return userRepository.findById(userId);
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
     }
 
     public AuthResponseDTO register(UserRequestDTO dto) {
