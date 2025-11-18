@@ -6,8 +6,10 @@ import com.jompastech.backend.model.dto.UserResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.repository.BoatRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,18 @@ public class BoatService {
     public Boat findById(Long id) {
         return boatRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Boat not found!"));
+    }
+
+    /**
+     * Finds a boat by ID without throwing exceptions for query operations.
+     * Used by other services that need to validate boat existence without exceptions.
+     *
+     * @param boatId the boat identifier
+     * @return Optional containing boat if found, empty otherwise
+     */
+    @Transactional(readOnly = true)
+    public Optional<Boat> findByIdOptional(Long boatId) {
+        return boatRepository.findById(boatId);
     }
 
     public List<Boat> findAll() {
