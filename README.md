@@ -228,6 +228,7 @@ Utiliza princípios **relacionais**, com relacionamentos, índices e constraints
 3. **Integridade de Dados:** Constraints em campos únicos (email), limites de rating e campos não nulos.
 4. **Extensibilidade:** Novos recursos (promoções, papéis adicionais) podem ser adicionados sem mudanças significativas no esquema.
 5. **Compatibilidade:** Script SQL para PostgreSQL, pronto para Flyway, permitindo controle de versão e deploy seguro.
+6. **Proteção de dados:** Utilização de basicDTOs como intermediários para não retornar a entidade inteira para os ResponseDTOs.
 
 ## Padrão de Projeto
 
