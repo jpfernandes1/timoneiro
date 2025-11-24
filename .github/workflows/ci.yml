@@ -146,14 +146,22 @@ jobs:
           mvn jacoco:report
           echo "📈 Coverage report generated at target/site/jacoco/"
 
-      # STEP 8: Build JAR for deployment
+      # STEP 8: Upload do relatório
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/target/site/jacoco/
+          retention-days: 30
+
+      # STEP 9: Build JAR for deployment
       - name: 📦 Package application
         run: |
           cd ${{ env.BACKEND_DIR }}
           mvn package -DskipTests
           echo "🎯 Application packaged successfully"
 
-      # STEP 9: Upload JAR as artifact (para deploy posterior)
+      # STEP 10: Upload JAR as artifact (para deploy posterior)
       - name: 📤 Upload backend artifact
         uses: actions/upload-artifact@v4
         with:
