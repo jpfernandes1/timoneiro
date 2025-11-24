@@ -1,11 +1,13 @@
 package com.jompastech.backend.service;
 
 import com.jompastech.backend.mapper.MessageMapper;
+import com.jompastech.backend.mapper.UserMapper;
 import com.jompastech.backend.model.dto.MessageRequestDTO;
 import com.jompastech.backend.model.dto.MessageResponseDTO;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.Message;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.MessageRepository;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.BoatRepository;
@@ -52,12 +54,12 @@ public class MessageService {
 
         validateMessageContext(request);
 
-        var user = userRepository.findById(authenticatedUserId)
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         validateUserPermission(request, authenticatedUserId);
 
-        var message = new Message();
+        Message message = new Message();
         message.setUser(user);
         message.setContent(request.content());
 
@@ -71,7 +73,7 @@ public class MessageService {
             message.setBoat(boat);
         }
 
-        var savedMessage = messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
         log.debug("Message sent successfully with ID: {}", savedMessage.getId());
 
         return messageMapper.toDTO(savedMessage);
