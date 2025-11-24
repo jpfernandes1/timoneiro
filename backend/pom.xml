@@ -215,10 +215,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
-                    <argLine>
-                        -XX:+EnableDynamicAgentLoading
-                        -Djdk.instrument.traceUsage
-                    </argLine>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading -Djdk.instrument.traceUsage</argLine>
                 </configuration>
             </plugin>
             <plugin>

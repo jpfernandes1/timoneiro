@@ -149,17 +149,17 @@ jobs:
       # STEP 8: Verify report exists
       - name: 🔍 Verify report generation
         run: |
-          cd ${{ env.BACKEND_DIR }}
-          echo "=== Checking JaCoCo report ==="
-          ls -la target/site/jacoco/ || echo "❌ JaCoCo directory not found"
-          find target/site/jacoco/ -name "*.html" | head -5 || echo "❌ No HTML files found"
+          echo "=== Checking JaCoCo report from root ==="
+          ls -la ${{ env.BACKEND_DIR }}/target/site/jacoco/ || echo "❌ JaCoCo directory not found"
+          find ${{ env.BACKEND_DIR }}/target/site/jacoco/ -name "*.html" | head -5 || echo "❌ No HTML files found"
+          test -f ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html && echo "✅ Report verified!" || echo "❌ index.html missing"
 
       # STEP 9: Upload coverage report
       - name: 📤 Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: backend/target/site/jacoco/
+          path: ${{ env.BACKEND_DIR }}/target/site/jacoco/
           retention-days: 30
         if: always()  # ← Upload mesmo se testes falharem
 
