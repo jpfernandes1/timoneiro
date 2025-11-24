@@ -47,9 +47,9 @@ name: 🚀 Timoneiro Full Stack CI/CD
 # --- TRIGGERS ---
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 5-setup-unit-tests ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, developer ]
 
 # --- GLOBAL CONFIGURATION ---
 env:
