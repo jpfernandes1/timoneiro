@@ -3,39 +3,38 @@ package com.jompastech.backend.service;
 import com.jompastech.backend.mapper.MessageMapper;
 import com.jompastech.backend.model.dto.MessageRequestDTO;
 import com.jompastech.backend.model.dto.MessageResponseDTO;
-import com.jompastech.backend.model.entity.Booking;
-import com.jompastech.backend.model.entity.Message;
-import com.jompastech.backend.model.entity.Boat;
-import com.jompastech.backend.model.entity.User;
-import com.jompastech.backend.repository.MessageRepository;
-import com.jompastech.backend.repository.BookingRepository;
-import com.jompastech.backend.repository.BoatRepository;
-import com.jompastech.backend.repository.UserRepository;
+import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
+import com.jompastech.backend.model.entity.*;
+import com.jompastech.backend.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for MessageService.
+ * Unit tests for MessageService business logic.
  *
- * Design Decisions:
- * - Uses consistent mocking strategy to respect entity immutability patterns
- * - Focuses on testing service behavior rather than entity construction
- * - Validates business rules and authorization logic without coupling to entity internals
- * - Each test verifies one specific behavior or validation rule
+ * <p>Tests focus on service layer responsibilities:
+ * <ul>
+ *   <li>Business rule validation and enforcement</li>
+ *   <li>Repository coordination and transaction boundaries</li>
+ *   <li>Authorization and permission logic</li>
+ *   <li>DTO mapping delegation</li>
+ * </ul>
  *
- * Trade-offs Accepted:
- * - Mocking may not catch all persistence issues, but provides fast, isolated unit tests
- * - Some domain logic testing is delegated to integration tests
- * - Test clarity is prioritized over testing implementation details
+ * <p>Uses consistent test data initialization to ensure test independence
+ * while minimizing code duplication through shared setup.
  */
 @ExtendWith(MockitoExtension.class)
 class MessageServiceTest {
@@ -58,245 +57,293 @@ class MessageServiceTest {
     @InjectMocks
     private MessageService messageService;
 
+    private User testUser;
+    private User testBoatOwner;
+    private Boat testBoat;
+    private Booking testBooking;
+    private Message testMessage;
+    private MessageRequestDTO testBookingRequestDTO;
+    private MessageRequestDTO testBoatRequestDTO;
+    private MessageResponseDTO testResponseDTO;
+
     /**
-     * Tests successful message creation in booking context.
+     * Initializes comprehensive test data before each test execution.
      *
-     * Key Assertions:
-     * - Message is saved when all validations pass
-     * - User authorization is verified
-     * - Booking context is properly handled
+     * <p>Creates consistent entity relationships and DTOs that represent
+     * real-world scenarios for both booking and boat conversation contexts.
+     */
+    @BeforeEach
+    void setUp() {
+        // User entities - represents different roles in the system
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setName("Test User");
+        testUser.setEmail("user@test.com");
+
+        testBoatOwner = new User();
+        testBoatOwner.setId(2L);
+        testBoatOwner.setName("Boat Owner");
+        testBoatOwner.setEmail("owner@test.com");
+
+        // Boat entity - represents the resource being discussed
+        testBoat = new Boat();
+        testBoat.setId(1L);
+        testBoat.setName("Test Boat");
+        testBoat.setOwner(testBoatOwner);
+
+        // Booking entity - represents confirmed rental context
+        testBooking = mock(Booking.class);
+        lenient().when(testBooking.getId()).thenReturn(1L);
+        lenient().when(testBooking.getUser()).thenReturn(testUser);
+        lenient().when(testBooking.getBoat()).thenReturn(testBoat);
+
+        // Message entity - represents persisted communication
+        testMessage = new Message();
+        testMessage.setId(1L);
+        testMessage.setUser(testUser);
+        testMessage.setContent("Hi, I would like to rent your boat!");
+        testMessage.setSentAt(LocalDateTime.now());
+        testMessage.setBooking(testBooking);
+        testMessage.setBoat(testBoat);
+
+        // Request DTOs - represent API inputs for different contexts
+        testBookingRequestDTO = new MessageRequestDTO(1L, null, "Booking-related message");
+        testBoatRequestDTO = new MessageRequestDTO(null, 1L, "Boat inquiry message");
+
+        // Response DTO - represents API output format
+        UserBasicDTO userBasicDTO = new UserBasicDTO(
+                testUser.getId(),
+                testUser.getName(),
+                testUser.getEmail()
+        );
+        testResponseDTO = new MessageResponseDTO(
+                1L,
+                "Hi, I would like to rent your boat!",
+                testMessage.getSentAt(),
+                userBasicDTO,
+                1L, // bookingId
+                1L  // boatId
+        );
+    }
+
+    /**
+     * Tests successful message creation in booking context with valid permissions.
      *
-     * Design Note: Uses consistent mocking to avoid coupling with entity construction.
-     * This respects the immutable entity design while testing service logic.
+     * <p>Verifies that:
+     * <ul>
+     *   <li>User authorization passes for booking participant</li>
+     *   <li>Message is persisted with correct booking context</li>
+     *   <li>Response DTO contains expected booking identifier</li>
+     * </ul>
      */
     @Test
     void sendMessage_WithValidBookingContext_ShouldSuccess() {
         // Arrange
-        Long userId = 1L;
-        Long bookingId = 1L;
-        MessageRequestDTO request = new MessageRequestDTO(bookingId, null, "Test message");
-
-        // Mock entity interactions without violating immutability
-        User user = mock(User.class);
-        User boatOwner = mock(User.class);
-        Boat boat = mock(Boat.class);
-        Booking booking = mock(Booking.class);
-        Message savedMessage = mock(Message.class);
-        MessageResponseDTO responseDTO = new MessageResponseDTO(1L, "Test message", null, null, bookingId, null);
-
-        // Configure mock behaviors to simulate valid business scenario
-        when(user.getId()).thenReturn(userId);
-        when(booking.getUser()).thenReturn(user);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
-        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
-        when(messageMapper.toDTO(savedMessage)).thenReturn(responseDTO);
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        when(bookingRepository.findById(testBooking.getId())).thenReturn(Optional.of(testBooking));
+        when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
+        when(messageMapper.toDTO(testMessage)).thenReturn(testResponseDTO);
 
         // Act
-        MessageResponseDTO result = messageService.sendMessage(request, userId);
+        MessageResponseDTO result = messageService.sendMessage(testBookingRequestDTO, testUser.getId());
 
         // Assert
-        assertNotNull(result, "Should return response DTO");
-        assertEquals(bookingId, result.bookingId(), "Should maintain booking context");
-        verify(messageRepository, times(1)).save(any(Message.class));
-        verify(bookingRepository, times(2)).findById(1L);
+        assertThat(result).isNotNull();
+        assertThat(result.bookingId()).isEqualTo(testBooking.getId());
+        verify(messageRepository).save(any(Message.class));
+        verify(messageMapper).toDTO(testMessage);
     }
 
     /**
-     * Tests successful message creation in boat context (pre-booking inquiry).
+     * Tests successful message creation in boat context by non-owner user.
      *
-     * Key Assertions:
-     * - Non-owner can initiate pre-booking conversation
-     * - Boat context is properly handled
-     * - Owner cannot message their own boat (tested separately)
+     * <p>Validates pre-booking conversation flow where potential customers
+     * can inquire about boats before making reservations.
      */
     @Test
     void sendMessage_WithValidBoatContext_ShouldSuccess() {
         // Arrange
-        Long userId = 1L;
-        Long boatId = 1L;
-        MessageRequestDTO request = new MessageRequestDTO(null, boatId, "Inquiry about boat");
-
-        User user = mock(User.class);
-        Boat boat = mock(Boat.class);
-        User owner = mock(User.class);
-        Message savedMessage = mock(Message.class);
-        MessageResponseDTO responseDTO = new MessageResponseDTO(1L, "Inquiry about boat", null, null, null, boatId);
-
-        when(owner.getId()).thenReturn(2L); // Different from userId
-        when(boat.getOwner()).thenReturn(owner);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(boatRepository.findById(boatId)).thenReturn(Optional.of(boat));
-        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
-        when(messageMapper.toDTO(savedMessage)).thenReturn(responseDTO);
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        when(boatRepository.findById(testBoat.getId())).thenReturn(Optional.of(testBoat));
+        when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
+        when(messageMapper.toDTO(testMessage)).thenReturn(testResponseDTO);
 
         // Act
-        MessageResponseDTO result = messageService.sendMessage(request, userId);
+        MessageResponseDTO result = messageService.sendMessage(testBoatRequestDTO, testUser.getId());
 
         // Assert
-        assertNotNull(result);
-        assertEquals(boatId, result.boatId(), "Should maintain boat context");
+        assertThat(result).isNotNull();
+        assertThat(result.boatId()).isEqualTo(testBoat.getId());
         verify(messageRepository).save(any(Message.class));
-        // Verify boat owner validation logic was executed
-        verify(boatRepository, times(2)).findById(1L);
     }
 
     /**
-     * Tests validation when both booking and boat contexts are provided.
+     * Tests business rule enforcement when boat owner tries to initiate pre-booking conversation.
      *
-     * Key Assertions:
-     * - Service rejects ambiguous context requests
-     * - Clear exception message for API consumers
-     * - No persistence operations occur
-     */
-    @Test
-    void sendMessage_WithBothBookingAndBoat_ShouldThrowException() {
-        // Arrange
-        Long userId = 1L;
-        MessageRequestDTO request = new MessageRequestDTO(1L, 1L, "Ambiguous message");
-
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> messageService.sendMessage(request, userId)
-        );
-
-        assertTrue(exception.getMessage().contains("booking") || exception.getMessage().contains("boat"),
-                "Exception should mention context ambiguity");
-
-        // Verify no interactions with persistence layer
-        verify(messageRepository, never()).save(any());
-        verify(bookingRepository, never()).findById(any());
-        verify(boatRepository, never()).findById(any());
-        verify(userRepository, never()).findById(any());
-    }
-
-    /**
-     * Tests validation when no context is provided.
-     *
-     * Key Assertions:
-     * - Service requires either booking or boat context
-     * - Clear error messaging for API consumers
-     * - Early validation prevents unnecessary processing
-     */
-    @Test
-    void sendMessage_WithNoContext_ShouldThrowException() {
-        // Arrange
-        Long userId = 1L;
-        MessageRequestDTO request = new MessageRequestDTO(null, null, "Orphan message");
-
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> messageService.sendMessage(request, userId)
-        );
-
-        assertNotNull(exception.getMessage(), "Should provide meaningful error message");
-
-        // Verify user was validated but no further processing occurred
-        verify(userRepository, never()).findById(any());
-        verify(bookingRepository, never()).findById(any());
-        verify(boatRepository, never()).findById(any());
-        verify(messageRepository, never()).save(any());
-    }
-
-    /**
-     * Tests business rule: boat owners cannot initiate pre-booking conversations.
-     *
-     * Key Assertions:
-     * - Authorization rule is properly enforced
-     * - Clear exception indicates authorization failure
-     * - Prevents spam and maintains conversation flow integrity
+     * <p>Ensures that boat owners can only respond to inquiries but cannot start
+     * pre-booking conversations about their own boats.
      */
     @Test
     void sendMessage_WhenBoatOwnerTriesToInitiatePreBooking_ShouldThrowException() {
         // Arrange
-        Long ownerId = 1L;
-        Long boatId = 1L;
-        MessageRequestDTO request = new MessageRequestDTO(null, boatId, "Owner message");
-
-        User owner = mock(User.class);
-        Boat boat = mock(Boat.class);
-
-        when(owner.getId()).thenReturn(ownerId);
-        when(boat.getOwner()).thenReturn(owner);
-
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
-        when(boatRepository.findById(boatId)).thenReturn(Optional.of(boat));
+        when(userRepository.findById(testBoatOwner.getId())).thenReturn(Optional.of(testBoatOwner));
+        when(boatRepository.findById(testBoat.getId())).thenReturn(Optional.of(testBoat));
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> messageService.sendMessage(request, ownerId)
+                () -> messageService.sendMessage(testBoatRequestDTO, testBoatOwner.getId())
         );
 
-        assertTrue(exception.getMessage().contains("owner") || exception.getMessage().contains("initiate"),
-                "Exception should indicate owner restriction");
-
+        assertThat(exception.getMessage()).contains("owner").contains("initiate");
         verify(messageRepository, never()).save(any(Message.class));
     }
 
     /**
-     * Tests authorization: users can only access conversations they participate in.
+     * Tests context validation when both booking and boat identifiers are provided.
      *
-     * Key Assertions:
-     * - Security boundary is properly enforced
-     * - Users cannot access other users' conversations
-     * - Clear exception indicates authorization failure
-     *
-     * Scalability Note: This validation prevents data leakage in multi-tenant scenarios.
+     * <p>Ensures API consumers must choose exactly one conversation context
+     * to maintain clear conversation threading.
      */
     @Test
-    void getMessagesByBooking_WhenUserNotParticipant_ShouldThrowException() {
+    void sendMessage_WithBothBookingAndBoat_ShouldThrowException() {
         // Arrange
-        Long userId = 1L;
-        Long bookingId = 1L;
-
-        User differentUser = mock(User.class);
-        User boatOwner = mock(User.class);
-        Boat boat = mock(Boat.class);
-        Booking booking = mock(Booking.class);
-
-        when(differentUser.getId()).thenReturn(999L); // Different user
-        when(boatOwner.getId()).thenReturn(888L); // Different owner
-        when(boat.getOwner()).thenReturn(boatOwner);
-        when(booking.getUser()).thenReturn(differentUser);
-        when(booking.getBoat()).thenReturn(boat);
-
-        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        MessageRequestDTO invalidRequest = new MessageRequestDTO(1L, 1L, "Ambiguous message");
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> messageService.getMessagesByBooking(bookingId, userId)
+                () -> messageService.sendMessage(invalidRequest, testUser.getId())
         );
 
-        assertTrue(exception.getMessage().contains("not authorized") ||
-                        exception.getMessage().contains("authorized"),
-                "Exception should indicate authorization failure. Actual message: " + exception.getMessage());
+        assertThat(exception.getMessage()).contains("both");
+        verifyNoInteractions(userRepository, bookingRepository, boatRepository, messageRepository);
+    }
 
-        // Verify no message retrieval occurred
+    /**
+     * Tests context validation when no conversation context is provided.
+     *
+     * <p>Ensures all messages are associated with either a booking or boat
+     * to maintain organized conversation tracking.
+     */
+    @Test
+    void sendMessage_WithNoContext_ShouldThrowException() {
+        // Arrange
+        MessageRequestDTO invalidRequest = new MessageRequestDTO(null, null, "Orphan message");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> messageService.sendMessage(invalidRequest, testUser.getId())
+        );
+
+        assertThat(exception.getMessage()).contains("either");
+        verifyNoInteractions(userRepository, bookingRepository, boatRepository, messageRepository);
+    }
+
+    /**
+     * Tests authorization enforcement for booking message access.
+     *
+     * <p>Ensures users can only access conversations where they are
+     * legitimate participants (either as sailor or boat owner).
+     */
+    @Test
+    void getMessagesByBooking_WhenUserNotParticipant_ShouldThrowException() {
+        // Arrange
+        User unauthorizedUser = new User();
+        unauthorizedUser.setId(999L);
+
+        when(bookingRepository.findById(testBooking.getId())).thenReturn(Optional.of(testBooking));
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> messageService.getMessagesByBooking(testBooking.getId(), unauthorizedUser.getId())
+        );
+
+        assertThat(exception.getMessage()).contains("authorized");
         verify(messageRepository, never()).findByBookingId(any());
     }
 
     /**
-     * Tests edge case: user tries to access non-existent booking.
+     * Tests successful retrieval of boat conversation messages for authorized user.
      *
-     * Security Implication: Returns same error as unauthorized access to prevent enumeration attacks.
+     * <p>Validates that both boat owners and potential customers can access
+     * pre-booking conversation history.
+     */
+    @Test
+    void getMessagesByBoat_WhenHasMessages_ShouldReturnMessages() {
+        // Arrange
+        when(boatRepository.findById(testBoat.getId())).thenReturn(Optional.of(testBoat));
+        when(messageRepository.findByBoatId(testBoat.getId())).thenReturn(List.of(testMessage));
+        when(messageMapper.toDTO(testMessage)).thenReturn(testResponseDTO);
+
+        // Act
+        List<MessageResponseDTO> result = messageService.getMessagesByBoat(testBoat.getId(), testUser.getId());
+
+        // Assert
+        assertThat(result).hasSize(1).containsExactly(testResponseDTO);
+        verify(messageRepository).findByBoatId(testBoat.getId());
+        verify(messageMapper).toDTO(testMessage);
+    }
+
+    /**
+     * Tests empty result handling when no messages exist for boat.
+     *
+     * <p>Ensures graceful handling of empty conversation history
+     * without errors or exceptions.
+     */
+    @Test
+    void getMessagesByBoat_WhenNoMessages_ShouldReturnEmptyList() {
+        // Arrange
+        when(boatRepository.findById(testBoat.getId())).thenReturn(Optional.of(testBoat));
+        when(messageRepository.findByBoatId(testBoat.getId())).thenReturn(List.of());
+
+        // Act
+        List<MessageResponseDTO> result = messageService.getMessagesByBoat(testBoat.getId(), testUser.getId());
+
+        // Assert
+        assertThat(result).isEmpty();
+        verify(messageRepository).findByBoatId(testBoat.getId());
+        verify(messageMapper, never()).toDTO(any());
+    }
+
+    /**
+     * Tests booking message retrieval for authorized boat owner.
+     *
+     * <p>Validates that boat owners can access conversations related to their
+     * boat bookings in addition to sailors.
+     */
+    @Test
+    void getMessagesByBooking_WhenUserIsBoatOwner_ShouldReturnMessages() {
+        // Arrange
+        when(bookingRepository.findById(testBooking.getId())).thenReturn(Optional.of(testBooking));
+        when(messageRepository.findByBookingId(testBooking.getId())).thenReturn(List.of(testMessage));
+        when(messageMapper.toDTO(testMessage)).thenReturn(testResponseDTO);
+
+        // Act - Boat owner accessing their boat's booking messages
+        List<MessageResponseDTO> result = messageService.getMessagesByBooking(testBooking.getId(), testBoatOwner.getId());
+
+        // Assert
+        assertThat(result).hasSize(1).containsExactly(testResponseDTO);
+        verify(messageRepository).findByBookingId(testBooking.getId());
+    }
+
+    /**
+     * Tests error handling when accessing non-existent booking.
+     *
+     * <p>Ensures consistent error messaging to prevent enumeration attacks
+     * while providing clear feedback for legitimate API consumers.
      */
     @Test
     void getMessagesByBooking_WhenBookingNotFound_ShouldThrowException() {
         // Arrange
-        Long userId = 1L;
-        Long bookingId = 999L;
-
-        when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
+        Long nonExistentBookingId = 999L;
+        when(bookingRepository.findById(nonExistentBookingId)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> messageService.getMessagesByBooking(bookingId, userId));
+                () -> messageService.getMessagesByBooking(nonExistentBookingId, testUser.getId()));
 
         verify(messageRepository, never()).findByBookingId(any());
     }
