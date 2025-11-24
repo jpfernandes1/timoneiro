@@ -155,7 +155,7 @@ jobs:
 
       # STEP 9: Upload JAR as artifact (para deploy posterior)
       - name: 📤 Upload backend artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: backend/target/*.jar
