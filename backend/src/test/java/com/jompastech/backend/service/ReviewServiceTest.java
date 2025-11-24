@@ -16,12 +16,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -388,4 +389,59 @@ class ReviewServiceTest {
         assertEquals(4.5, result.getAverageRating(), 0.01, "Average rating should match");
         assertEquals(10L, result.getReviewCount(), "Review count should match");
     }
+
+    /**
+     * Tests that findByUserId returns all reviews when user has existing reviews.
+     *
+     * <p>Verifies that:
+     * <ul>
+     *   <li>Repository method is called with correct user ID</li>
+     *   <li>Mapper converts entities to DTOs properly</li>
+     *   <li>Returns list with correct size and content</li>
+     * </ul>
+     *
+     * <p>Uses shared test fixtures from setUp method to ensure consistency
+     * across test scenarios.
+     */
+
+    @Test
+    void shouldReturnAllReviewsByUserId(){
+
+        // Arrange
+
+        when(reviewRepository.findByUserIdWithBoat(testUser.getId()))
+                .thenReturn(List.of(testReview));
+        when(reviewMapper.toResponseDTO(testReview))
+                .thenReturn(testResponseDTO);
+
+        // Act & Assert
+        assertThat(reviewService.findByUserId(testUser.getId()))
+            .hasSize(1)
+                .containsExactly(testResponseDTO);
+    }
+
+    /**
+     * Tests that findByUserId returns empty list when user has no reviews.
+     *
+     * <p>Validates edge case behavior where:
+     * <ul>
+     *   <li>Repository returns empty list for user with no reviews</li>
+     *   <li>Service returns empty list instead of null</li>
+     *   <li>Mapper is not called unnecessarily (performance optimization)</li>
+     * </ul>
+     */
+
+    @Test
+    void findByUserId_WhenNoReviews_ShouldReturnEmptyList(){
+        // Arrange
+        when(reviewRepository.findByUserIdWithBoat(testUser.getId()))
+                .thenReturn(Collections.emptyList());
+
+        // Act & Assert
+        assertThat(reviewService.findByUserId(testUser.getId())).isEmpty();
+
+        // Bonus: garante que o mapper não foi chamado desnecessariamente
+        verify(reviewMapper, never()).toResponseDTO(any());
+    }
+
 }
