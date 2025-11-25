@@ -23,9 +23,8 @@ public class BoatController {
 
     @PostMapping
     public ResponseEntity<BoatResponseDTO> createBoat(@RequestBody BoatRequestDTO dto) {
-        Boat boat = boatMapper.toEntity(dto);
-        Boat saved = boatService.save(boat);
-        return ResponseEntity.ok(boatMapper.toResponseDTO(saved));
+        BoatResponseDTO saved = boatService.save(dto);
+        return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/{id}")
