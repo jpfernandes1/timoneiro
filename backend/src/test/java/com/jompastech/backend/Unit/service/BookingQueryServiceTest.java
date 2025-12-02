@@ -1,6 +1,7 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.repository.BookingRepository;
+import com.jompastech.backend.service.BookingQueryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

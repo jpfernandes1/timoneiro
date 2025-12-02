@@ -1,4 +1,4 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.exception.CpfAlreadyInUseException;
 import com.jompastech.backend.exception.EmailAlreadyInUseException;
@@ -11,6 +11,7 @@ import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.security.dto.AuthResponseDTO;
 import com.jompastech.backend.security.util.JwtUtil;
+import com.jompastech.backend.service.UserService;
 import org.springframework.security.core.context.SecurityContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

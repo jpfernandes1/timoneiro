@@ -1,6 +1,7 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.service.PriceCalculationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

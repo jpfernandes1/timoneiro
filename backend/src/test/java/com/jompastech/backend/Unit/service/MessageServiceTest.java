@@ -1,4 +1,4 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.mapper.MessageMapper;
 import com.jompastech.backend.model.dto.MessageRequestDTO;
@@ -6,6 +6,7 @@ import com.jompastech.backend.model.dto.MessageResponseDTO;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
 import com.jompastech.backend.model.entity.*;
 import com.jompastech.backend.repository.*;
+import com.jompastech.backend.service.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

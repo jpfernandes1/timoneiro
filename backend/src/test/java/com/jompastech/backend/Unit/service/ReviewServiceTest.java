@@ -1,4 +1,4 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.exception.BusinessValidationException;
 import com.jompastech.backend.exception.EntityNotFoundException;
@@ -9,6 +9,10 @@ import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.mapper.ReviewMapper;
 import com.jompastech.backend.repository.ReviewRepository;
+import com.jompastech.backend.service.BoatService;
+import com.jompastech.backend.service.BookingQueryService;
+import com.jompastech.backend.service.ReviewService;
+import com.jompastech.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

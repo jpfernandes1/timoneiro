@@ -1,8 +1,9 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.model.dto.AddressRequestDTO;
 import com.jompastech.backend.model.entity.Address;
 import com.jompastech.backend.repository.AddressRepository;
+import com.jompastech.backend.service.AddressService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

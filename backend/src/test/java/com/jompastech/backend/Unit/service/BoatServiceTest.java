@@ -1,4 +1,4 @@
-package com.jompastech.backend.service;
+package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.mapper.BoatMapper;
 import com.jompastech.backend.model.dto.BoatRequestDTO;
@@ -7,6 +7,7 @@ import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.UserRepository;
+import com.jompastech.backend.service.BoatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
