@@ -1,0 +1,6 @@
+# application-docker.yml - Perfil para execução em container
+spring:
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/boat_rental
+    username: postgres
+    password: admin
