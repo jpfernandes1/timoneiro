@@ -1,0 +1,293 @@
+#Decision: Monorepo Strategy for Timoneiro Project
+
+#  Context
+#  Since Timoneiro project consists of a Spring Boot backend and a Next.js frontend, developed by a single developer as a portfolio project,
+# a monorepo (single repository for both frontend and backend) was chosed considering:
+
+#  Decision Drivers
+# Development Velocity: Single developer working on both frontend and backend features
+# Deployment Coordination: Features often require simultaneous frontend and backend changes
+# Simplified CI/CD: Unified pipeline for building, testing, and deploying both components
+# Project Scale: Medium-sized portfolio project, not enterprise-level complexity
+# Learning Context: Educational environment where seeing the full stack is beneficial
+
+#  Monorepo Advantages
+
+# - unified_versioning: "Frontend and backend versions stay synchronized"
+# - simplified_collaboration: "Single PR reviews full-stack features"
+# - shared_configuration: "Common CI/CD, linting, and quality gates"
+# - cross_component_refactoring: "Easy to update APIs across both layers"
+# - developer_convenience: "Single clone, single set of issues/PRs"
+
+#  trade_offs:
+
+# - build_times: "Longer CI/CD runs when both components change"
+# - repository_size: "Larger git repository with both codebases"
+# - tooling_complexity: "More complex CI/CD configuration with path filters"
+# - access_control: "Cannot grant different permissions for frontend/backend"
+# - scaling_concerns: "May need to split if project grows beyond portfolio scope"
+
+#  rejected_considerations:
+# - independent_deployment: "Not necessary for coordinated portfolio features"
+# - team_separation: "Single developer context makes this irrelevant"
+# - repository_isolation: "Would create overhead for full-stack development"
+# - technology_independence: "Frontend and backend are tightly coupled in this project"
+
+#  implementation:
+# - ci_cd_approach: "Conditional jobs with path-based triggers"
+# - directory_structure: "Clear separation within single repository"
+# - dependency_management: "Independent but coordinated via CI/CD"
+# - deployment_orchestration: "Single pipeline with parallel execution"
+
+#  [Monorepo] → [GitHub] → [CI: Backend Tests]  →  [CD: Deploy] → [Production]
+#                        ↘ [CI: Frontend Tests] ↗
+
+name: 🚀 Timoneiro Full Stack CI/CD
+
+# --- TRIGGERS ---
+on:
+  push:
+    branches: [ main, develop, 5-setup-unit-tests ]
+  pull_request:
+    branches: [ main, developer ]
+
+# --- GLOBAL CONFIGURATION ---
+env:
+  BACKEND_DIR: './backend'
+  FRONTEND_DIR: './frontend'
+
+# --- PARALLEL JOBS  ---
+jobs:
+  # JOB 1: BACKEND - SPRING BOOT
+  backend-ci:
+    name: ☕ Backend - Build & Test
+    runs-on: ubuntu-latest
+
+    # SMART TRIGGER - ONLY EXECUTES WHEN RELEVANT
+    if: |
+      contains(github.event.head_commit.message, '[backend]') ||
+      contains(github.event.head_commit.message, '[all]') ||
+      github.event_name == 'pull_request' ||
+      contains(github.event.head_commit.modified, 'backend/') ||
+      contains(github.event.head_commit.modified, '.github/workflows/')
+
+    # NECESSARY SERVICES
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: timoneiro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # STEP 1: Checkout
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # STEP 2: Cache Maven dependencies
+      - name: 💾 Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-
+
+      # STEP 3: Setup Java
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # STEP 4: Wait for database
+      - name: ⏳ Wait for PostgreSQL
+        run: |
+          echo "Waiting for database to be ready..."
+          for i in {1..10}; do
+            if pg_isready -h localhost -p 5432; then
+              echo "✅ Database is ready!"
+              break
+            fi
+            echo "⏰ Attempt $i/10 - waiting..."
+            sleep 3
+          done
+
+      # STEP 5: Build backend
+      - name: 🔨 Build backend
+        run: |
+          cd ${{ env.BACKEND_DIR }}
+          mvn -B clean compile -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
+          echo "✅ Backend compiled successfully"
+
+      # STEP 6: Run tests with JaCoCo agent
+      - name: 🧪 Run tests with coverage collection
+        run: |
+          cd ${{ env.BACKEND_DIR }}
+          mvn test -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/timoneiro_test
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+
+      # STEP 7: Generate JaCoCo report
+      - name: 📊 Generate JaCoCo report
+        run: |
+          cd ${{ env.BACKEND_DIR }}
+          mvn jacoco:report -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
+          echo "✅ JaCoCo report generated"
+
+      # STEP 8: Verify report exists
+      - name: 🔍 Verify report generation
+        run: |
+          echo "=== Checking JaCoCo report from root ==="
+          ls -la ${{ env.BACKEND_DIR }}/target/site/jacoco/ || echo "❌ JaCoCo directory not found"
+          find ${{ env.BACKEND_DIR }}/target/site/jacoco/ -name "*.html" | head -5 || echo "❌ No HTML files found"
+          test -f ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html && echo "✅ Report verified!" || echo "❌ index.html missing"
+
+      # STEP 9: Upload coverage report
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.BACKEND_DIR }}/target/site/jacoco/
+          retention-days: 30
+        if: always()  # ← Upload mesmo se testes falharem
+
+      # STEP 10: Package application
+      - name: 📦 Package application
+        run: |
+          cd ${{ env.BACKEND_DIR }}
+          mvn package -DskipTests -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
+          echo "🎯 Application packaged successfully"
+
+      # STEP 11: Upload JAR as artifact (para deploy posterior)
+      - name: 📤 Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar
+          retention-days: 1
+
+#  # JOB 2: FRONTEND - NEXT.JS
+#  frontend-ci:
+#    name: 🎨 Frontend - Build & Test
+#    runs-on: ubuntu-latest
+#
+#    # SMART TRIGGER  -  EXECUTES ONLY WHEN RELEVANT
+#    if: |
+#      contains(github.event.head_commit.message, '[frontend]') ||
+#      contains(github.event.head_commit.message, '[all]') ||
+#      github.event_name == 'pull_request' ||
+#      contains(github.event.head_commit.modified, 'frontend/') ||
+#      contains(github.event.head_commit.modified, '.github/workflows/')
+#
+#    steps:
+#      - name: 📥 Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: 💾 Cache Node modules
+#        uses: actions/cache@v3
+#        with:
+#          path: ~/.npm
+#          key: npm-${{ hashFiles('**/package-lock.json') }}
+#          restore-keys: |
+#            npm-
+#
+#      - name: 📦 Setup Node.js
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: '18'
+#          cache: 'npm'
+#
+#      - name: 📥 Install dependencies
+#        run: |
+#          cd ${{ env.FRONTEND_DIR }}
+#          npm ci
+#          echo "✅ Dependencies installed"
+#
+#      - name: 🔨 Build frontend
+#        run: |
+#          cd ${{ env.FRONTEND_DIR }}
+#          npm run build
+#          echo "✅ Frontend built successfully"
+#
+#      - name: 🔍 Lint code
+#        run: |
+#          cd ${{ env.FRONTEND_DIR }}
+#          npm run lint || echo "⚠️  Linting not configured"
+#
+#      - name: 🧪 Run tests
+#        run: |
+#          cd ${{ env.FRONTEND_DIR }}
+#          npm test -- --watchAll=false --passWithNoTests || echo "⚠️  Tests not configured"
+
+  # JOB 3: DEPLOY
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [backend-ci]  # ⚠️ wait for both - add ",frontend-ci" inside brackets before frontend configured
+    if: github.ref == 'refs/heads/main'  # ⚠️ only on main branch
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # BACKEND DEPLOY
+      - name: 🎯 Deploy Backend to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "timoneiro-backend"
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+          appdir: "backend"
+        env:
+          HD_BACKEND_DEPLOY: "true"
+
+#      # FRONTEND DEPLOY
+#      - name: 🎨 Deploy Frontend to Vercel
+#        run: |
+#          echo "🚀 Frontend deployment would happen here"
+#          echo "Typically using: npx vercel --prod --token \$VERCEL_TOKEN"
+#        # Para habilitar depois:
+#        # env:
+#        #   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+#
+#      - name: 📢 Notify deployment success
+#        run: |
+#          echo "🎉 Deployment completed successfully!"
+#          echo "Backend: https://timoneiro-backend.herokuapp.com"
+#          echo "Frontend: https://timoneiro.vercel.app (future)"
+
+  # JOB 4: SECURITY SCAN
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run security scan (Backend)
+        run: |
+          cd ${{ env.BACKEND_DIR }}
+          mvn org.owasp:dependency-check-maven:check -DskipTests || echo "⚠️  Security vulnerabilities found"
+
+      - name: 📋 Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            backend/target/dependency-check-report.html
+          retention-days: 7
