@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>22</java.version>
+		<java.version>17</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -215,10 +215,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
-                    <argLine>
-                        -XX:+EnableDynamicAgentLoading
-                        -Djdk.instrument.traceUsage
-                    </argLine>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading -Djdk.instrument.traceUsage</argLine>
                 </configuration>
             </plugin>
             <plugin>

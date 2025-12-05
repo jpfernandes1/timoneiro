@@ -1,6 +1,7 @@
 package com.jompastech.backend.service;
 
 import com.jompastech.backend.mapper.BoatMapper;
+import com.jompastech.backend.model.dto.BoatRequestDTO;
 import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.dto.UserResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
@@ -24,8 +25,10 @@ public class BoatService {
     }
 
     // CRUD
-    public Boat save(Boat boat) {
-        return boatRepository.save(boat);
+    public BoatResponseDTO save(BoatRequestDTO boatRequestDTO) {
+        Boat boat = boatMapper.toEntity(boatRequestDTO);
+        Boat savedBoat = boatRepository.save(boat);
+        return boatMapper.toResponseDTO(savedBoat);
     }
 
     public Boat findById(Long id) {

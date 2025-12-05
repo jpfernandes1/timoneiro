@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -68,13 +69,27 @@ public class SecurityConfig {
      */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*")); // Allow all origins in development
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allowed HTTP methods
-        configuration.setAllowedHeaders(List.of("*")); // Allow all headers
-        configuration.setAllowCredentials(true); // Allow credentials
+
+        // DEVELOPMENT: Allows everything (use environment variable for control)
+        String profile = System.getenv("SPRING_PROFILES_ACTIVE");
+        if ("dev".equals(profile) || "local".equals(profile)) {
+            configuration.setAllowedOriginPatterns(List.of("*"));
+        }
+        // PRODUCTION/DOCKER: specific origins
+        else {
+            configuration.setAllowedOrigins(Arrays.asList(
+                    "http://localhost",          // Frontend on port 80
+                    "http://localhost:3000",     // React dev server
+                    "https://seusite.com"        // Future: production domain
+            ));
+        }
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all endpoints
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

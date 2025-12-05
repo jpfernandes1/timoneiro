@@ -47,9 +47,9 @@ name: 🚀 Timoneiro Full Stack CI/CD
 # --- TRIGGERS ---
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 5-setup-unit-tests ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, developer ]
 
 # --- GLOBAL CONFIGURATION ---
 env:
@@ -126,36 +126,53 @@ jobs:
       - name: 🔨 Build backend
         run: |
           cd ${{ env.BACKEND_DIR }}
-          mvn -B clean compile
+          mvn -B clean compile -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
           echo "✅ Backend compiled successfully"
 
-      # STEP 6: Run tests
-      - name: 🧪 Run backend tests
+      # STEP 6: Run tests with JaCoCo agent
+      - name: 🧪 Run tests with coverage collection
         run: |
           cd ${{ env.BACKEND_DIR }}
-          mvn test
+          mvn test -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/timoneiro_test
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
 
-      # STEP 7: Test coverage report
-      - name: 📊 Generate test coverage
+      # STEP 7: Generate JaCoCo report
+      - name: 📊 Generate JaCoCo report
         run: |
           cd ${{ env.BACKEND_DIR }}
-          mvn jacoco:report
-          echo "📈 Coverage report generated at target/site/jacoco/"
+          mvn jacoco:report -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
+          echo "✅ JaCoCo report generated"
 
-      # STEP 8: Build JAR for deployment
+      # STEP 8: Verify report exists
+      - name: 🔍 Verify report generation
+        run: |
+          echo "=== Checking JaCoCo report from root ==="
+          ls -la ${{ env.BACKEND_DIR }}/target/site/jacoco/ || echo "❌ JaCoCo directory not found"
+          find ${{ env.BACKEND_DIR }}/target/site/jacoco/ -name "*.html" | head -5 || echo "❌ No HTML files found"
+          test -f ${{ env.BACKEND_DIR }}/target/site/jacoco/index.html && echo "✅ Report verified!" || echo "❌ index.html missing"
+
+      # STEP 9: Upload coverage report
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.BACKEND_DIR }}/target/site/jacoco/
+          retention-days: 30
+        if: always()  # ← Upload mesmo se testes falharem
+
+      # STEP 10: Package application
       - name: 📦 Package application
         run: |
           cd ${{ env.BACKEND_DIR }}
-          mvn package -DskipTests
+          mvn package -DskipTests -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
           echo "🎯 Application packaged successfully"
 
-      # STEP 9: Upload JAR as artifact (para deploy posterior)
+      # STEP 11: Upload JAR as artifact (para deploy posterior)
       - name: 📤 Upload backend artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: backend/target/*.jar
