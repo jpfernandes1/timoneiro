@@ -9,10 +9,9 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const navLinks = [
-        {label: "Buscar Barcos", href: "/search" },
-        {label: "Destinos", href: "#destinations" },
-        {label: "Como funciona", href: "#how-it-works" },
-        {label: "Sobre", href: "#about" },
+        {label: "Fazer uma Reserva", href: "/search" },
+        {label: "Como funciona", href: "/#how-it-works" },
+        {label: "Sobre", href: "/#about" },
     ];
 
     return(
@@ -43,7 +42,9 @@ const Navbar = () => {
                         <Link href="/auth">
                         <Button variant="ghost">Entrar</Button>
                         </Link>
-                        <Button variant="ocean">Anunciar Barco</Button>
+                        <Link href='/register-boat'>
+                        <Button variant="ocean" >Anunciar Barco</Button>
+                        </Link>
                     </div>
 
                     { /* Mobile Menu Button */ }

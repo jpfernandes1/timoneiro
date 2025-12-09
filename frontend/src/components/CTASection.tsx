@@ -1,5 +1,6 @@
 import { Button } from "@/src/components/ui/button";
 import { Anchor, ArrowRight } from "lucide-react";
+import Link from 'next/link';
 
 const CTASection = () => {
   return (
@@ -25,10 +26,13 @@ const CTASection = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/search">
             <Button variant="heroOutline" size="xl" className="group">
               Buscar Barcos
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
+            </Link>
+            <Link href="/register-boat">
             <Button 
               variant="hero" 
               size="xl" 
@@ -36,6 +40,7 @@ const CTASection = () => {
             >
               Anunciar Meu Barco
             </Button>
+            </Link>
           </div>
 
           {/* Trust badges */}
