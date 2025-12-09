@@ -24,7 +24,7 @@ const Navbar = () => {
                     <div className="w-10 h-10 rounded-full gradient-ocean flex items-center justify-center">
                         <Anchor className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <span className="font-display text-x1 font-bold text-foreground"> Navegar bem</span>
+                    <span className="font-display text-x1 font-bold text-foreground"> Timoneiro </span>
                     </a>
                     { /* Desktop Navigation */}
                     <div className="hidden md:flex item-center gap-8">
