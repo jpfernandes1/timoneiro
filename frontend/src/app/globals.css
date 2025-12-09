@@ -175,3 +175,82 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0);
   }
 }
+
+/* ===== CALENDAR -   SHADCN DAY PICKER – LIGHT THEME FIX ===== */
+
+.rdp {
+  margin: 0 !important;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+  font-family: inherit;
+}
+
+/* Header: mês e setinhas */
+.rdp-caption {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+/* Botões das setas */
+.rdp-nav_button {
+  all: unset;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  margin: 0 8px;
+}
+
+.rdp-nav_button:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Dias da semana */
+.rdp-head_cell {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  padding-bottom: 4px;
+}
+
+/* As células dos dias */
+.rdp-cell {
+  padding: 2px;
+}
+
+/* Os botões de dia */
+.rdp-day {
+  all: unset;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rdp-day:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Dia selecionado */
+.rdp-day_selected {
+  background: #0284c7 !important; /* azul leve */
+  color: white !important;
+}
+
+/* Dias fora do mês */
+.rdp-day_outside {
+  opacity: 0.35;
+}
+
+/* Hoje */
+.rdp-day_today {
+  outline: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+}
