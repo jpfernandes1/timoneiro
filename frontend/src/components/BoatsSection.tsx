@@ -1,4 +1,4 @@
-import { Button } from "@/src/components/ui/Button";
+import { Button } from "@/src/components/ui/button";
 import { Star, Users, Anchor, ArrowRight } from "lucide-react";
 import boat1 from "@/src/assets/boat-1.jpg";
 import boat2 from "@/src/assets/boat-2.jpg";

@@ -1,14 +1,15 @@
-'use client'
+'use client';
 import { useState } from "react";
 import { Menu, X, Anchor } from "lucide-react";
-import { Button } from '@/src/components/ui/Button'
+import { Button } from '@/src/components/ui/button'
+import Link from 'next/link';
 
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const navLinks = [
-        {label: "Barcos", href: "#boats" },
+        {label: "Buscar Barcos", href: "/search" },
         {label: "Destinos", href: "#destinations" },
         {label: "Como funciona", href: "#how-it-works" },
         {label: "Sobre", href: "#about" },
@@ -39,7 +40,9 @@ const Navbar = () => {
                     </div>
                     { /* Desktop CTA */ }
                     <div className="hidden md:flex items-center gat-4">
+                        <Link href="/auth">
                         <Button variant="ghost">Entrar</Button>
+                        </Link>
                         <Button variant="ocean">Anunciar Barco</Button>
                     </div>
 

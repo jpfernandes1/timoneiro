@@ -1,6 +1,6 @@
 import heroImage from "@/src/assets/hero-boat.jpg";
 import { Search, MapPin, Calendar } from "lucide-react";
-import { Button } from "@/src/components/ui/Button";
+import { Button } from "@/src/components/ui/button";
 
 const HeroSection = () => {
   return (

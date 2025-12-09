@@ -1,4 +1,4 @@
-import { Button } from "@/src/components/ui/Button";
+import { Button } from "@/src/components/ui/button";
 import { Anchor, ArrowRight } from "lucide-react";
 
 const CTASection = () => {
