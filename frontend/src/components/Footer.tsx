@@ -32,25 +32,25 @@ const Footer = () => {
               <div className="w-10 h-10 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 flex items-center justify-center">
                 <Anchor className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-display text-xl font-bold">NavegarBem</span>
+              <span className="font-display text-xl font-bold">Timoneiro</span>
             </a>
             <p className="text-primary-foreground/70 mb-6 max-w-sm">
-              A maior plataforma de aluguel de barcos do Brasil. Conectando proprietários e navegantes desde 2020.
+              A plataforma de aluguel de barcos mais confiável do Brasil. Conectando proprietários e navegantes desde 2025.
             </p>
             
             {/* Contact */}
             <div className="space-y-2 text-sm text-primary-foreground/70">
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                contato@navegarbem.com.br
+                contato@timoneiro.com.br
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
-                (11) 99999-9999
+                (99) 99999-9999
               </p>
               <p className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                São Paulo, Brasil
+                Sede em Maranhão, Brasil
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-10 mt-10 border-t border-primary-foreground/10">
           <p className="text-primary-foreground/50 text-sm">
-            © 2024 NavegarBem. Todos os direitos reservados.
+            © 2025 NavegarBem. Todos os direitos reservados.
           </p>
           
           {/* Social Links */}
