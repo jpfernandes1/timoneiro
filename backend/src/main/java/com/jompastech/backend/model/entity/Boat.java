@@ -3,6 +3,8 @@ package com.jompastech.backend.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -26,11 +28,22 @@ public class Boat {
     @JoinColumn(name = "address_id")
     private Address address;
 
-    @Column(name="photo_url")
-    private String photoUrl;
+    @ElementCollection
+    @CollectionTable(name = "boat_photos", joinColumns = @JoinColumn(name = "boat_id"))
+    @Column(name = "photo_url")
+    private List<String> photos = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    private Double length;
+    private Double speed;
+    private Integer fabrication;
+
+    @ElementCollection
+    @CollectionTable(name = "boat_amenities", joinColumns = @JoinColumn(name = "boat_id"))
+    @Column(name = "amenity")
+    private List<String> amenities = new ArrayList<>();
 
 }
