@@ -64,7 +64,7 @@ public class ReviewService {
     public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequest, Long authenticatedUserId) {
 
         User user = userService.findById(authenticatedUserId);
-        Boat boat = boatService.findById(reviewRequest.getBoatId());
+        Boat boat = boatService.getBoatEntity(reviewRequest.getBoatId());
 
         // Business rule: user must have rented this boat to review it
         validateUserRentedBoat(authenticatedUserId, reviewRequest.getBoatId());
