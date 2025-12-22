@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +21,10 @@ public class BoatController {
     private final BoatService boatService;
 
     @PostMapping
-    public ResponseEntity<BoatResponseDTO> createBoat(@Valid @RequestBody BoatRequestDTO dto) {
-        BoatResponseDTO saved = boatService.save(dto);
+    public ResponseEntity<BoatResponseDTO> createBoat(
+            @Valid @RequestBody BoatRequestDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        BoatResponseDTO saved = boatService.save(dto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 

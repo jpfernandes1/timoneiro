@@ -37,3 +37,25 @@ export interface AuthResponse {
   email: string;
   name: string;
 }
+
+export interface BoatRequestDTO {
+  name: string;
+  description: string;
+  type: string;
+  capacity: number;
+  length: number;
+  speed: number;
+  fabrication: number; // ano
+  amenities: string[];
+  photos: string[]; 
+  pricePerHour: number; 
+  
+  // Address Fields
+  cep: string;
+  number: string;
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  marina: string;
+}

@@ -5,12 +5,18 @@ import com.jompastech.backend.model.dto.BoatRequestDTO;
 import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.entity.Address;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.AddressRepository;
 import com.jompastech.backend.repository.BoatRepository;
+import com.jompastech.backend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,10 +30,22 @@ public class BoatService {
     private final AddressRepository addressRepository;
     private final BoatMapper boatMapper;
 
+    @Autowired
+    private UserRepository userRepository;
+
     // CRUD - Retorna DTOs para a API
     @Transactional
-    public BoatResponseDTO save(BoatRequestDTO boatRequestDTO) {
-        // 1. Criar Address a partir dos dados do formulário
+    public BoatResponseDTO save(BoatRequestDTO boatRequestDTO,  UserDetails userDetails) {
+
+        // 1. Find user by Email
+        String username = userDetails.getUsername();
+        User owner = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado: " + username
+                ));
+
+        // 2. Criar Address a partir dos dados do formulário
         Address address = new Address();
 
         address.setCep(boatRequestDTO.getCep());
@@ -42,6 +60,7 @@ public class BoatService {
 
         // 2. Convert DTO to Entity
         Boat boat = boatMapper.toEntity(boatRequestDTO);
+        boat.setOwner(owner);
         boat.setAddress(savedAddress);
         // TODO: Associar owner do usuário logado
         // boat.setOwner(currentUser);

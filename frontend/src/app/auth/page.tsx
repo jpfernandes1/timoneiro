@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/src/contexts/AuthContext'
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
@@ -12,11 +14,38 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login, register } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication
-    console.log(isLogin ? "Login" : "Signup", { email, password, name });
+    setError("");
+    setIsLoading(true);
+
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        // Para registro
+        await register({
+          name,
+          email,
+          password,
+          cpf,
+          phone
+        });
+        // Após registro, o AuthContext já faz o login automaticamente
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocorreu um erro. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,7 +68,7 @@ const Auth = () => {
               <Anchor className="w-6 h-6 text-primary-foreground" />
             </div>
             <span className="font-display text-2xl font-bold text-foreground">
-              NavegarBem
+              Timoneiro
             </span>
           </div>
 
@@ -53,23 +82,56 @@ const Auth = () => {
               : "Cadastre-se para começar a navegar"}
           </p>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome completo</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Seu nome"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10"
+                      required={!isLogin}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="cpf">CPF</Label>
                   <Input
-                    id="name"
+                    id="cpf"
                     type="text"
-                    placeholder="Seu nome"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
+                    placeholder="000.000.000-00"
+                    value={cpf}
+                    onChange={(e) => setCpf(e.target.value)}
+                    required={!isLogin}
                   />
                 </div>
-              </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required={!isLogin}
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
@@ -83,6 +145,7 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
+                  required
                 />
               </div>
             </div>
@@ -98,6 +161,7 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
+                  required
                 />
               </div>
             </div>
@@ -113,8 +177,14 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" variant="ocean" className="w-full" size="lg">
-              {isLogin ? "Entrar" : "Criar conta"}
+            <Button 
+              type="submit" 
+              variant="ocean" 
+              className="w-full" 
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
 
@@ -133,8 +203,12 @@ const Auth = () => {
             {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}{" "}
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+              }}
               className="text-primary font-medium hover:text-primary/80 transition-colors"
+              disabled={isLoading}
             >
               {isLogin ? "Cadastre-se" : "Entrar"}
             </button>

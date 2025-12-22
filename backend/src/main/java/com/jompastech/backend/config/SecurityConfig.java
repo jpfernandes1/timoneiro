@@ -47,7 +47,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",        // API documentation
                                 "/swagger-resources/**",  // Swagger resources
                                 "/api/users/register",    // User registration
-                                "/webjars/**"             // Web jars
+                                "/webjars/**",             // Web jars
+                                "/api/boats/**"
                         ).permitAll()
 
                         // Protected endpoints with role-based authorization
