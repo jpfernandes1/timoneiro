@@ -34,3 +34,8 @@ build/
 
 # ignorar credenciais locais
 src/main/resources/application-local.yml
+
+## Local Variables ##
+.env
+*.env.local
+.env.*.local

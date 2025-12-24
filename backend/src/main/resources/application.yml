@@ -1,13 +1,20 @@
 # ==============================
-# Configuration dev local
+# Main Configuration
 # ==============================
 spring:
   application:
     name: timoneiro
 
+  config:
+    import: classpath:.env.properties
+
+  #  DataSource Configuration
   datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    # url, username and password defined on application-local.yml
+
   jpa:
     show-sql: true
     hibernate:
@@ -15,12 +22,19 @@ spring:
       format_sql: true
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true
-    locations: classpath:db/migration
+    enabled: false
 
-  config:
-    import: optional:application-local.yml  #  local file with credentials
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Configurações do Cloudinary
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+  secure: true
 
   logging:
     level:
@@ -38,12 +52,12 @@ app:
     pagseguro:
       sandbox:
         url: "https://sandbox.pagseguro.uol.com.br/v2/transactions"
-        token: "${PAGSEGURO_SANDBOX_TOKEN:dev_token_${random.value}}"
+        token: ${PAGSEGURO_SANDBOX_TOKEN:dev_token_${random.value}}
         timeout-ms: 10000
       production:
         enabled: false
         url: "https://ws.pagseguro.uol.com.br/v2/transactions"
-        token: "${PAGSEGURO_PRODUCTION_TOKEN:}"
+        token: ${PAGSEGURO_PRODUCTION_TOKEN:}
     policies:
       max-retries: 3
       retry-delay-ms: 1000

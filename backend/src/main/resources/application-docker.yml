@@ -1,6 +1,15 @@
-# application-docker.yml - Perfil para execução em container
+# Configurações ESPECÍFICAS para ambiente Docker
 spring:
   datasource:
-    url: jdbc:postgresql://host.docker.internal:5432/boat_rental
-    username: postgres
-    password: admin
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/boat_rental}  # Container do PostgreSQL
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
+
+  # NÃO importar arquivo .env - as variáveis vêm do container
+  # config.import: NÃO COLOQUE NADA AQUI
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+  secure: true
