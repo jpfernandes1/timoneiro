@@ -19,7 +19,6 @@ public class BoatRequestDTO {
     private Double speed;
     private Integer fabrication; // year
     private List<String> amenities;
-    private List<String> photos;
     private BigDecimal pricePerHour;
 
     // Address full data

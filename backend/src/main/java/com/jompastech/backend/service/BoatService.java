@@ -5,6 +5,7 @@ import com.jompastech.backend.model.dto.BoatRequestDTO;
 import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.entity.Address;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatPhoto;
 import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.AddressRepository;
 import com.jompastech.backend.repository.BoatRepository;
@@ -33,21 +34,24 @@ public class BoatService {
     @Autowired
     private UserRepository userRepository;
 
-    // CRUD - Retorna DTOs para a API
+    /**
+     * Saves a new boat with associated photos.
+     */
     @Transactional
-    public BoatResponseDTO save(BoatRequestDTO boatRequestDTO,  UserDetails userDetails) {
+    public BoatResponseDTO saveWithPhotos(BoatRequestDTO boatRequestDTO,
+                                          List<BoatPhoto> photos,
+                                          UserDetails userDetails) {
 
         // 1. Find user by Email
         String username = userDetails.getUsername();
         User owner = userRepository.findByEmail(username)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Usuário não encontrado: " + username
+                        "User not found: " + username
                 ));
 
-        // 2. Criar Address a partir dos dados do formulário
+        // 2. Create Address from DTO data
         Address address = new Address();
-
         address.setCep(boatRequestDTO.getCep());
         address.setNumber(boatRequestDTO.getNumber());
         address.setStreet(boatRequestDTO.getStreet());
@@ -58,22 +62,35 @@ public class BoatService {
 
         Address savedAddress = addressRepository.save(address);
 
-        // 2. Convert DTO to Entity
+        // 3. Convert DTO to Entity (ignoring photos in mapper)
         Boat boat = boatMapper.toEntity(boatRequestDTO);
         boat.setOwner(owner);
         boat.setAddress(savedAddress);
-        // TODO: Associar owner do usuário logado
-        // boat.setOwner(currentUser);
 
-        // 3. Salvar e retornar DTO
+        // 4. Associate photos with the boat (bidirectional relationship)
+        if (photos != null && !photos.isEmpty()) {
+            for (BoatPhoto photo : photos) {
+                boat.addPhoto(photo); // This sets the boat in the photo
+            }
+        }
+
+        // 5. Save boat (cascade will save photos)
         Boat savedBoat = boatRepository.save(boat);
         return boatMapper.toResponseDTO(savedBoat);
+    }
+
+    /**
+     * Saves a boat without photos (for compatibility with existing code).
+     */
+    @Transactional
+    public BoatResponseDTO save(BoatRequestDTO boatRequestDTO, UserDetails userDetails) {
+        return saveWithPhotos(boatRequestDTO, List.of(), userDetails);
     }
 
     @Transactional(readOnly = true)
     public BoatResponseDTO findById(Long id) {
         Boat boat = boatRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Barco não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Boat not found"));
         return boatMapper.toResponseDTO(boat);
     }
 
@@ -99,7 +116,7 @@ public class BoatService {
         boatRepository.deleteById(id);
     }
 
-    // Additional business methods - Retornam entidades para uso interno
+    // Additional business methods - Return entities for internal use
     @Transactional(readOnly = true)
     public List<Boat> findByType(String type) {
         return boatRepository.findByType(type);
@@ -118,10 +135,10 @@ public class BoatService {
                 .collect(Collectors.toList());
     }
 
-    // Método auxiliar para uso interno (se outros serviços precisarem da entidade)
+    // Auxiliary method for internal use (if other services need the entity)
     @Transactional(readOnly = true)
     public Boat getBoatEntity(Long id) {
         return boatRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Barco não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Boat not found"));
     }
 }

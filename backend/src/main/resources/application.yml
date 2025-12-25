@@ -8,7 +8,7 @@ spring:
   config:
     import: classpath:.env.properties
 
-  #  DataSource Configuration
+  # DataSource Configuration
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -22,12 +22,13 @@ spring:
       format_sql: true
 
   flyway:
-    enabled: false
+    enabled: true
 
   servlet:
     multipart:
+      enabled: true
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 100MB
 
 # Configurações do Cloudinary
 cloudinary:
@@ -36,17 +37,24 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET}
   secure: true
 
-  logging:
-    level:
-      com.jompastech.backend.security.filter.JwtAuthenticationFilter: DEBUG
-      com.jompastech.backend.security.service.UserDetailsServiceImpl: DEBUG
-      com.jompastech.backend.repository: DEBUG
-      org.springframework.security: DEBUG
-    file:
-      name: logs/application.log
-    pattern:
-      console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+# Logging Configuration
+logging:
+  level:
+    com.jompastech.backend: DEBUG
+    org.springframework.web: DEBUG
+    org.springdoc: DEBUG  # DEBUG para SpringDoc
+  file:
+    name: logs/application.log
 
+# Configuração SIMPLIFICADA do SpringDoc
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+
+# App-specific configurations
 app:
   payment:
     pagseguro:
@@ -61,3 +69,9 @@ app:
     policies:
       max-retries: 3
       retry-delay-ms: 1000
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
