@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
 import { Button } from "@/src/components/ui/button";
@@ -101,14 +101,16 @@ const RegisterBoat = () => {
     ano: "",
     comodidades: [] as string[],
 
-    // step 4
-    fotos: [] as string[],
+    // step 4 - AGORA É ARRAY DE FILES, NÃO STRINGS
+    fotos: [] as File[],
   });
 
   const [enviando, setEnviando] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const updateForm = (field: string, value: string | string[]) => {
+  const updateForm = (field: string, value: string | string[] | File[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -135,6 +137,67 @@ const RegisterBoat = () => {
     return cep;
   };
 
+  // ✅ UPLOAD DE FOTOS REAL - MULTIPLE FILES
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    setUploadingPhotos(true);
+    
+    try {
+      // Converter FileList para array
+      const newFiles = Array.from(files);
+      
+      // Validações
+      const maxFiles = 10;
+      if (formData.fotos.length + newFiles.length > maxFiles) {
+        alert(`Máximo de ${maxFiles} fotos permitidas`);
+        setUploadingPhotos(false);
+        return;
+      }
+      
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const oversized = newFiles.filter(file => file.size > maxSize);
+      if (oversized.length > 0) {
+        alert("Algumas imagens excedem 10MB");
+        setUploadingPhotos(false);
+        return;
+      }
+      
+      // Adicionar novos arquivos
+      const allFiles = [...formData.fotos, ...newFiles];
+      updateForm("fotos", allFiles);
+      
+      // Criar previews
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setPhotoPreviews(prev => [...prev, ...newPreviews]);
+      
+      console.log(`${newFiles.length} fotos adicionadas`);
+      
+    } catch (error) {
+      console.error("Erro no upload:", error);
+      alert("Erro ao processar fotos");
+    } finally {
+      setUploadingPhotos(false);
+      // Limpar input para permitir selecionar os mesmos arquivos novamente
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // ✅ REMOVER FOTO
+  const removePhoto = (index: number) => {
+    // Revogar URL do preview para evitar memory leak
+    URL.revokeObjectURL(photoPreviews[index]);
+    
+    const newFiles = formData.fotos.filter((_, i) => i !== index);
+    const newPreviews = photoPreviews.filter((_, i) => i !== index);
+    
+    updateForm("fotos", newFiles);
+    setPhotoPreviews(newPreviews);
+  };
+
   // ✅ VALIDAÇÃO DO FORMULÁRIO
   const validarFormulario = () => {
     const camposObrigatorios = [
@@ -142,10 +205,8 @@ const RegisterBoat = () => {
       { campo: formData.tipo, nome: 'Tipo de embarcação' },
       { campo: formData.descricao, nome: 'Descrição' },
       { campo: formData.capacidade, nome: 'Capacidade' },
-      { campo: formData.cep, nome: 'CEP' },
       { campo: formData.cidade, nome: 'Cidade' },
       { campo: formData.estado, nome: 'Estado' },
-      { campo: formData.comprimento, nome: 'Comprimento' },
     ];
     
     const faltantes = camposObrigatorios
@@ -157,8 +218,8 @@ const RegisterBoat = () => {
       return false;
     }
     
-    // Validação do CEP
-    if (formData.cep.replace(/\D/g, '').length !== 8) {
+    // Validação do CEP (se preenchido)
+    if (formData.cep && formData.cep.replace(/\D/g, '').length !== 8) {
       alert('CEP inválido. Deve conter 8 dígitos.');
       return false;
     }
@@ -166,34 +227,41 @@ const RegisterBoat = () => {
     // Validação numérica
     const numericos = [
       { campo: formData.capacidade, nome: 'Capacidade', min: 1 },
-      { campo: formData.comprimento, nome: 'Comprimento', min: 1 },
-      { campo: formData.velocidade, nome: 'Velocidade', min: 0 },
-      { campo: formData.ano, nome: 'Ano', min: 1900, max: new Date().getFullYear() + 1 }
+      { campo: formData.comprimento, nome: 'Comprimento', min: 1, required: true },
+      { campo: formData.velocidade, nome: 'Velocidade', min: 0, required: false },
+      { campo: formData.ano, nome: 'Ano', min: 1900, max: new Date().getFullYear() + 1, required: false }
     ];
     
     for (const num of numericos) {
-      const valor = parseFloat(num.campo);
-      if (isNaN(valor)) {
+      const valor = num.campo ? parseFloat(num.campo) : NaN;
+      if (num.required && isNaN(valor)) {
         alert(`${num.nome} deve ser um número válido`);
         return false;
       }
-      if (num.min !== undefined && valor < num.min) {
-        alert(`${num.nome} deve ser maior ou igual a ${num.min}`);
-        return false;
+      if (!isNaN(valor)) {
+        if (num.min !== undefined && valor < num.min) {
+          alert(`${num.nome} deve ser maior ou igual a ${num.min}`);
+          return false;
+        }
+        if (num.max !== undefined && valor > num.max) {
+          alert(`${num.nome} deve ser menor ou igual a ${num.max}`);
+          return false;
+        }
       }
-      if (num.max !== undefined && valor > num.max) {
-        alert(`${num.nome} deve ser menor ou igual a ${num.max}`);
-        return false;
-      }
+    }
+    
+    // Validação de fotos (pelo menos 1)
+    if (formData.fotos.length === 0) {
+      const confirmacao = confirm("Você não selecionou nenhuma foto. Deseja continuar mesmo assim?");
+      if (!confirmacao) return false;
     }
     
     return true;
   };
 
-  // Form Submit
+  // ✅ FORM SUBMIT - MULTIPART/FORM-DATA
   const handleSubmit = async () => {
-
-      // Login Verification
+    // Login Verification
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
     if (!token) {
@@ -208,7 +276,7 @@ const RegisterBoat = () => {
     if (enviando) return;
     
     setEnviando(true);
-    console.log("Cadastro:", formData);
+    console.log("📤 Iniciando cadastro...");
     
     try {
       // Mapear os dados do formulário para o formato do DTO
@@ -227,46 +295,66 @@ const RegisterBoat = () => {
         // Localização
         city: formData.cidade,
         state: formData.estado,
-        marina: formData.marina,
-        cep: formData.cep,
-        number: formData.numero,
-        street: formData.rua,
-        neighborhood: formData.bairro,
+        marina: formData.marina || "",
+        cep: formData.cep || "",
+        number: formData.numero || "",
+        street: formData.rua || "",
+        neighborhood: formData.bairro || "",
         
         // Listas
         amenities: formData.comodidades,
-        photos: [], // ⚠️ Array vazio por enquanto - quando implementar upload, substitua
         
         // Campo obrigatório no backend
         pricePerHour: 0.00,
       };
       
-      console.log("📤 Enviando para:", 'http://localhost:8080/api/boats');
-      console.log("📦 Payload:", JSON.stringify(boatRequestDTO, null, 2));
+      console.log("📦 Payload JSON:", JSON.stringify(boatRequestDTO, null, 2));
+      console.log("📸 Fotos para upload:", formData.fotos.length);
+      
+      // Criar FormData para envio multipart
+      const formDataToSend = new FormData();
+      
+      // Adicionar JSON como string
+      formDataToSend.append('boat', JSON.stringify(boatRequestDTO));
+      
+      // Adicionar cada foto
+      formData.fotos.forEach((file, index) => {
+        formDataToSend.append('images', file);
+        console.log(`📎 Anexando foto ${index + 1}:`, file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      });
       
       const response = await fetch('http://localhost:8080/api/boats', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          // NÃO definir Content-Type - o navegador vai definir automaticamente com boundary
         },
-        body: JSON.stringify(boatRequestDTO)
+        body: formDataToSend
       });
       
+      console.log("📡 Status da resposta:", response.status);
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ${response.status}: ${errorText}`);
+        let errorMessage = `Erro ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage += `: ${JSON.stringify(errorData)}`;
+        } catch {
+          const errorText = await response.text();
+          errorMessage += `: ${errorText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       const savedBoat = await response.json();
-      console.log("✅ Resposta completa:", {
-        status: response.status,
-        data: savedBoat
-      });
+      console.log("✅ Barco cadastrado com sucesso:", savedBoat);
+      
+      // Limpar previews de fotos
+      photoPreviews.forEach(preview => URL.revokeObjectURL(preview));
       
       alert('Barco cadastrado com sucesso!');
       
-      // Opcional: limpar formulário após sucesso
+      // Resetar formulário
       setFormData({
         nome: "",
         tipo: "",
@@ -285,47 +373,20 @@ const RegisterBoat = () => {
         comodidades: [],
         fotos: [],
       });
+      setPhotoPreviews([]);
       setEtapaAtual(1);
       
     } catch (error) {
-    // ✅ CORREÇÃO DO ERRO DO TYPESCRIPT
-    console.error("❌ Erro ao cadastrar barco:", error);
-    
-    if (error instanceof Error) {
-      alert(`Falha no cadastro: ${error.message}`);
-    } else {
-      alert('Falha no cadastro: Erro desconhecido');
-    }
-  } finally {
-    setEnviando(false);
-  }
-};
-
-  // ✅ UPLOAD DE FOTOS (SIMULADO - COMENTADO PARA FUTURA IMPLEMENTAÇÃO)
-  /*
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    setUploadingPhotos(true);
-    
-    try {
-      const mockUrls = Array.from(files).map((file, i) => 
-        URL.createObjectURL(file)
-      );
-      
-      updateForm("fotos", [...formData.fotos, ...mockUrls]);
-      
-      console.log(`${mockUrls.length} fotos adicionadas`);
-      
-    } catch (error) {
-      console.error("Erro no upload:", error);
-      alert("Erro ao processar fotos");
+      console.error("❌ Erro ao cadastrar barco:", error);
+      if (error instanceof Error) {
+        alert(`Falha no cadastro: ${error.message}`);
+      } else {
+        alert('Falha no cadastro: Erro desconhecido');
+      }
     } finally {
-      setUploadingPhotos(false);
+      setEnviando(false);
     }
   };
-  */
 
   // ✅ BUSCA DE CEP
   useEffect(() => {
@@ -359,7 +420,6 @@ const RegisterBoat = () => {
           'SE': 'Sergipe', 'TO': 'Tocantins'
         };
 
-        // Extrair dados de múltiplas fontes possíveis
         const cidade = data.localidade || data.city || data._originalData?.city || '';
         const estadoSigla = data.uf || data.state || data._originalData?.state || '';
         const rua = data.logradouro || data.street || data._originalData?.street || '';
@@ -369,10 +429,6 @@ const RegisterBoat = () => {
           const nomeEstado = estadoSigla ? 
             (siglasParaEstados[estadoSigla.toUpperCase()] || estadoSigla) : '';
           
-          console.log('🔄 Valores que serão setados:', { 
-            rua, bairro, cidade, estado: nomeEstado 
-          });
-          
           setFormData(prev => ({
             ...prev,
             rua: rua,
@@ -380,15 +436,6 @@ const RegisterBoat = () => {
             cidade: cidade,
             estado: nomeEstado,
           }));
-          
-          console.log('✅ Formulário preenchido com:', {
-            cidade,
-            estado: nomeEstado,
-            rua,
-            bairro
-          });
-        } else {
-          console.log('CEP não encontrado ou dados incompletos');
         }
       } catch (error) {
         console.error('Erro ao buscar CEP:', error);
@@ -421,6 +468,13 @@ const RegisterBoat = () => {
       }
     }
   }, [formData.estado]);
+
+  // Limpar previews ao desmontar componente
+  useEffect(() => {
+    return () => {
+      photoPreviews.forEach(preview => URL.revokeObjectURL(preview));
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -751,7 +805,7 @@ const RegisterBoat = () => {
                 </div>
               )}
 
-              {/* Step 4: Photos */}
+              {/* Step 4: Photos - AGORA REAL */}
               {etapaAtual === 4 && (
                 <div className="space-y-6 animate-fade-up">
                   <div className="flex items-center gap-3 mb-6">
@@ -763,13 +817,11 @@ const RegisterBoat = () => {
                         Fotos
                       </h2>
                       <p className="text-sm text-muted-foreground">
-                        Adicione fotos de alta qualidade
+                        Adicione fotos de alta qualidade (máx. 10 fotos, 10MB cada)
                       </p>
                     </div>
                   </div>
                             
-                  {/* ⚠️ COMENTADO PARA FUTURA IMPLEMENTAÇÃO */}
-                  {/* 
                   <input
                     type="file"
                     multiple
@@ -778,11 +830,12 @@ const RegisterBoat = () => {
                     id="photo-upload"
                     onChange={handlePhotoUpload}
                     disabled={uploadingPhotos}
+                    ref={fileInputRef}
                   />
 
                   <label
                     htmlFor="photo-upload"
-                    className="block border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                    className="block border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
                   >
                     {uploadingPhotos ? (
                       <div className="flex flex-col items-center">
@@ -796,55 +849,43 @@ const RegisterBoat = () => {
                           Clique para selecionar fotos
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          PNG, JPG até 10MB. Mínimo 1 foto recomendado.
+                          PNG, JPG até 10MB. Máximo 10 fotos.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {formData.fotos.length} foto(s) selecionada(s)
                         </p>
                       </>
                     )}
                   </label>
                   
-                  <div className="grid grid-cols-4 gap-3">
-                    {formData.fotos.length > 0 ? (
-                      formData.fotos.map((photoUrl, index) => (
-                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                          <img
-                            src={photoUrl}
-                            alt={`Foto ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const novasFotos = formData.fotos.filter((_, i) => i !== index);
-                              updateForm("fotos", novasFotos);
-                            }}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      [1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className="aspect-square bg-muted rounded-lg flex items-center justify-center"
-                        >
-                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  */}
-                  
-                  <div className="border-2 border-dashed border-border rounded-xl p-12 text-center">
-                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-foreground font-medium mb-2">
-                      Upload de fotos em desenvolvimento
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Esta funcionalidade será implementada em breve.
-                    </p>
-                  </div>
+                  {formData.fotos.length > 0 && (
+                    <div className="space-y-3">
+                      <Label>Pré-visualização das fotos:</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {formData.fotos.map((file, index) => (
+                          <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                            <img
+                              src={photoPreviews[index]}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1 text-xs">
+                              {file.name.length > 15 
+                                ? `${file.name.substring(0, 12)}...` 
+                                : file.name}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(index)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -870,6 +911,18 @@ const RegisterBoat = () => {
                       Os preços serão definidos no momento de criar as janelas de locação. <br/>
                       (verifique a seção "Meus Barcos").
                     </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-sm text-blue-800 font-medium mb-1">
+                      📋 Resumo do cadastro:
+                    </p>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• Barco: {formData.nome || "Não definido"}</li>
+                      <li>• Tipo: {formData.tipo || "Não definido"}</li>
+                      <li>• Fotos: {formData.fotos.length} selecionada(s)</li>
+                      <li>• Comodidades: {formData.comodidades.length} selecionada(s)</li>
+                    </ul>
                   </div>
                 </div>
               )}
