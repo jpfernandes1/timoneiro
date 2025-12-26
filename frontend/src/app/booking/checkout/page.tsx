@@ -412,7 +412,7 @@ const CheckoutPageContent = () => {
             Barcos
           </Link>
           <span>/</span>
-          <Link href={`/boats/${boat.id}`} className="hover:text-foreground transition-colors">
+          <Link href={`/boat/${boat.id}`} className="hover:text-foreground transition-colors">
             {boat.name}
           </Link>
           <span>/</span>
