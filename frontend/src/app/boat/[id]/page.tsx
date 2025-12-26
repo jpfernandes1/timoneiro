@@ -72,6 +72,9 @@ const BoatDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [isAvailable, setIsAvailable] = useState<boolean>(true);
+  const [checkingAvailability, setCheckingAvailability] = useState<boolean>(false);
+  const [availabilityError, setAvailabilityError] = useState<string>("");
   
   // Novos estados para data fim e horas
   const [startDate, setStartDate] = useState<string>("");
@@ -204,6 +207,11 @@ const BoatDetails = () => {
       alert("Por favor, selecione datas e horários válidos para a reserva.");
       return;
     }
+
+      if (!isAvailable) {
+    alert("Este barco não está disponível para o período selecionado. Por favor, escolha outras datas.");
+    return;
+  }
     
     const total = calculateTotal();
     
@@ -221,9 +229,19 @@ const BoatDetails = () => {
     };
     
     console.log("📋 Dados da reserva:", reservationData);
+
+    const queryParams = new URLSearchParams({
+    boatId: boatId,
+    startDate: startDate,
+    startTime: startTime,
+    endDate: endDate,
+    endTime: endTime,
+    durationHours: durationHours.toString(),
+    totalPrice: total.toFixed(2)
+  }).toString();
+
+  router.push(`/booking/checkout?${queryParams}`);
     
-    // TODO: Implementar lógica de reserva com API
-    alert(`Reserva iniciada para ${boat?.name}\nDe: ${startDate} ${startTime}\nAté: ${endDate} ${endTime}\nDuração: ${durationHours} horas\nTotal: R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
   };
 
   // Comodidades agrupadas por categoria
@@ -234,6 +252,52 @@ const BoatDetails = () => {
     "Cozinha": ["Fogão", "Geladeira", "Micro-ondas", "Utensílios de cozinha"],
     "Cabines": ["Cabine principal", "Cabine de hóspedes", "Banheiro", "Chuveiro"],
   };
+
+  // Função para verificar disponibilidade
+const checkAvailability = useCallback(async () => {
+  if (!boatId || !startDate || !startTime || !endDate || !endTime || durationHours <= 0) {
+    setIsAvailable(true);
+    setAvailabilityError("");
+    return;
+  }
+
+  // Formatar para LocalDateTime (YYYY-MM-DDTHH:mm:ss)
+  const startDateTime = `${startDate}T${startTime}:00`;
+  const endDateTime = `${endDate}T${endTime}:00`;
+
+  setCheckingAvailability(true);
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`
+    );
+    
+    if (response.ok) {
+      const isBoatAvailable = await response.json();
+      setIsAvailable(isBoatAvailable);
+      setAvailabilityError(isBoatAvailable ? "" : "Este barco não está disponível para o período selecionado");
+    } else {
+      setIsAvailable(false);
+      setAvailabilityError("Não foi possível verificar a disponibilidade");
+    }
+  } catch (error) {
+    console.error('Erro ao verificar disponibilidade:', error);
+    setIsAvailable(false);
+    setAvailabilityError("Erro na verificação de disponibilidade");
+  } finally {
+    setCheckingAvailability(false);
+  }
+}, [boatId, startDate, startTime, endDate, endTime, durationHours]);
+
+  // Efeito para verificar disponibilidade quando datas/horas mudam
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (durationHours > 0) {
+        checkAvailability();
+      }
+    }, 500); // Debounce de 500ms
+  
+    return () => clearTimeout(timer);
+  }, [checkAvailability, durationHours]);
 
   // Renderização condicional
   if (loading) {
@@ -673,15 +737,31 @@ const BoatDetails = () => {
                 {/* Botão de Reserva */}
                 <div className="pt-2">
                   <Button 
-                    variant="ocean" 
+                    variant={isAvailable ? "ocean" : "destructive"}
                     size="lg" 
-                    className="w-full h-14" 
+                    className={cn(
+                      "w-full h-14 transition-all duration-300",
+                      !isAvailable && "opacity-70 hover:opacity-70 cursor-not-allowed"
+                    )} 
                     onClick={handleReservation}
-                    disabled={durationHours <= 0}
+                    disabled={durationHours <= 0 || !isAvailable || checkingAvailability}
                   >
                     <Calendar className="w-5 h-5 mr-2" />
-                    Reservar agora
+                    {checkingAvailability ? (
+                      "Verificando disponibilidade..."
+                    ) : !isAvailable ? (
+                      "Indisponível"
+                    ) : (
+                      "Reservar agora"
+                    )}
                   </Button>
+                  
+                  {/* Mensagem de erro abaixo do botão */}
+                  {!isAvailable && availabilityError && (
+                    <div className="text-sm text-red-500 mt-2 text-center animate-fade-in">
+                      {availabilityError}
+                    </div>
+                  )}
                 </div>
 
                 {/* Safety Info */}
