@@ -1,574 +1,241 @@
-2025-12-25T10:23:38.226-03:00  INFO 21732 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 21732 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
-2025-12-25T10:23:38.239-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
-2025-12-25T10:23:38.240-03:00  INFO 21732 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
-2025-12-25T10:23:38.314-03:00  INFO 21732 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2025-12-25T10:23:38.315-03:00  INFO 21732 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2025-12-25T10:23:39.312-03:00  INFO 21732 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-12-25T10:23:39.386-03:00  INFO 21732 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 66 ms. Found 9 JPA repository interfaces.
-2025-12-25T10:23:39.933-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2025-12-25T10:23:39.952-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2025-12-25T10:23:39.952-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
-2025-12-25T10:23:40.000-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2025-12-25T10:23:40.001-03:00  INFO 21732 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1685 ms
-2025-12-25T10:23:40.209-03:00  INFO 21732 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2025-12-25T10:23:40.387-03:00  INFO 21732 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@61a3501
-2025-12-25T10:23:40.389-03:00  INFO 21732 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2025-12-25T10:23:40.431-03:00  INFO 21732 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
-2025-12-25T10:23:40.440-03:00  WARN 21732 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
-2025-12-25T10:23:40.522-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.063s)
-2025-12-25T10:23:40.691-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
-2025-12-25T10:23:40.695-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2025-12-25T10:23:40.793-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-12-25T10:23:40.860-03:00  INFO 21732 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
-2025-12-25T10:23:40.892-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-12-25T10:23:41.212-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-12-25T10:23:42.075-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.jompastech.backend.model.entity.BoatAvailability (class must be instantiated by Interceptor)
-2025-12-25T10:23:42.372-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-12-25T10:23:42.377-03:00  INFO 21732 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T10:23:42.685-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
-2025-12-25T10:23:42.771-03:00  INFO 21732 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
-2025-12-25T10:23:42.815-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-12-25T10:23:43.661-03:00  WARN 21732 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-12-25T10:23:43.824-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 51 mappings in 'requestMappingHandlerMapping'
-2025-12-25T10:23:43.842-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
-2025-12-25T10:23:43.951-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
-2025-12-25T10:23:43.988-03:00 DEBUG 21732 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
-2025-12-25T10:23:44.138-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
-2025-12-25T10:23:44.172-03:00  INFO 21732 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-2025-12-25T10:23:44.180-03:00  INFO 21732 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 6.44 seconds (process running for 7.264)
-2025-12-25T10:31:17.539-03:00  INFO 21732 --- [timoneiro] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-12-25T10:31:17.539-03:00  INFO 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2025-12-25T10:31:17.539-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
-2025-12-25T10:31:17.539-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
-2025-12-25T10:31:17.540-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
-2025-12-25T10:31:17.540-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@5a9340bf
-2025-12-25T10:31:17.540-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@13ec0921
-2025-12-25T10:31:17.542-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
-2025-12-25T10:31:17.542-03:00  INFO 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
-2025-12-25T10:31:17.564-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.html", parameters={}
-2025-12-25T10:31:17.566-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.588-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.679-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui.css", parameters={}
-2025-12-25T10:31:17.679-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.css", parameters={}
-2025-12-25T10:31:17.681-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-standalone-preset.js", parameters={}
-2025-12-25T10:31:17.681-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.681-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.681-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-5] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.682-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-bundle.js", parameters={}
-2025-12-25T10:31:17.682-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-initializer.js", parameters={}
-2025-12-25T10:31:17.682-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-4] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.682-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.685-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.686-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.689-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.699-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.700-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.874-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs/swagger-config", parameters={}
-2025-12-25T10:31:17.874-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.ui.SwaggerConfigResource#openapiJson(HttpServletRequest)
-2025-12-25T10:31:17.880-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T10:31:17.881-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:31:17.883-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.893-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json]
-2025-12-25T10:31:17.894-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Writing [{configUrl=/v3/api-docs/swagger-config, oauth2RedirectUrl=http://localhost:8080/swagger-ui/oauth2-re (truncated)...]
-2025-12-25T10:31:17.899-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:17.908-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs", parameters={}
-2025-12-25T10:31:17.909-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.api.OpenApiWebMvcResource#openapiJson(HttpServletRequest, String, Locale)
-2025-12-25T10:31:18.417-03:00  INFO 21732 --- [timoneiro] [http-nio-8080-exec-9] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 494 ms
-2025-12-25T10:31:18.429-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-9] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [application/json, */*] and supported [application/json]
-2025-12-25T10:31:18.432-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-9] m.m.a.RequestResponseBodyMethodProcessor : Writing [{123, 34, 111, 112, 101, 110, 97, 112, 105, 34, 58, 34, 51, 46, 48, 46, 49, 34, 44, 34, 105, 110, 10 (truncated)...]
-2025-12-25T10:31:18.433-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:31:39.687-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
-2025-12-25T10:31:39.687-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
-2025-12-25T10:31:39.695-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste1@teste.com, password=asd12345)]
-2025-12-25T10:31:39.981-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T10:31:39.981-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTFAdGVzdGUuY29tIiwiZXhwIjoxNzY2NzU1ODk5f (truncated)...]
-2025-12-25T10:31:39.981-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:32:59.010-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T10:32:59.011-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:32:59.014-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:33:23.511-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T10:33:23.546-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(BoatRequestDTO, List, UserDetails)
-2025-12-25T10:33:23.546-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.method.HandlerMethod             : Could not resolve parameter [0] in public org.springframework.http.ResponseEntity<com.jompastech.backend.model.dto.BoatResponseDTO> com.jompastech.backend.controller.BoatController.createBoat(com.jompastech.backend.model.dto.BoatRequestDTO,java.util.List<org.springframework.web.multipart.MultipartFile>,org.springframework.security.core.userdetails.UserDetails): Content-Type 'application/octet-stream' is not supported
-2025-12-25T10:33:23.546-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler com.jompastech.backend.exception.GlobalExceptionHandler#handleAllExceptions(Exception, HttpServletRequest)
-2025-12-25T10:33:23.553-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T10:33:23.555-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ErrorResponse[timestamp=2025-12-25T13:33:23.546578900Z, status=500, error=Internal Server Error, mes (truncated)...]
-2025-12-25T10:33:23.555-03:00  WARN 21732 --- [timoneiro] [http-nio-8080-exec-7] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.HttpMediaTypeNotSupportedException: Content-Type 'application/octet-stream' is not supported]
-2025-12-25T10:33:23.560-03:00 DEBUG 21732 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T10:40:40.952-03:00  INFO 21732 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T10:40:40.952-03:00  INFO 21732 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2025-12-25T10:40:40.952-03:00  INFO 21732 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
-2025-12-25T10:41:09.976-03:00  INFO 29040 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 29040 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
-2025-12-25T10:41:09.985-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
-2025-12-25T10:41:09.985-03:00  INFO 29040 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
-2025-12-25T10:41:10.017-03:00  INFO 29040 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2025-12-25T10:41:10.017-03:00  INFO 29040 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2025-12-25T10:41:10.704-03:00  INFO 29040 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-12-25T10:41:10.771-03:00  INFO 29040 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 61 ms. Found 9 JPA repository interfaces.
-2025-12-25T10:41:11.185-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2025-12-25T10:41:11.185-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2025-12-25T10:41:11.185-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
-2025-12-25T10:41:11.233-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2025-12-25T10:41:11.233-03:00  INFO 29040 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1216 ms
-2025-12-25T10:41:11.408-03:00  INFO 29040 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2025-12-25T10:41:11.535-03:00  INFO 29040 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5354f44c
-2025-12-25T10:41:11.535-03:00  INFO 29040 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2025-12-25T10:41:11.551-03:00  INFO 29040 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
-2025-12-25T10:41:11.567-03:00  WARN 29040 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
-2025-12-25T10:41:11.598-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.026s)
-2025-12-25T10:41:11.646-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
-2025-12-25T10:41:11.646-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2025-12-25T10:41:11.715-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-12-25T10:41:11.772-03:00  INFO 29040 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
-2025-12-25T10:41:11.803-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-12-25T10:41:12.055-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-12-25T10:41:12.736-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.jompastech.backend.model.entity.BoatAvailability (class must be instantiated by Interceptor)
-2025-12-25T10:41:12.996-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-12-25T10:41:12.996-03:00  INFO 29040 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T10:41:13.208-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
-2025-12-25T10:41:13.275-03:00  INFO 29040 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
-2025-12-25T10:41:13.300-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-12-25T10:41:13.941-03:00  WARN 29040 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-12-25T10:41:14.053-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 51 mappings in 'requestMappingHandlerMapping'
-2025-12-25T10:41:14.069-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
-2025-12-25T10:41:14.158-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
-2025-12-25T10:41:14.183-03:00 DEBUG 29040 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
-2025-12-25T10:41:14.291-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
-2025-12-25T10:41:14.318-03:00  INFO 29040 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-2025-12-25T10:41:14.322-03:00  INFO 29040 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 4.723 seconds (process running for 5.156)
-2025-12-25T10:41:21.142-03:00  INFO 29040 --- [timoneiro] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-12-25T10:41:21.142-03:00  INFO 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2025-12-25T10:41:21.143-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
-2025-12-25T10:41:21.143-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
-2025-12-25T10:41:21.143-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
-2025-12-25T10:41:21.143-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@54f1e59b
-2025-12-25T10:41:21.144-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@617c04a8
-2025-12-25T10:41:21.144-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
-2025-12-25T10:41:21.144-03:00  INFO 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-2025-12-25T10:41:21.156-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T10:41:21.156-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:21.182-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:24.530-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T10:41:24.551-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(BoatRequestDTO, List, UserDetails)
-2025-12-25T10:41:24.564-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.method.HandlerMethod             : Could not resolve parameter [0] in public org.springframework.http.ResponseEntity<com.jompastech.backend.model.dto.BoatResponseDTO> com.jompastech.backend.controller.BoatController.createBoat(com.jompastech.backend.model.dto.BoatRequestDTO,java.util.List<org.springframework.web.multipart.MultipartFile>,org.springframework.security.core.userdetails.UserDetails): Content-Type 'application/octet-stream' is not supported
-2025-12-25T10:41:24.564-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler com.jompastech.backend.exception.GlobalExceptionHandler#handleAllExceptions(Exception, HttpServletRequest)
-2025-12-25T10:41:24.571-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T10:41:24.578-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ErrorResponse[timestamp=2025-12-25T13:41:24.564424100Z, status=500, error=Internal Server Error, mes (truncated)...]
-2025-12-25T10:41:24.578-03:00  WARN 29040 --- [timoneiro] [http-nio-8080-exec-3] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.HttpMediaTypeNotSupportedException: Content-Type 'application/octet-stream' is not supported]
-2025-12-25T10:41:24.585-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T10:41:42.499-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.html", parameters={}
-2025-12-25T10:41:42.500-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-4] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.501-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.527-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui.css", parameters={}
-2025-12-25T10:41:42.527-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.css", parameters={}
-2025-12-25T10:41:42.527-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.528-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.528-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-bundle.js", parameters={}
-2025-12-25T10:41:42.528-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-5] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.528-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-standalone-preset.js", parameters={}
-2025-12-25T10:41:42.529-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-7] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.529-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-initializer.js", parameters={}
-2025-12-25T10:41:42.529-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-9] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.530-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.531-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.533-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.537-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.540-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.678-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs/swagger-config", parameters={}
-2025-12-25T10:41:42.678-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T10:41:42.678-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.ui.SwaggerConfigResource#openapiJson(HttpServletRequest)
-2025-12-25T10:41:42.679-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T10:41:42.680-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.680-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json]
-2025-12-25T10:41:42.681-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Writing [{configUrl=/v3/api-docs/swagger-config, oauth2RedirectUrl=http://localhost:8080/swagger-ui/oauth2-re (truncated)...]
-2025-12-25T10:41:42.682-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:41:42.727-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs", parameters={}
-2025-12-25T10:41:42.728-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.api.OpenApiWebMvcResource#openapiJson(HttpServletRequest, String, Locale)
-2025-12-25T10:41:43.199-03:00  INFO 29040 --- [timoneiro] [http-nio-8080-exec-1] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 458 ms
-2025-12-25T10:41:43.210-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [application/json, */*] and supported [application/json]
-2025-12-25T10:41:43.212-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Writing [{123, 34, 111, 112, 101, 110, 97, 112, 105, 34, 58, 34, 51, 46, 48, 46, 49, 34, 44, 34, 105, 110, 10 (truncated)...]
-2025-12-25T10:41:43.212-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T10:42:07.260-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(BoatRequestDTO, List, UserDetails)
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.method.HandlerMethod             : Could not resolve parameter [0] in public org.springframework.http.ResponseEntity<com.jompastech.backend.model.dto.BoatResponseDTO> com.jompastech.backend.controller.BoatController.createBoat(com.jompastech.backend.model.dto.BoatRequestDTO,java.util.List<org.springframework.web.multipart.MultipartFile>,org.springframework.security.core.userdetails.UserDetails): Content-Type 'application/octet-stream' is not supported
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler com.jompastech.backend.exception.GlobalExceptionHandler#handleAllExceptions(Exception, HttpServletRequest)
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json, application/*+json]
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ErrorResponse[timestamp=2025-12-25T13:42:07.283604Z, status=500, error=Internal Server Error, messag (truncated)...]
-2025-12-25T10:42:07.283-03:00  WARN 29040 --- [timoneiro] [http-nio-8080-exec-3] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.HttpMediaTypeNotSupportedException: Content-Type 'application/octet-stream' is not supported]
-2025-12-25T10:42:07.283-03:00 DEBUG 29040 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T10:46:52.224-03:00  INFO 29040 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T10:46:52.240-03:00  INFO 29040 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2025-12-25T10:46:52.240-03:00  INFO 29040 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
-2025-12-25T10:47:00.063-03:00  INFO 9852 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 9852 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
-2025-12-25T10:47:00.065-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
-2025-12-25T10:47:00.065-03:00  INFO 9852 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
-2025-12-25T10:47:00.106-03:00  INFO 9852 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2025-12-25T10:47:00.106-03:00  INFO 9852 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2025-12-25T10:47:00.834-03:00  INFO 9852 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-12-25T10:47:00.914-03:00  INFO 9852 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 62 ms. Found 9 JPA repository interfaces.
-2025-12-25T10:47:01.371-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2025-12-25T10:47:01.387-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2025-12-25T10:47:01.387-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
-2025-12-25T10:47:01.439-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2025-12-25T10:47:01.441-03:00  INFO 9852 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1335 ms
-2025-12-25T10:47:01.635-03:00  INFO 9852 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2025-12-25T10:47:01.775-03:00  INFO 9852 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@3db5d9f0
-2025-12-25T10:47:01.775-03:00  INFO 9852 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2025-12-25T10:47:01.784-03:00  INFO 9852 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
-2025-12-25T10:47:01.805-03:00  WARN 9852 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
-2025-12-25T10:47:01.840-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.025s)
-2025-12-25T10:47:01.894-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
-2025-12-25T10:47:01.897-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2025-12-25T10:47:01.961-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-12-25T10:47:01.999-03:00  INFO 9852 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
-2025-12-25T10:47:02.024-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-12-25T10:47:02.268-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-12-25T10:47:02.987-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.jompastech.backend.model.entity.BoatAvailability (class must be instantiated by Interceptor)
-2025-12-25T10:47:03.262-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-12-25T10:47:03.264-03:00  INFO 9852 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T10:47:03.493-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
-2025-12-25T10:47:03.551-03:00  INFO 9852 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
-2025-12-25T10:47:03.587-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-12-25T10:47:04.279-03:00  WARN 9852 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-12-25T10:47:04.406-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 51 mappings in 'requestMappingHandlerMapping'
-2025-12-25T10:47:04.422-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
-2025-12-25T10:47:04.501-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
-2025-12-25T10:47:04.526-03:00 DEBUG 9852 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
-2025-12-25T10:47:04.643-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
-2025-12-25T10:47:04.680-03:00  INFO 9852 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-2025-12-25T10:47:04.686-03:00  INFO 9852 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 5.019 seconds (process running for 5.468)
-2025-12-25T10:47:12.719-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-12-25T10:47:12.719-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@29efedbb
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@476c1e32
-2025-12-25T10:47:12.719-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
-2025-12-25T10:47:12.719-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
-2025-12-25T10:47:12.768-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T10:47:12.802-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(String, List, UserDetails)
-2025-12-25T10:47:12.816-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] .m.m.a.RequestPartMethodArgumentResolver : Read "application/octet-stream" to ["{"name":"Barco Teste Swagger","description":"Testando upload de fotos","type":"JetSki","capacity":6, (truncated)..."]
-2025-12-25T10:47:12.823-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.controller.BoatController    : Creating new boat. JSON received: 342 chars
-2025-12-25T10:47:12.830-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.controller.BoatController    : Parsed boat DTO: Barco Teste Swagger, images: 1
-2025-12-25T10:47:12.831-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.service.CloudinaryService    : Uploading image: jetski.png (1258671 bytes, type: image/png)
-2025-12-25T10:47:15.517-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.service.CloudinaryService    : Image uploaded successfully. Public ID: timoneiro/boats/boat_1766670432963_jetski.png_375, URL: https://res.cloudinary.com/dq3dgcdes/image/upload/v1766670434/timoneiro/boats/boat_1766670432963_jetski.png_375.png
-2025-12-25T10:47:15.528-03:00 ERROR 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.controller.BoatController    : Failed to create boat: Cannot invoke "org.springframework.security.core.userdetails.UserDetails.getUsername()" because "userDetails" is null
-
-java.lang.NullPointerException: Cannot invoke "org.springframework.security.core.userdetails.UserDetails.getUsername()" because "userDetails" is null
-	at com.jompastech.backend.service.BoatService.saveWithPhotos(BoatService.java:46) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:355) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:379) ~[spring-tx-6.1.13.jar:6.1.13]
-	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.13.jar:6.1.13]
-	at com.jompastech.backend.service.BoatService$$SpringCGLIB$$0.saveWithPhotos(<generated>) ~[classes/:na]
-	at com.jompastech.backend.controller.BoatController.createBoat(BoatController.java:126) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.30.jar:6.0]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.30.jar:6.0]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at com.jompastech.backend.security.filter.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:59) ~[classes/:na]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230) ~[spring-security-config-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:384) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at java.base/java.lang.Thread.run(Thread.java:1570) ~[na:na]
-
-2025-12-25T10:47:15.531-03:00  WARN 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.controller.BoatController    : Rolling back 1 uploaded images due to boat creation failure
-2025-12-25T10:47:15.531-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.service.CloudinaryService    : Deleting image with public ID: timoneiro/boats/boat_1766670432963_jetski.png_375
-2025-12-25T10:47:16.255-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.service.CloudinaryService    : Image deletion result for public ID timoneiro/boats/boat_1766670432963_jetski.png_375: ok
-2025-12-25T10:47:16.255-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-1] c.j.backend.controller.BoatController    : Rollback completed: 1 images deleted from Cloudinary
-2025-12-25T10:47:16.260-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json]
-2025-12-25T10:47:16.260-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Nothing to write: null body
-2025-12-25T10:47:16.267-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T11:12:42.482-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T11:12:42.483-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-3] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T11:12:42.499-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T11:12:53.389-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T11:12:53.407-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(String, List, UserDetails)
-2025-12-25T11:12:53.414-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] .m.m.a.RequestPartMethodArgumentResolver : Read "application/octet-stream" to ["{"name":"Barco Teste Swagger","description":"Testando upload de fotos","type":"JetSki","capacity":6, (truncated)..."]
-2025-12-25T11:12:53.414-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.controller.BoatController    : Creating new boat. JSON received: 342 chars
-2025-12-25T11:12:53.414-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.controller.BoatController    : Parsed boat DTO: Barco Teste Swagger, images: 1
-2025-12-25T11:12:53.414-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.service.CloudinaryService    : Uploading image: jetski.png (1258671 bytes, type: image/png)
-2025-12-25T11:12:55.608-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.service.CloudinaryService    : Image uploaded successfully. Public ID: timoneiro/boats/boat_1766671973421_jetski.png_448, URL: https://res.cloudinary.com/dq3dgcdes/image/upload/v1766671974/timoneiro/boats/boat_1766671973421_jetski.png_448.png
-2025-12-25T11:12:55.610-03:00 ERROR 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.controller.BoatController    : Failed to create boat: Cannot invoke "org.springframework.security.core.userdetails.UserDetails.getUsername()" because "userDetails" is null
-
-java.lang.NullPointerException: Cannot invoke "org.springframework.security.core.userdetails.UserDetails.getUsername()" because "userDetails" is null
-	at com.jompastech.backend.service.BoatService.saveWithPhotos(BoatService.java:46) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:355) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:379) ~[spring-tx-6.1.13.jar:6.1.13]
-	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.13.jar:6.1.13]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.13.jar:6.1.13]
-	at com.jompastech.backend.service.BoatService$$SpringCGLIB$$0.saveWithPhotos(<generated>) ~[classes/:na]
-	at com.jompastech.backend.controller.BoatController.createBoat(BoatController.java:126) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.30.jar:6.0]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.30.jar:6.0]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at com.jompastech.backend.security.filter.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:59) ~[classes/:na]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195) ~[spring-webmvc-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230) ~[spring-security-config-6.3.3.jar:6.3.3]
-	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar:6.1.13]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:384) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.30.jar:10.1.30]
-	at java.base/java.lang.Thread.run(Thread.java:1570) ~[na:na]
-
-2025-12-25T11:12:55.610-03:00  WARN 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.controller.BoatController    : Rolling back 1 uploaded images due to boat creation failure
-2025-12-25T11:12:55.610-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.service.CloudinaryService    : Deleting image with public ID: timoneiro/boats/boat_1766671973421_jetski.png_448
-2025-12-25T11:12:56.191-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.service.CloudinaryService    : Image deletion result for public ID timoneiro/boats/boat_1766671973421_jetski.png_448: ok
-2025-12-25T11:12:56.191-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-8] c.j.backend.controller.BoatController    : Rollback completed: 1 images deleted from Cloudinary
-2025-12-25T11:12:56.198-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json]
-2025-12-25T11:12:56.198-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Nothing to write: null body
-2025-12-25T11:12:56.198-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T11:13:24.927-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
-2025-12-25T11:13:24.927-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
-2025-12-25T11:13:24.938-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste1@teste.com, password=asd12345)]
-2025-12-25T11:13:25.201-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T11:13:25.202-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTFAdGVzdGUuY29tIiwiZXhwIjoxNzY2NzU4NDA1f (truncated)...]
-2025-12-25T11:13:25.202-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T11:14:07.660-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T11:14:07.667-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(String, List, UserDetails)
-2025-12-25T11:14:07.667-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] .m.m.a.RequestPartMethodArgumentResolver : Read "application/octet-stream" to ["{"name":"Barco Teste Swagger","description":"Testando upload de fotos","type":"JetSki","capacity":6, (truncated)..."]
-2025-12-25T11:14:07.674-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-6] c.j.backend.controller.BoatController    : Creating new boat. JSON received: 342 chars
-2025-12-25T11:14:07.674-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-6] c.j.backend.controller.BoatController    : Parsed boat DTO: Barco Teste Swagger, images: 1
-2025-12-25T11:14:07.674-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] c.j.backend.service.CloudinaryService    : Uploading image: jetski.png (1258671 bytes, type: image/png)
-2025-12-25T11:14:10.199-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-6] c.j.backend.service.CloudinaryService    : Image uploaded successfully. Public ID: timoneiro/boats/boat_1766672047674_jetski.png_659, URL: https://res.cloudinary.com/dq3dgcdes/image/upload/v1766672048/timoneiro/boats/boat_1766672047674_jetski.png_659.png
-2025-12-25T11:14:10.262-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json]
-2025-12-25T11:14:10.262-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=4, name=Barco Teste Swagger, description=Testando upload de fotos, type=JetSki, c (truncated)...]
-2025-12-25T11:14:10.262-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED
-2025-12-25T11:19:16.889-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
-2025-12-25T11:19:16.890-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-9] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
-2025-12-25T11:19:16.893-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T11:19:30.804-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : POST "/api/boats", parameters={multipart}
-2025-12-25T11:19:30.816-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#createBoat(String, List, UserDetails)
-2025-12-25T11:19:30.816-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] .m.m.a.RequestPartMethodArgumentResolver : Read "application/octet-stream" to ["{"name":"Teste 2","description":"Testando upload de fotos","type":"Veleiro","capacity":12,"length":1 (truncated)..."]
-2025-12-25T11:19:30.816-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-10] c.j.backend.controller.BoatController    : Creating new boat. JSON received: 334 chars
-2025-12-25T11:19:30.816-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-10] c.j.backend.controller.BoatController    : Parsed boat DTO: Teste 2, images: 1
-2025-12-25T11:19:30.816-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] c.j.backend.service.CloudinaryService    : Uploading image: Veleiro.png (1430243 bytes, type: image/png)
-2025-12-25T11:19:33.754-03:00  INFO 9852 --- [timoneiro] [http-nio-8080-exec-10] c.j.backend.service.CloudinaryService    : Image uploaded successfully. Public ID: timoneiro/boats/boat_1766672370816_Veleiro.png_645, URL: https://res.cloudinary.com/dq3dgcdes/image/upload/v1766672371/timoneiro/boats/boat_1766672370816_Veleiro.png_645.png
-2025-12-25T11:19:33.761-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json]
-2025-12-25T11:19:33.761-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=5, name=Teste 2, description=Testando upload de fotos, type=Veleiro, capacity=12, (truncated)...]
-2025-12-25T11:19:33.768-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED
-2025-12-25T11:20:45.508-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
-2025-12-25T11:20:45.508-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
-2025-12-25T11:20:45.508-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste1@teste.com, password=asdd12345)]
-2025-12-25T11:20:45.577-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler com.jompastech.backend.exception.GlobalExceptionHandler#handleAllExceptions(Exception, HttpServletRequest)
-2025-12-25T11:20:45.584-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T11:20:45.591-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ErrorResponse[timestamp=2025-12-25T14:20:45.583630900Z, status=500, error=Internal Server Error, mes (truncated)...]
-2025-12-25T11:20:45.591-03:00  WARN 9852 --- [timoneiro] [http-nio-8080-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.security.authentication.BadCredentialsException: Usuário inexistente ou senha inválida]
-2025-12-25T11:20:45.591-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
-2025-12-25T11:20:49.978-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
-2025-12-25T11:20:49.978-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
-2025-12-25T11:20:49.978-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste1@teste.com, password=asd12345)]
-2025-12-25T11:20:50.048-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T11:20:50.048-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTFAdGVzdGUuY29tIiwiZXhwIjoxNzY2NzU4ODUwf (truncated)...]
-2025-12-25T11:20:50.048-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T11:57:43.105-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : POST "/api/users/register", parameters={}
-2025-12-25T11:57:43.113-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.UserController#register(UserRequestDTO)
-2025-12-25T11:57:43.133-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [UserRequestDTO(name=pablo, email=teste2@teste.com, password=asd12345, cpf=01774264110, phone=9955222 (truncated)...]
-2025-12-25T11:57:43.251-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T11:57:43.251-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTJAdGVzdGUuY29tIiwiZXhwIjoxNzY2NzYxMDYzf (truncated)...]
-2025-12-25T11:57:43.251-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED
-2025-12-25T11:57:43.258-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
-2025-12-25T11:57:43.258-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
-2025-12-25T11:57:43.258-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste2@teste.com, password=asd12345)]
-2025-12-25T11:57:43.338-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2025-12-25T11:57:43.338-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTJAdGVzdGUuY29tIiwiZXhwIjoxNzY2NzYxMDYzf (truncated)...]
-2025-12-25T11:57:43.341-03:00 DEBUG 9852 --- [timoneiro] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
-2025-12-25T12:01:47.170-03:00  INFO 9852 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-12-25T12:01:47.186-03:00  INFO 9852 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2025-12-25T12:01:47.186-03:00  INFO 9852 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-12-26T13:28:56.202-03:00  INFO 12496 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 12496 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
+2025-12-26T13:28:56.213-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-12-26T13:28:56.214-03:00  INFO 12496 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
+2025-12-26T13:28:56.259-03:00  INFO 12496 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-26T13:28:56.260-03:00  INFO 12496 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-26T13:28:57.113-03:00  INFO 12496 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-26T13:28:57.200-03:00  INFO 12496 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 79 ms. Found 9 JPA repository interfaces.
+2025-12-26T13:28:57.697-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-26T13:28:57.708-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-26T13:28:57.709-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-12-26T13:28:57.758-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-26T13:28:57.758-03:00  INFO 12496 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1498 ms
+2025-12-26T13:28:57.961-03:00  INFO 12496 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-26T13:28:58.142-03:00  INFO 12496 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1dd0020a
+2025-12-26T13:28:58.144-03:00  INFO 12496 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-26T13:28:58.173-03:00  INFO 12496 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
+2025-12-26T13:28:58.180-03:00  WARN 12496 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2025-12-26T13:28:58.234-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.039s)
+2025-12-26T13:28:58.291-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2025-12-26T13:28:58.295-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2025-12-26T13:28:58.368-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-26T13:28:58.426-03:00  INFO 12496 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-12-26T13:28:58.463-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-26T13:28:58.750-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-26T13:28:59.550-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.jompastech.backend.model.entity.BoatAvailability (class must be instantiated by Interceptor)
+2025-12-26T13:28:59.889-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-26T13:28:59.892-03:00  INFO 12496 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T13:29:00.132-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-12-26T13:29:00.202-03:00  INFO 12496 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-12-26T13:29:00.245-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-26T13:29:00.986-03:00  WARN 12496 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-26T13:29:01.131-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 51 mappings in 'requestMappingHandlerMapping'
+2025-12-26T13:29:01.149-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-26T13:29:01.235-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-26T13:29:01.268-03:00 DEBUG 12496 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-26T13:29:01.384-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-12-26T13:29:01.410-03:00  INFO 12496 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-12-26T13:29:01.417-03:00  INFO 12496 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 5.663 seconds (process running for 6.261)
+2025-12-26T13:29:09.035-03:00  INFO 12496 --- [timoneiro] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-12-26T13:29:09.035-03:00  INFO 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-12-26T13:29:09.035-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2025-12-26T13:29:09.035-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2025-12-26T13:29:09.035-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
+2025-12-26T13:29:09.036-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@3edccfe8
+2025-12-26T13:29:09.036-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@13ec0921
+2025-12-26T13:29:09.036-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-12-26T13:29:09.036-03:00  INFO 12496 --- [timoneiro] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-12-26T13:29:09.067-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
+2025-12-26T13:29:09.068-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.AuthController#login(AuthRequestDTO)
+2025-12-26T13:29:09.086-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthRequestDTO(email=teste1@teste.com, password=asd12345)]
+2025-12-26T13:29:09.347-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:29:09.347-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [AuthResponseDTO(token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0ZTFAdGVzdGUuY29tIiwiZXhwIjoxNzY2ODUyOTQ5f (truncated)...]
+2025-12-26T13:29:09.352-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T13:29:27.601-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/boats", parameters={}
+2025-12-26T13:29:27.601-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#getAllBoats()
+2025-12-26T13:29:27.662-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:29:27.665-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[BoatResponseDTO(id=3, name=Nautilus, description=veleiro Simples, type=Veleiro, capacity=13, length (truncated)...]
+2025-12-26T13:29:27.675-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T13:29:32.722-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/boats/4", parameters={}
+2025-12-26T13:29:32.723-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#getBoat(Long)
+2025-12-26T13:29:32.738-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:29:32.738-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=4, name=Barco Teste Swagger, description=Testando upload de fotos, type=JetSki, c (truncated)...]
+2025-12-26T13:29:32.740-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T13:29:32.742-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/boats/4", parameters={}
+2025-12-26T13:29:32.743-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#getBoat(Long)
+2025-12-26T13:29:32.749-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:29:32.750-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=4, name=Barco Teste Swagger, description=Testando upload de fotos, type=JetSki, c (truncated)...]
+2025-12-26T13:29:32.751-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T13:46:07.077-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/boats/4", parameters={}
+2025-12-26T13:46:07.077-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#getBoat(Long)
+2025-12-26T13:46:07.098-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:46:07.099-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=4, name=Barco Teste Swagger, description=Testando upload de fotos, type=JetSki, c (truncated)...]
+2025-12-26T13:46:07.100-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T13:46:14.892-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/boats/4", parameters={}
+2025-12-26T13:46:14.893-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.jompastech.backend.controller.BoatController#getBoat(Long)
+2025-12-26T13:46:14.898-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-26T13:46:14.899-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [BoatResponseDTO(id=4, name=Barco Teste Swagger, description=Testando upload de fotos, type=JetSki, c (truncated)...]
+2025-12-26T13:46:14.900-03:00 DEBUG 12496 --- [timoneiro] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-26T15:06:07.831-03:00  INFO 12496 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T15:06:07.840-03:00  INFO 12496 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-26T15:06:07.843-03:00  INFO 12496 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-12-26T15:57:50.096-03:00  INFO 16588 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 16588 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
+2025-12-26T15:57:50.098-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-12-26T15:57:50.099-03:00  INFO 16588 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
+2025-12-26T15:57:50.136-03:00  INFO 16588 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-26T15:57:50.137-03:00  INFO 16588 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-26T15:57:50.860-03:00  INFO 16588 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-26T15:57:50.931-03:00  INFO 16588 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 66 ms. Found 9 JPA repository interfaces.
+2025-12-26T15:57:51.382-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-26T15:57:51.395-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-26T15:57:51.396-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-12-26T15:57:51.441-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-26T15:57:51.441-03:00  INFO 16588 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1304 ms
+2025-12-26T15:57:51.625-03:00  INFO 16588 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-26T15:57:51.773-03:00  INFO 16588 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@27d1278
+2025-12-26T15:57:51.774-03:00  INFO 16588 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-26T15:57:51.801-03:00  INFO 16588 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
+2025-12-26T15:57:51.807-03:00  WARN 16588 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2025-12-26T15:57:51.855-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.035s)
+2025-12-26T15:57:51.908-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2025-12-26T15:57:51.911-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2025-12-26T15:57:51.976-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-26T15:57:52.025-03:00  INFO 16588 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-12-26T15:57:52.056-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-26T15:57:52.327-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-26T15:57:53.269-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-26T15:57:53.272-03:00  INFO 16588 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T15:57:53.498-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-12-26T15:57:53.559-03:00  INFO 16588 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-12-26T15:57:53.587-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-26T15:57:54.243-03:00  WARN 16588 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-26T15:57:54.381-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 55 mappings in 'requestMappingHandlerMapping'
+2025-12-26T15:57:54.398-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-26T15:57:54.486-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-26T15:57:54.518-03:00 DEBUG 16588 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-26T15:57:54.632-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-12-26T15:57:54.657-03:00  INFO 16588 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-12-26T15:57:54.664-03:00  INFO 16588 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 4.954 seconds (process running for 5.449)
+2025-12-26T15:58:00.163-03:00  INFO 16588 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T15:58:00.166-03:00  INFO 16588 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-26T15:58:00.167-03:00  INFO 16588 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-12-26T16:17:39.845-03:00  INFO 24508 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 24508 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
+2025-12-26T16:17:39.847-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-12-26T16:17:39.847-03:00  INFO 24508 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
+2025-12-26T16:17:39.888-03:00  INFO 24508 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-26T16:17:39.888-03:00  INFO 24508 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-26T16:17:40.594-03:00  INFO 24508 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-26T16:17:40.667-03:00  INFO 24508 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 67 ms. Found 9 JPA repository interfaces.
+2025-12-26T16:17:41.112-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-26T16:17:41.123-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-26T16:17:41.124-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-12-26T16:17:41.172-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-26T16:17:41.173-03:00  INFO 24508 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1284 ms
+2025-12-26T16:17:41.353-03:00  INFO 24508 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-26T16:17:41.497-03:00  INFO 24508 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@774dc769
+2025-12-26T16:17:41.498-03:00  INFO 24508 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-26T16:17:41.523-03:00  INFO 24508 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
+2025-12-26T16:17:41.529-03:00  WARN 24508 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2025-12-26T16:17:41.571-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.029s)
+2025-12-26T16:17:41.724-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2025-12-26T16:17:41.728-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2025-12-26T16:17:41.795-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-26T16:17:41.852-03:00  INFO 24508 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-12-26T16:17:41.882-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-26T16:17:42.144-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-26T16:17:43.089-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-26T16:17:43.091-03:00  INFO 24508 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T16:17:43.326-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-12-26T16:17:43.390-03:00  INFO 24508 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-12-26T16:17:43.415-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-26T16:17:44.080-03:00  WARN 24508 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-26T16:17:44.208-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 55 mappings in 'requestMappingHandlerMapping'
+2025-12-26T16:17:44.223-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-26T16:17:44.305-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-26T16:17:44.334-03:00 DEBUG 24508 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-26T16:17:44.442-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-12-26T16:17:44.464-03:00  INFO 24508 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-12-26T16:17:44.471-03:00  INFO 24508 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 5.03 seconds (process running for 5.528)
+2025-12-26T16:17:48.561-03:00  INFO 24508 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T16:17:48.563-03:00  INFO 24508 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-26T16:17:48.566-03:00  INFO 24508 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-12-26T16:31:47.214-03:00  INFO 23624 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 23624 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
+2025-12-26T16:31:47.215-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-12-26T16:31:47.216-03:00  INFO 23624 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
+2025-12-26T16:31:47.255-03:00  INFO 23624 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-26T16:31:47.255-03:00  INFO 23624 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-26T16:31:47.925-03:00  INFO 23624 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-26T16:31:47.990-03:00  INFO 23624 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 59 ms. Found 9 JPA repository interfaces.
+2025-12-26T16:31:48.444-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-26T16:31:48.454-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-26T16:31:48.455-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-12-26T16:31:48.496-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-26T16:31:48.497-03:00  INFO 23624 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1242 ms
+2025-12-26T16:31:48.664-03:00  INFO 23624 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-26T16:31:48.789-03:00  INFO 23624 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@242de5cc
+2025-12-26T16:31:48.790-03:00  INFO 23624 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-26T16:31:48.809-03:00  INFO 23624 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
+2025-12-26T16:31:48.815-03:00  WARN 23624 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2025-12-26T16:31:48.847-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.023s)
+2025-12-26T16:31:48.897-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2025-12-26T16:31:48.901-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2025-12-26T16:31:48.968-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-26T16:31:49.003-03:00  INFO 23624 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-12-26T16:31:49.027-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-26T16:31:49.265-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-26T16:31:50.159-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-26T16:31:50.161-03:00  INFO 23624 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T16:31:50.354-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-12-26T16:31:50.422-03:00  INFO 23624 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-12-26T16:31:50.448-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-26T16:31:51.083-03:00  WARN 23624 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-26T16:31:51.196-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 55 mappings in 'requestMappingHandlerMapping'
+2025-12-26T16:31:51.211-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-26T16:31:51.288-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-26T16:31:51.315-03:00 DEBUG 23624 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-26T16:31:51.420-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-12-26T16:31:51.443-03:00  INFO 23624 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-12-26T16:31:51.449-03:00  INFO 23624 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 4.612 seconds (process running for 5.083)
+2025-12-26T16:32:52.950-03:00  INFO 23624 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T16:32:52.952-03:00  INFO 23624 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-26T16:32:52.955-03:00  INFO 23624 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-12-26T17:17:40.294-03:00  INFO 25080 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Starting BackendApplication using Java 22.0.2 with PID 25080 (C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro\backend\target\classes started by JOÃO PAULO FERNANDES in C:\Users\JOÃO PAULO FERNANDES\Documents\PROJECTS\Portfolio\timoneiro)
+2025-12-26T17:17:40.296-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-12-26T17:17:40.296-03:00  INFO 25080 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : No active profile set, falling back to 1 default profile: "default"
+2025-12-26T17:17:40.341-03:00  INFO 25080 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-26T17:17:40.342-03:00  INFO 25080 --- [timoneiro] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-26T17:17:41.089-03:00  INFO 25080 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-26T17:17:41.159-03:00  INFO 25080 --- [timoneiro] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 64 ms. Found 9 JPA repository interfaces.
+2025-12-26T17:17:41.601-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-26T17:17:41.613-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-26T17:17:41.613-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-12-26T17:17:41.659-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-26T17:17:41.660-03:00  INFO 25080 --- [timoneiro] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1318 ms
+2025-12-26T17:17:41.846-03:00  INFO 25080 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-26T17:17:42.000-03:00  INFO 25080 --- [timoneiro] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@12bc1217
+2025-12-26T17:17:42.001-03:00  INFO 25080 --- [timoneiro] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-26T17:17:42.029-03:00  INFO 25080 --- [timoneiro] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/boat_rental (PostgreSQL 17.5)
+2025-12-26T17:17:42.035-03:00  WARN 25080 --- [timoneiro] [restartedMain] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 17.5 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2025-12-26T17:17:42.079-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.030s)
+2025-12-26T17:17:42.132-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2025-12-26T17:17:42.135-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2025-12-26T17:17:42.208-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-26T17:17:42.261-03:00  INFO 25080 --- [timoneiro] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-12-26T17:17:42.290-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-26T17:17:42.547-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-26T17:17:43.510-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-26T17:17:43.512-03:00  INFO 25080 --- [timoneiro] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T17:17:43.739-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] c.j.b.s.filter.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-12-26T17:17:43.803-03:00  INFO 25080 --- [timoneiro] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-12-26T17:17:43.830-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-26T17:17:44.543-03:00  WARN 25080 --- [timoneiro] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-26T17:17:44.670-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 55 mappings in 'requestMappingHandlerMapping'
+2025-12-26T17:17:44.685-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-26T17:17:44.765-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-26T17:17:44.795-03:00 DEBUG 25080 --- [timoneiro] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-26T17:17:44.909-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-12-26T17:17:44.933-03:00  INFO 25080 --- [timoneiro] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-12-26T17:17:44.939-03:00  INFO 25080 --- [timoneiro] [restartedMain] c.jompastech.backend.BackendApplication  : Started BackendApplication in 5.073 seconds (process running for 5.555)
+2025-12-26T17:17:49.536-03:00  INFO 25080 --- [timoneiro] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-26T17:17:49.539-03:00  INFO 25080 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-26T17:17:49.541-03:00  INFO 25080 --- [timoneiro] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

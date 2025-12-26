@@ -2,11 +2,12 @@ package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.exception.BookingCreationException;
 import com.jompastech.backend.exception.PaymentProcessingException;
-import com.jompastech.backend.model.dto.booking.CreateBookingCommand;
+import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
 import com.jompastech.backend.model.dto.payment.MockCardData;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.model.enums.BookingStatus;
@@ -59,6 +60,9 @@ class BookingApplicationServiceTest {
     private BoatRepository boatRepository;
 
     @Mock
+    private com.jompastech.backend.repository.BoatAvailabilityRepository boatAvailabilityRepository;
+
+    @Mock
     private BookingValidationService bookingValidationService;
 
     @Mock
@@ -78,7 +82,7 @@ class BookingApplicationServiceTest {
 
     private User testUser;
     private Boat testBoat;
-    private CreateBookingCommand validCommand;
+    private BookingRequestDTO validRequest;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
@@ -97,21 +101,20 @@ class BookingApplicationServiceTest {
         testBoat.setName("Test Boat");
         testBoat.setOwner(new User());
 
-        validCommand = new CreateBookingCommand();
-        validCommand.setUserId(1L);
-        validCommand.setBoatId(1L);
-        validCommand.setStartDate(startDate);
-        validCommand.setEndDate(endDate);
-        validCommand.setTotalPrice(new BigDecimal("500.00"));
-        validCommand.setPaymentMethod(PaymentMethod.CREDIT_CARD);
+        validRequest = new BookingRequestDTO();
+        validRequest.setUserId(1L);
+        validRequest.setBoatId(1L);
+        validRequest.setStartDate(startDate);
+        validRequest.setEndDate(endDate);
+        validRequest.setPaymentMethod(PaymentMethod.CREDIT_CARD);
 
         MockCardData mockCardData = new MockCardData(
                 "4111111111111111",
                 "Test User",
                 "12/30",
                 "123"
-                );
-        validCommand.setMockCardData(mockCardData);
+        );
+        validRequest.setMockCardData(mockCardData);
     }
 
     @Nested
@@ -124,6 +127,13 @@ class BookingApplicationServiceTest {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
+
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00")); // 4 hours * 125 = 500
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -139,7 +149,7 @@ class BookingApplicationServiceTest {
             when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
 
             // Act
-            Booking result = bookingApplicationService.createBooking(validCommand);
+            Booking result = bookingApplicationService.createBooking(validRequest);
 
             // Assert
             assertThat(result).isNotNull();
@@ -148,6 +158,7 @@ class BookingApplicationServiceTest {
             // Verify interactions
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
+            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
             verify(paymentService).processPayment(paymentInfoCaptor.capture());
             verify(bookingRepository).save(any(Booking.class));
@@ -159,7 +170,7 @@ class BookingApplicationServiceTest {
             assertThat(capturedPaymentInfo.getAmount()).isEqualByComparingTo(new BigDecimal("500.00"));
             assertThat(capturedPaymentInfo.getPaymentMethod()).isEqualTo(PaymentMethod.CREDIT_CARD);
             assertThat(capturedPaymentInfo.getUserEmail()).isEqualTo("test@example.com");
-            assertThat(capturedPaymentInfo.getDescription()).contains("Boat rental - 1");
+            assertThat(capturedPaymentInfo.getDescription()).contains("Boat rental");
             assertThat(capturedPaymentInfo.getMockCardData()).isNotNull();
         }
 
@@ -167,17 +178,23 @@ class BookingApplicationServiceTest {
         @DisplayName("Should process PIX payment without card data")
         void createBooking_WithPixPayment_ShouldProcessWithoutCardData() {
             // Arrange
-            CreateBookingCommand pixCommand = new CreateBookingCommand();
-            pixCommand.setUserId(1L);
-            pixCommand.setBoatId(1L);
-            pixCommand.setStartDate(startDate);
-            pixCommand.setEndDate(endDate);
-            pixCommand.setTotalPrice(new BigDecimal("300.00"));
-            pixCommand.setPaymentMethod(PaymentMethod.PIX);
+            BookingRequestDTO pixRequest = new BookingRequestDTO();
+            pixRequest.setUserId(1L);
+            pixRequest.setBoatId(1L);
+            pixRequest.setStartDate(startDate);
+            pixRequest.setEndDate(endDate);
+            pixRequest.setPaymentMethod(PaymentMethod.PIX);
             // No mockCardData for PIX
 
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
+
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("75.00")); // 4 hours * 75 = 300
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -193,7 +210,7 @@ class BookingApplicationServiceTest {
             when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
 
             // Act
-            Booking result = bookingApplicationService.createBooking(pixCommand);
+            Booking result = bookingApplicationService.createBooking(pixRequest);
 
             // Assert
             verify(paymentService).processPayment(paymentInfoCaptor.capture());
@@ -216,12 +233,12 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> bookingApplicationService.createBooking(validCommand))
+            assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(BookingCreationException.class)
                     .hasMessageContaining("User not found with id: 1");
 
             verify(userRepository).findById(1L);
-            verifyNoInteractions(boatRepository, bookingValidationService, paymentService, bookingRepository, notificationService);
+            verifyNoInteractions(boatRepository, boatAvailabilityRepository, bookingValidationService, paymentService, bookingRepository, notificationService);
         }
 
         @Test
@@ -232,13 +249,13 @@ class BookingApplicationServiceTest {
             when(boatRepository.findById(1L)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> bookingApplicationService.createBooking(validCommand))
+            assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(BookingCreationException.class)
                     .hasMessageContaining("Boat not found with id: 1");
 
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
-            verifyNoInteractions(bookingValidationService, paymentService, bookingRepository, notificationService);
+            verifyNoInteractions(boatAvailabilityRepository, bookingValidationService, paymentService, bookingRepository, notificationService);
         }
 
         @Test
@@ -248,16 +265,24 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
+
             doThrow(new com.jompastech.backend.exception.BookingValidationException("Validation failed"))
                     .when(bookingValidationService).validateBookingCreation(any(Booking.class));
 
             // Act & Assert
-            assertThatThrownBy(() -> bookingApplicationService.createBooking(validCommand))
+            assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(com.jompastech.backend.exception.BookingValidationException.class)
                     .hasMessageContaining("Validation failed");
 
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
+            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
             verifyNoInteractions(paymentService, bookingRepository, notificationService);
         }
@@ -269,6 +294,13 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
+
             PaymentResult failedPayment = PaymentResult.builder()
                     .success(false)
                     .status(PaymentStatus.CANCELLED)
@@ -278,12 +310,13 @@ class BookingApplicationServiceTest {
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(failedPayment);
 
             // Act & Assert
-            assertThatThrownBy(() -> bookingApplicationService.createBooking(validCommand))
+            assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(PaymentProcessingException.class)
                     .hasMessageContaining("Payment failed: Insufficient funds");
 
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
+            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
             verify(paymentService).processPayment(any(PaymentInfo.class));
             verifyNoInteractions(bookingRepository, notificationService);
@@ -296,12 +329,19 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
+
             // Simulate unexpected exception in PaymentService
             when(paymentService.processPayment(any(PaymentInfo.class)))
                     .thenThrow(new RuntimeException("Database connection failed"));
 
             // Act & Assert
-            assertThatThrownBy(() -> bookingApplicationService.createBooking(validCommand))
+            assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Database connection failed");
         }
@@ -318,6 +358,13 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
+
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
                     .transactionId("TXN_12345")
@@ -328,7 +375,6 @@ class BookingApplicationServiceTest {
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
             // Use ArgumentCaptor to verify Booking status before saving
-            Booking bookingToSave = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("500.00"));
             when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
                 Booking saved = invocation.getArgument(0);
                 assertThat(saved.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
@@ -336,7 +382,7 @@ class BookingApplicationServiceTest {
             });
 
             // Act
-            bookingApplicationService.createBooking(validCommand);
+            bookingApplicationService.createBooking(validRequest);
 
             // Assert
             verify(bookingRepository).save(any(Booking.class));
@@ -349,6 +395,13 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
+
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
                     .transactionId("TXN_12345")
@@ -363,7 +416,7 @@ class BookingApplicationServiceTest {
             when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
 
             // Act
-            bookingApplicationService.createBooking(validCommand);
+            bookingApplicationService.createBooking(validRequest);
 
             // Assert
             verify(paymentService).processPayment(paymentInfoCaptor.capture());
@@ -373,10 +426,9 @@ class BookingApplicationServiceTest {
             assertThat(paymentInfo.getAmount()).isEqualByComparingTo(new BigDecimal("500.00"));
             assertThat(paymentInfo.getPaymentMethod()).isEqualTo(PaymentMethod.CREDIT_CARD);
             assertThat(paymentInfo.getUserEmail()).isEqualTo("test@example.com");
-            assertThat(paymentInfo.getDescription()).isEqualTo("Boat rental - 1");
+            assertThat(paymentInfo.getDescription()).contains("Boat rental");
             assertThat(paymentInfo.getMockCardData()).isNotNull();
             assertThat(paymentInfo.getMockCardData().getCardNumber()).isEqualTo("4111111111111111");
-
         }
 
         @Test
@@ -385,6 +437,13 @@ class BookingApplicationServiceTest {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
+
+            // Mock boat availability repository
+            BoatAvailability availability =
+                    new BoatAvailability();
+            availability.setPricePerHour(new BigDecimal("125.00"));
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                    .thenReturn(java.util.Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -400,7 +459,7 @@ class BookingApplicationServiceTest {
             when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
 
             // Act
-            Booking result = bookingApplicationService.createBooking(validCommand);
+            Booking result = bookingApplicationService.createBooking(validRequest);
 
             // Assert
             assertThat(result).isNotNull();
@@ -417,13 +476,12 @@ class BookingApplicationServiceTest {
     @DisplayName("Should fail with invalid dates in domain validation")
     void createBooking_WithInvalidDates_ShouldFailInDomainValidation() {
         // Arrange
-        CreateBookingCommand invalidDateCommand = new CreateBookingCommand();
-        invalidDateCommand.setUserId(1L);
-        invalidDateCommand.setBoatId(1L);
-        invalidDateCommand.setStartDate(LocalDateTime.now().plusDays(2)); // Future start
-        invalidDateCommand.setEndDate(LocalDateTime.now().plusDays(1));   // Past end (invalid)
-        invalidDateCommand.setTotalPrice(new BigDecimal("200.00"));
-        invalidDateCommand.setPaymentMethod(PaymentMethod.CREDIT_CARD);
+        BookingRequestDTO invalidDateRequest = new BookingRequestDTO();
+        invalidDateRequest.setUserId(1L);
+        invalidDateRequest.setBoatId(1L);
+        invalidDateRequest.setStartDate(LocalDateTime.now().plusDays(2)); // Future start
+        invalidDateRequest.setEndDate(LocalDateTime.now().plusDays(1));   // Past end (invalid)
+        invalidDateRequest.setPaymentMethod(PaymentMethod.CREDIT_CARD);
 
         MockCardData mockCardData = new MockCardData(
                 "4111111111111111",
@@ -431,15 +489,22 @@ class BookingApplicationServiceTest {
                 "12/30",
                 "123"
         );
-        invalidDateCommand.setMockCardData(mockCardData);
+        invalidDateRequest.setMockCardData(mockCardData);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
+        // Mock boat availability repository
+        BoatAvailability availability =
+                new BoatAvailability();
+        availability.setPricePerHour(new BigDecimal("50.00"));
+        when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
+                .thenReturn(java.util.Collections.singletonList(availability));
+
         // Act & Assert
-        // Validation occurs inside Booking constructor (called by toBooking)
+        // Validation occurs inside Booking constructor (called by service)
         // which throws IllegalArgumentException
-        assertThatThrownBy(() -> bookingApplicationService.createBooking(invalidDateCommand))
+        assertThatThrownBy(() -> bookingApplicationService.createBooking(invalidDateRequest))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Start date cannot be after end date");
     }

@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -72,13 +73,17 @@ class BoatAvailabilityServiceTest {
         endDate = LocalDateTime.of(2024, 1, 15, 18, 0);
 
         // BoatAvailability entities - represent concrete time slots when boats are available
-        testAvailability = new BoatAvailability(testBoat, startDate, endDate);
+        // CORREÇÃO: Usar o construtor correto com 4 parâmetros
+        testAvailability = new BoatAvailability(testBoat, startDate, endDate, new BigDecimal("100.00"));
         testAvailability.setId(1L);
 
         // Second availability slot for testing multiple slots scenarios
-        testAvailability2 = new BoatAvailability(testBoat,
+        // CORREÇÃO: Usar o construtor correto com 4 parâmetros
+        testAvailability2 = new BoatAvailability(
+                testBoat,
                 startDate.plusDays(1),
-                endDate.plusDays(1));
+                endDate.plusDays(1),
+                new BigDecimal("120.00"));
         testAvailability2.setId(2L);
     }
 
