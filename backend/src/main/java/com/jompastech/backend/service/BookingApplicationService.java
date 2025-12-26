@@ -2,12 +2,15 @@ package com.jompastech.backend.service;
 
 import com.jompastech.backend.exception.BookingCreationException;
 import com.jompastech.backend.exception.PaymentProcessingException;
-import com.jompastech.backend.model.dto.booking.CreateBookingCommand;
+import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
+import com.jompastech.backend.model.dto.payment.MockCardData;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.User;
+import com.jompastech.backend.repository.BoatAvailabilityRepository;
 import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.UserRepository;
@@ -15,16 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
-/**
- * Application service that orchestrates the complete booking creation process.
- *
- * Coordinates multiple domain services and repositories to execute the booking workflow,
- * ensuring transactional consistency and business rule enforcement throughout the process.
- *
- * Follows the Command pattern by accepting a CreateBookingCommand that encapsulates
- * all required data for booking creation, promoting clear separation of concerns.
- */
 @Service
 @Transactional
 public class BookingApplicationService {
@@ -32,78 +28,79 @@ public class BookingApplicationService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final BoatRepository boatRepository;
+    private final BoatAvailabilityRepository boatAvailabilityRepository;
     private final BookingValidationService bookingValidationService;
     private final PaymentService paymentService;
     private final NotificationService notificationService;
 
-    /**
-     * Constructs the BookingApplicationService with required dependencies.
-     *
-     * Uses constructor injection to ensure all dependencies are provided and
-     * the service is in a valid state upon instantiation.
-     */
-    public BookingApplicationService(BookingRepository bookingRepository,
-                                     UserRepository userRepository,
-                                     BoatRepository boatRepository,
-                                     BookingValidationService bookingValidationService,
-                                     PaymentService paymentService,
-                                     NotificationService notificationService) {
+    public BookingApplicationService(
+            BookingRepository bookingRepository,
+            UserRepository userRepository,
+            BoatRepository boatRepository,
+            BoatAvailabilityRepository boatAvailabilityRepository,
+            BookingValidationService bookingValidationService,
+            PaymentService paymentService,
+            NotificationService notificationService) {
+
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.boatRepository = boatRepository;
+        this.boatAvailabilityRepository = boatAvailabilityRepository;
         this.bookingValidationService = bookingValidationService;
         this.paymentService = paymentService;
         this.notificationService = notificationService;
     }
 
     /**
-     * Creates a new booking by orchestrating the complete workflow from validation to confirmation.
+     * Creates a new booking with dynamic pricing calculation.
      *
-     * Executes a seven-step process:
-     * 1. Fetches user and boat entities to ensure they exist
-     * 2. Converts the command to a booking entity with domain validation
-     * 3. Validates business rules and availability conflicts
-     * 4. Builds payment information from command data
-     * 5. Processes payment through the payment service
-     * 6. Confirms and persists the booking
-     * 7. Notifies both boat owner and renter
-     *
-     * The entire process is transactional, ensuring data consistency across all operations.
-     *
-     * @param command the booking creation command containing all required booking data
-     * @return the created and confirmed booking entity
-     * @throws BookingCreationException if user, boat not found or validation fails
-     * @throws PaymentProcessingException if payment processing fails
+     * @param bookingRequest the booking request DTO containing all required data
+     * @return the created and confirmed booking entity with dynamic pricing
      */
-    public Booking createBooking(CreateBookingCommand command) {
+    public Booking createBooking(BookingRequestDTO bookingRequest) {
         // Step 1: Fetch required entities
-        User user = userRepository.findById(command.getUserId())
-                .orElseThrow(() -> new BookingCreationException("User not found with id: " + command.getUserId()));
+        User user = userRepository.findById(bookingRequest.getUserId())
+                .orElseThrow(() -> new BookingCreationException(
+                        "User not found with id: " + bookingRequest.getUserId()));
 
-        Boat boat = boatRepository.findById(command.getBoatId())
-                .orElseThrow(() -> new BookingCreationException("Boat not found with id: " + command.getBoatId()));
+        Boat boat = boatRepository.findById(bookingRequest.getBoatId())
+                .orElseThrow(() -> new BookingCreationException(
+                        "Boat not found with id: " + bookingRequest.getBoatId()));
 
-        // Step 2: Convert command to domain entity
-        Booking booking = command.toBooking(user, boat);
+        // Step 2: Find specific availability window for dynamic pricing
+        BoatAvailability availabilityWindow = findAvailabilityWindowForBooking(
+                boat, bookingRequest.getStartDate(), bookingRequest.getEndDate());
 
-        // Step 3: Validate business rules and availability
+        // Step 3: Calculate price based on the specific window's price per hour
+        BigDecimal totalPrice = availabilityWindow.calculatePriceForPeriod(
+                bookingRequest.getStartDate(), bookingRequest.getEndDate());
+
+        // Step 4: Create booking entity directly with total price
+        Booking booking = new Booking(
+                user,
+                boat,
+                bookingRequest.getStartDate(),
+                bookingRequest.getEndDate(),
+                totalPrice
+        );
+
+        // Step 5: Validate business rules and availability
         bookingValidationService.validateBookingCreation(booking);
 
-        // Step 4: Prepare payment information
-        PaymentInfo paymentInfo = buildPaymentInfo(command, user, booking.getTotalPrice());
-
-        // Step 5: Process payment (sandbox mode for portfolio demonstration)
+        // Step 6: Prepare and process payment
+        PaymentInfo paymentInfo = buildPaymentInfo(bookingRequest, user, totalPrice);
         PaymentResult paymentResult = paymentService.processPayment(paymentInfo);
 
         if (!paymentResult.isSuccessful()) {
-            throw new PaymentProcessingException("Payment failed: " + paymentResult.getErrorMessage());
+            throw new PaymentProcessingException(
+                    "Payment failed: " + paymentResult.getErrorMessage());
         }
 
-        // Step 6: Confirm and persist the booking
-        booking.confirm(); // Transition from PENDING to CONFIRMED status
+        // Step 7: Confirm and persist the booking
+        booking.confirm();
         Booking savedBooking = bookingRepository.save(booking);
 
-        // Step 7: Notify involved parties
+        // Step 8: Send notifications
         notificationService.notifyOwner(savedBooking);
         notificationService.notifyRenter(savedBooking);
 
@@ -111,24 +108,52 @@ public class BookingApplicationService {
     }
 
     /**
-     * Builds payment information from command data and user details.
+     * Finds the specific availability window that covers the requested booking period.
      *
-     * Aggregates data from multiple sources to create a complete payment request,
-     * including user email for receipt purposes and descriptive information for
-     * transaction tracking.
+     * This method is critical for implementing dynamic pricing based on
+     * different availability windows with different price rates.
      *
-     * @param command the original booking creation command
+     * @param boat The boat being booked
+     * @param startDate Start of the booking period
+     * @param endDate End of the booking period
+     * @return The specific BoatAvailability window covering the period
+     * @throws BookingCreationException if no suitable availability window is found
+     */
+    private BoatAvailability findAvailabilityWindowForBooking(
+            Boat boat, LocalDateTime startDate, LocalDateTime endDate) {
+
+        List<BoatAvailability> availabilityWindows = boatAvailabilityRepository
+                .findCoveringAvailabilityWindow(boat, startDate, endDate);
+
+        return availabilityWindows.stream()
+                .filter(window -> window.coversPeriod(startDate, endDate))
+                .findFirst()
+                .orElseThrow(() -> new BookingCreationException(
+                        "No availability window with dynamic pricing found for the selected period. " +
+                                "The boat may not be available or the period spans multiple pricing windows."));
+    }
+
+    /**
+     * Builds payment information from booking data and user details.
+     *
+     * @param bookingRequest the original booking request DTO
      * @param user the user entity for contact information
-     * @param amount the total amount to be charged
+     * @param amount the dynamically calculated total amount
      * @return complete payment information ready for processing
      */
-    private PaymentInfo buildPaymentInfo(CreateBookingCommand command, User user, BigDecimal amount) {
+    private PaymentInfo buildPaymentInfo(
+            BookingRequestDTO bookingRequest, User user, BigDecimal amount) {
+
         return PaymentInfo.builder()
                 .amount(amount)
-                .paymentMethod(command.getPaymentMethod())
+                .paymentMethod(bookingRequest.getPaymentMethod())
                 .userEmail(user.getEmail())
-                .mockCardData(command.getMockCardData()) // For sandbox testing environment
-                .description("Boat rental - " + command.getBoatId())
+                .mockCardData(bookingRequest.getMockCardData())
+                .description(String.format(
+                        "Boat rental: %s (%s to %s)",
+                        bookingRequest.getBoatId(),
+                        bookingRequest.getStartDate().toLocalDate(),
+                        bookingRequest.getEndDate().toLocalDate()))
                 .build();
     }
 }
