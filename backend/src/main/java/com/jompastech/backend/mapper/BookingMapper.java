@@ -1,7 +1,7 @@
 package com.jompastech.backend.mapper;
 
-import com.jompastech.backend.model.dto.BookingRequestDTO;
-import com.jompastech.backend.model.dto.BookingResponseDTO;
+import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
+import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
 import com.jompastech.backend.model.dto.basicDTO.BoatBasicDTO;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
 import com.jompastech.backend.model.entity.Booking;
