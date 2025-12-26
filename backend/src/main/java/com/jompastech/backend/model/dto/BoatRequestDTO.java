@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
 public class BoatRequestDTO {
 
     private String name;
