@@ -244,8 +244,8 @@ const BoatDetails = () => {
           <div className="animate-pulse space-y-6">
             {/* Skeletons */}
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="space-y-4">
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-4">
                 <div className="bg-gray-200 rounded-xl aspect-[4/3]"></div>
                 <div className="grid grid-cols-4 gap-2">
                   {[...Array(4)].map((_, i) => (
@@ -320,71 +320,74 @@ const BoatDetails = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 pb-16">
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column - Images */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3]">
-              {boat.photos && boat.photos.length > 0 ? (
-                <>
-                  <img
-                    src={boat.photos[selectedImageIndex]}
-                    alt={`${boat.name} - Foto ${selectedImageIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Navigation Arrows */}
-                  {boat.photos.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors"
-                      >
-                        <ChevronLeft className="w-5 h-5 text-foreground" />
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors"
-                      >
-                        <ChevronRight className="w-5 h-5 text-foreground" />
-                      </button>
-                    </>
-                  )}
-                  {/* Image Counter */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedImageIndex + 1} / {boat.photos.length}
-                    </span>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - All boat details with scroll */}
+          <div className="lg:col-span-2 space-y-8 overflow-y-auto max-h-[calc(125vh-12rem)] pr-4">
+            {/* Images Section */}
+            <div className="space-y-4">
+              {/* Main Image */}
+              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3]">
+                {boat.photos && boat.photos.length > 0 ? (
+                  <>
+                    <img
+                      src={boat.photos[selectedImageIndex]}
+                      alt={`${boat.name} - Foto ${selectedImageIndex + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Navigation Arrows */}
+                    {boat.photos.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevImage}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors"
+                        >
+                          <ChevronLeft className="w-5 h-5 text-foreground" />
+                        </button>
+                        <button
+                          onClick={nextImage}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors"
+                        >
+                          <ChevronRight className="w-5 h-5 text-foreground" />
+                        </button>
+                      </>
+                    )}
+                    {/* Image Counter */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-foreground">
+                        {selectedImageIndex + 1} / {boat.photos.length}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8">
+                    <ImageIcon className="w-16 h-16 text-gray-400 mb-4" />
+                    <p className="text-gray-500 text-center">Sem fotos disponíveis</p>
                   </div>
-                </>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-8">
-                  <ImageIcon className="w-16 h-16 text-gray-400 mb-4" />
-                  <p className="text-gray-500 text-center">Sem fotos disponíveis</p>
+                )}
+              </div>
+
+              {/* Thumbnails */}
+              {boat.photos && boat.photos.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {boat.photos.map((photo, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={cn(
+                        "relative rounded-lg overflow-hidden aspect-square",
+                        selectedImageIndex === index && "ring-2 ring-primary ring-offset-2"
+                      )}
+                    >
+                      <img
+                        src={photo}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Thumbnails */}
-            {boat.photos && boat.photos.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {boat.photos.map((photo, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={cn(
-                      "relative rounded-lg overflow-hidden aspect-square",
-                      selectedImageIndex === index && "ring-2 ring-primary ring-offset-2"
-                    )}
-                  >
-                    <img
-                      src={photo}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Owner Info */}
             <div className="bg-card rounded-2xl p-6 shadow-soft">
@@ -417,67 +420,6 @@ const BoatDetails = () => {
                   <Mail className="w-4 h-4 mr-2" />
                   Mensagem
                 </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Details */}
-          <div className="space-y-8">
-            {/* Header */}
-            <div>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-                    {boat.name}
-                  </h1>
-                  <div className="flex items-center gap-4 text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>{boat.city}, {boat.state}</span>
-                      {boat.marina && <span>• {boat.marina}</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Anchor className="w-4 h-4" />
-                      <span>{boat.type}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                  >
-                    <Heart className={cn("w-5 h-5", isFavorite && "fill-red-500 text-red-500")} />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "w-5 h-5",
-                          i < Math.floor(averageRating)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-gray-200 text-gray-200"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-semibold text-foreground">{averageRating.toFixed(1)}</span>
-                </div>
-                <span className="text-muted-foreground">•</span>
-                <span className="text-muted-foreground">{reviews.length} avaliações</span>
-                <span className="text-muted-foreground">•</span>
-                <span className="text-muted-foreground">{boat.fabrication}</span>
               </div>
             </div>
 
@@ -618,98 +560,95 @@ const BoatDetails = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Booking Panel - Fixed Bottom on Mobile */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-lg z-40">
-          <div className="container mx-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-primary">
-                  R$ {boat.pricePerHour.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          {/* Right Column - Fixed Reservation Section (30% width) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 bg-card rounded-2xl shadow-elevated p-6">
+              {/* Boat Name and Rating */}
+              <div className="mb-6">
+                <h1 className="font-display text-2xl font-bold text-foreground mb-2">
+                  {boat.name}
+                </h1>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "w-4 h-4",
+                          i < Math.floor(averageRating)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "fill-gray-200 text-gray-200"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-semibold text-foreground">{averageRating.toFixed(1)}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">{reviews.length} avaliações</span>
                 </div>
-                <div className="text-sm text-muted-foreground">por hora</div>
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <MapPin className="w-4 h-4" />
+                  <span>{boat.city}, {boat.state}</span>
+                </div>
               </div>
-              <Button variant="ocean" size="lg" onClick={handleReservation}>
-                Reservar
-              </Button>
-            </div>
-          </div>
-        </div>
 
-        {/* Booking Sidebar - Desktop */}
-        <div className="lg:col-span-2">
-          <div className="sticky top-24 mt-8 bg-card rounded-2xl shadow-elevated p-6">
-            <h3 className="font-display text-xl font-bold text-foreground mb-6">Reservar este barco</h3>
-            
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Coluna 1: Data Início e Hora Início */}
+              <h3 className="font-display text-xl font-bold text-foreground mb-6">Reservar este barco</h3>
+              
+              {/* Reservation Form */}
               <div className="space-y-4">
                 {/* Data Início */}
                 <div className="space-y-2">
                   <Label htmlFor="start-date">Data início</Label>
-                  <div>
-                    <input
-                      type="date"
-                      id="start-date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full p-3 border border-border rounded-lg bg-background"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    id="start-date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-3 border border-border rounded-lg bg-background"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                {/* Data Fim */}
+                <div className="space-y-2">
+                  <Label htmlFor="end-date">Data fim</Label>
+                  <input
+                    type="date"
+                    id="end-date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-3 border border-border rounded-lg bg-background"
+                    min={startDate || new Date().toISOString().split('T')[0]}
+                  />
                 </div>
 
                 {/* Hora Início */}
                 <div className="space-y-2">
                   <Label htmlFor="start-time">Hora início</Label>
-                  <div>
-                    <input
-                      type="time"
-                      id="start-time"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full p-3 border border-border rounded-lg bg-background"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Coluna 2: Data Fim e Hora Fim */}
-              <div className="space-y-4">
-                {/* Data Fim */}
-                <div className="space-y-2">
-                  <Label htmlFor="end-date">Data fim</Label>
-                  <div>
-                    <input
-                      type="date"
-                      id="end-date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full p-3 border border-border rounded-lg bg-background"
-                      min={startDate || new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
+                  <input
+                    type="time"
+                    id="start-time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full p-3 border border-border rounded-lg bg-background"
+                  />
                 </div>
 
                 {/* Hora Fim */}
                 <div className="space-y-2">
                   <Label htmlFor="end-time">Hora fim</Label>
-                  <div>
-                    <input
-                      type="time"
-                      id="end-time"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className="w-full p-3 border border-border rounded-lg bg-background"
-                    />
-                  </div>
+                  <input
+                    type="time"
+                    id="end-time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full p-3 border border-border rounded-lg bg-background"
+                  />
                 </div>
-              </div>
 
-              {/* Coluna 3: Resumo do Preço */}
-              <div className="space-y-4">
-                <div className="space-y-2">
+                {/* Resumo do Preço */}
+                <div className="space-y-2 pt-2">
                   <Label>Resumo da reserva</Label>
                   <div className="p-4 border border-border rounded-lg space-y-3">
                     <div className="text-2xl font-bold text-primary">
@@ -744,18 +683,37 @@ const BoatDetails = () => {
                     Reservar agora
                   </Button>
                 </div>
+
+                {/* Safety Info */}
+                <div className="pt-4 border-t border-border">
+                  <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-5 h-5" />
+                      <span>Reserva segura com Timoneiro</span>
+                      <span>•</span>
+                      <CreditCard className="w-5 h-5" />
+                      <span>Pagamento 100% seguro</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Safety Info */}
-            <div className="mt-6 pt-6 border-t border-border">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Shield className="w-5 h-5" />
-                <span>Reserva segura com Timoneiro</span>
-                <span>•</span>
-                <CreditCard className="w-5 h-5" />
-                <span>Pagamento 100% seguro</span>
+        {/* Mobile Booking Panel */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-lg z-40">
+          <div className="container mx-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-primary">
+                  R$ {boat.pricePerHour.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm text-muted-foreground">por hora</div>
               </div>
+              <Button variant="ocean" size="lg" onClick={handleReservation}>
+                Reservar
+              </Button>
             </div>
           </div>
         </div>
