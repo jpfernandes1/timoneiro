@@ -1,9 +1,13 @@
 package com.jompastech.backend.controller;
 
+import com.jompastech.backend.exception.EntityNotFoundException;
 import com.jompastech.backend.mapper.BookingMapper;
 import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
 import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
+import com.jompastech.backend.model.entity.User;
+import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.service.BookingApplicationService;
+import com.jompastech.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +42,7 @@ public class BookingController {
 
     private final BookingApplicationService bookingApplicationService;
     private final BookingMapper bookingMapper;
+    private final UserRepository userRepository;
 
     /**
      * Creates a new boat rental booking with dynamic pricing.
@@ -56,7 +61,7 @@ public class BookingController {
      *
      * @param bookingRequest DTO containing booking details including boatId,
      *                      dates, and payment information
-     * @param userId Authenticated user ID extracted from JWT token
+     * @param email Authenticated user ID extracted from JWT token
      * @return ResponseEntity containing the created booking details with HTTP 201 status
      * @throws IllegalArgumentException if validation fails at parameter level
      * @throws IllegalStateException if business validation fails (availability, payment)
@@ -79,16 +84,20 @@ public class BookingController {
     })
     public ResponseEntity<BookingResponseDTO> createBooking(
             @Valid @RequestBody BookingRequestDTO bookingRequest,
-            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal String email) {
 
         log.info("Booking creation requested by user {} for boat {} from {} to {}",
-                userId,
+                email,
                 bookingRequest.getBoatId(),
                 bookingRequest.getStartDate(),
                 bookingRequest.getEndDate());
 
-        // Set authenticated user ID from security context
-        bookingRequest.setUserId(userId);
+        // Search User Id by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+
+        // Set userId on DTO
+        bookingRequest.setUserId(user.getId());
 
         // Process booking through application service (includes payment processing)
         var booking = bookingApplicationService.createBooking(bookingRequest);
