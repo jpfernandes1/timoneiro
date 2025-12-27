@@ -10,10 +10,12 @@ import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.User;
+import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.repository.BoatAvailabilityRepository;
 import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@Slf4j
 public class BookingApplicationService {
 
     private final BookingRepository bookingRepository;
@@ -87,20 +90,27 @@ public class BookingApplicationService {
         // Step 5: Validate business rules and availability
         bookingValidationService.validateBookingCreation(booking);
 
-        // Step 6: Prepare and process payment
-        PaymentInfo paymentInfo = buildPaymentInfo(bookingRequest, user, totalPrice);
+        // Step 6: Save booking first to get an ID
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // Step 7: Prepare and process payment with bookingId
+        PaymentInfo paymentInfo = buildPaymentInfo(bookingRequest, user, totalPrice, savedBooking.getId());
         PaymentResult paymentResult = paymentService.processPayment(paymentInfo);
 
         if (!paymentResult.isSuccessful()) {
+            // Se payment falhar, cancelar a reserva usando o método de domínio
+            savedBooking.cancel();
+            bookingRepository.save(savedBooking); // Atualizar status para CANCELLED
+            log.warn("Payment failed for booking ID: {}. Booking cancelled.", savedBooking.getId());
             throw new PaymentProcessingException(
                     "Payment failed: " + paymentResult.getErrorMessage());
         }
 
-        // Step 7: Confirm and persist the booking
-        booking.confirm();
-        Booking savedBooking = bookingRepository.save(booking);
+        // Step 8: Confirm the booking
+        savedBooking.confirm();
+        Booking confirmedBooking = bookingRepository.save(savedBooking);
 
-        // Step 8: Send notifications
+        // Step 9: Send notifications
         notificationService.notifyOwner(savedBooking);
         notificationService.notifyRenter(savedBooking);
 
@@ -142,13 +152,17 @@ public class BookingApplicationService {
      * @return complete payment information ready for processing
      */
     private PaymentInfo buildPaymentInfo(
-            BookingRequestDTO bookingRequest, User user, BigDecimal amount) {
+            BookingRequestDTO bookingRequest, User user, BigDecimal amount, Long bookingId) {
+
+        log.info("Building PaymentInfo - bookingId: {}, boatId from request: {}",
+                bookingId, bookingRequest.getBoatId());
 
         return PaymentInfo.builder()
                 .amount(amount)
                 .paymentMethod(bookingRequest.getPaymentMethod())
                 .userEmail(user.getEmail())
                 .mockCardData(bookingRequest.getMockCardData())
+                .bookingId(bookingId)
                 .description(String.format(
                         "Boat rental: %s (%s to %s)",
                         bookingRequest.getBoatId(),
