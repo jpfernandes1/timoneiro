@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
 import { Button } from "@/src/components/ui/button";
@@ -125,6 +126,39 @@ const statusConfig = {
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("reservas");
+  const router = useRouter();
+
+  // Function to switch tabs and update the hash in the URL.
+  const changeTab = (tab: string) => {
+    setActiveTab(tab);
+    // Updates the hash in the URL without reloading the page.
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${tab}`);
+    }
+  };
+
+  // Effect to read the URL hash when loading the component.
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1); // Removes "#"
+      const validTabs = ["reservas", "barcos", "favoritos", "perfil", "pagamentos", "notificacoes"];
+      
+      if (hash && validTabs.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+
+    // Perform during initial assembly.
+    handleHashChange();
+
+    // Add listener for hash changes.
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,7 +193,7 @@ const Dashboard = () => {
                 {/* Menu */}
                 <nav className="space-y-2">
                   <button
-                    onClick={() => setActiveTab("reservas")}
+                    onClick={() => changeTab("reservas")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "reservas"
@@ -171,7 +205,7 @@ const Dashboard = () => {
                     Minhas Reservas
                   </button>
                   <button
-                    onClick={() => setActiveTab("barcos")}
+                    onClick={() => changeTab("barcos")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "barcos"
@@ -183,7 +217,7 @@ const Dashboard = () => {
                     Meus Barcos
                   </button>
                   <button
-                    onClick={() => setActiveTab("favoritos")}
+                    onClick={() => changeTab("favoritos")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "favoritos"
@@ -195,7 +229,7 @@ const Dashboard = () => {
                     Favoritos
                   </button>
                   <button
-                    onClick={() => setActiveTab("perfil")}
+                    onClick={() => changeTab("perfil")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "perfil"
@@ -207,7 +241,7 @@ const Dashboard = () => {
                     Editar Perfil
                   </button>
                   <button
-                    onClick={() => setActiveTab("pagamentos")}
+                    onClick={() => changeTab("pagamentos")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "pagamentos"
@@ -219,7 +253,7 @@ const Dashboard = () => {
                     Pagamentos
                   </button>
                   <button
-                    onClick={() => setActiveTab("notificacoes")}
+                    onClick={() => changeTab("notificacoes")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === "notificacoes"
@@ -243,7 +277,7 @@ const Dashboard = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              {/* Reservas */}
+              {/* Reservations */}
               {activeTab === "reservas" && (
                 <div className="space-y-6 animate-fade-up">
                   <div className="flex items-center justify-between">
@@ -320,7 +354,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Meus Barcos */}
+              {/* My Boats */}
               {activeTab === "barcos" && (
                 <div className="space-y-6 animate-fade-up">
                   <div className="flex items-center justify-between">
@@ -389,7 +423,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Favoritos */}
+              {/* Favorites */}
               {activeTab === "favoritos" && (
                 <div className="space-y-6 animate-fade-up">
                   <h1 className="font-display text-2xl font-bold text-foreground">
@@ -443,7 +477,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Perfil */}
+              {/* Profile */}
               {activeTab === "perfil" && (
                 <div className="space-y-6 animate-fade-up">
                   <h1 className="font-display text-2xl font-bold text-foreground">
@@ -501,7 +535,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Pagamentos */}
+              {/* Payments */}
               {activeTab === "pagamentos" && (
                 <div className="space-y-6 animate-fade-up">
                   <h1 className="font-display text-2xl font-bold text-foreground">
@@ -535,7 +569,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Notificações */}
+              {/* Notifications */}
               {activeTab === "notificacoes" && (
                 <div className="space-y-6 animate-fade-up">
                   <h1 className="font-display text-2xl font-bold text-foreground">
