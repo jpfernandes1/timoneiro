@@ -82,8 +82,8 @@ public class BoatAvailabilityService {
      * @return true if the boat is available (no overlapping bookings), false otherwise
      */
     public boolean isBoatAvailable(Long boatId, LocalDateTime startDate, LocalDateTime endDate) {
-        return !boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                boatId, endDate, startDate);
+        return boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                boatId, startDate, endDate);
     }
 
     /**
