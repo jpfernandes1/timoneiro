@@ -72,11 +72,13 @@ const BoatDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  
+  // Estados para disponibilidade
   const [isAvailable, setIsAvailable] = useState<boolean>(true);
   const [checkingAvailability, setCheckingAvailability] = useState<boolean>(false);
   const [availabilityError, setAvailabilityError] = useState<string>("");
   
-  // Novos estados para data fim e horas
+  // Estados para datas e horas
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [startTime, setStartTime] = useState<string>("09:00");
@@ -183,6 +185,99 @@ const BoatDetails = () => {
     setDurationHours(newDuration);
   }, [startDate, endDate, startTime, endTime, calculateDuration]);
 
+  // Função única para verificar disponibilidade
+  // Função para verificar disponibilidade - VERSÃO APRIMORADA
+const checkAvailability = useCallback(async () => {
+  // Validação básica
+  if (!boatId || !startDate || !startTime || !endDate || !endTime) {
+    setIsAvailable(false);
+    setAvailabilityError("Preencha todas as datas e horários");
+    return;
+  }
+  
+  if (durationHours <= 0) {
+    setIsAvailable(false);
+    setAvailabilityError("Período inválido");
+    return;
+  }
+
+  // Formatar para LocalDateTime (YYYY-MM-DDTHH:mm:ss)
+  const startDateTime = `${startDate}T${startTime}:00`;
+  const endDateTime = `${endDate}T${endTime}:00`;
+
+  console.log(`🔍 Verificando disponibilidade: ${startDateTime} → ${endDateTime}`);
+  
+  setCheckingAvailability(true);
+  
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Timeout de 10 segundos
+        signal: AbortSignal.timeout(10000)
+      }
+    );
+    
+    if (response.ok) {
+      const isBoatAvailable = await response.json();
+      console.log(`✅ Disponibilidade: ${isBoatAvailable ? 'SIM' : 'NÃO'}`);
+      
+      setIsAvailable(isBoatAvailable);
+      
+      if (!isBoatAvailable) {
+        setAvailabilityError("❌ Este barco não está disponível para o período selecionado");
+        
+        // Log para debug - mostra exatamente o que foi verificado
+        console.warn('PERÍODO INDISPONÍVEL:', {
+          boatId,
+          startDateTime,
+          endDateTime,
+          durationHours
+        });
+      } else {
+        setAvailabilityError("");
+      }
+    } else {
+      console.error(`❌ Erro na API: ${response.status}`);
+      setIsAvailable(false);
+      setAvailabilityError("Erro na verificação de disponibilidade");
+    }
+  } catch (error) {
+    console.error('❌ Erro na verificação:', error);
+    setIsAvailable(false);
+    
+    if (error.name === 'AbortError') {
+      setAvailabilityError("Tempo esgotado na verificação");
+    } else {
+      setAvailabilityError("Erro ao verificar disponibilidade");
+    }
+  } finally {
+    setCheckingAvailability(false);
+  }
+}, [boatId, startDate, startTime, endDate, endTime, durationHours]);
+
+  // Efeito para verificar disponibilidade quando a página carrega e quando datas/horas mudam
+  useEffect(() => {
+    // Não verificar se ainda não temos as datas inicializadas
+    if (!startDate || !endDate) return;
+
+    const timer = setTimeout(() => {
+      if (durationHours > 0) {
+        checkAvailability();
+      } else {
+        // Se a duração não for válida, resetar estado de disponibilidade
+        setIsAvailable(true);
+        setAvailabilityError("");
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timer);
+  }, [checkAvailability, durationHours, startDate, endDate]);
+
   // Navegação de imagens
   const nextImage = () => {
     if (boat && boat.photos.length > 0) {
@@ -202,35 +297,52 @@ const BoatDetails = () => {
     return boat.pricePerHour * durationHours;
   }, [boat, durationHours]);
 
-  const handleReservation = () => {
-    if (durationHours <= 0) {
-      alert("Por favor, selecione datas e horários válidos para a reserva.");
-      return;
-    }
-
-      if (!isAvailable) {
-    alert("Este barco não está disponível para o período selecionado. Por favor, escolha outras datas.");
+  const handleReservation = async () => {
+  // 1. Verificação básica
+  if (durationHours <= 0) {
+    alert("Por favor, selecione datas e horários válidos para a reserva.");
     return;
   }
-    
-    const total = calculateTotal();
-    
-    // Preparar dados da reserva
-    const reservationData = {
-      boatId: boat?.id,
-      boatName: boat?.name,
-      startDate: startDate,
-      startTime: startTime,
-      endDate: endDate,
-      endTime: endTime,
-      durationHours: durationHours,
-      totalPrice: total,
-      pricePerHour: boat?.pricePerHour
-    };
-    
-    console.log("📋 Dados da reserva:", reservationData);
 
-    const queryParams = new URLSearchParams({
+  // 2. Verificação do estado atual (DEVE SER false se indisponível)
+  if (!isAvailable) {
+    alert("⚠️ Este barco não está disponível para o período selecionado. Por favor, escolha outras datas.");
+    return;
+  }
+
+  // 3. VERIFICAÇÃO FINAL EXTRA (para garantir)
+  console.log("🔄 Fazendo verificação final de disponibilidade...");
+  
+  const startDateTime = `${startDate}T${startTime}:00`;
+  const endDateTime = `${endDate}T${endTime}:00`;
+  
+  try {
+    const finalCheck = await fetch(
+      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`
+    );
+    
+    if (finalCheck.ok) {
+      const finalAvailability = await finalCheck.json();
+      
+      if (!finalAvailability) {
+        alert("❌ A disponibilidade mudou! Este barco não está mais disponível para o período selecionado. Atualize as datas.");
+        
+        // Atualizar estado imediatamente
+        setIsAvailable(false);
+        setAvailabilityError("Período indisponível - atualize as datas");
+        
+        return;
+      }
+    }
+  } catch (error) {
+    console.error("Erro na verificação final:", error);
+    // Continuar mesmo com erro na verificação final
+  }
+
+  // 4. Se passou todas as verificações, prosseguir
+  const total = calculateTotal();
+  
+  const queryParams = new URLSearchParams({
     boatId: boatId,
     startDate: startDate,
     startTime: startTime,
@@ -240,9 +352,9 @@ const BoatDetails = () => {
     totalPrice: total.toFixed(2)
   }).toString();
 
+  console.log("✅ Todas as verificações passaram, redirecionando para checkout...");
   router.push(`/booking/checkout?${queryParams}`);
-    
-  };
+};
 
   // Comodidades agrupadas por categoria
   const amenitiesByCategory = {
@@ -252,52 +364,6 @@ const BoatDetails = () => {
     "Cozinha": ["Fogão", "Geladeira", "Micro-ondas", "Utensílios de cozinha"],
     "Cabines": ["Cabine principal", "Cabine de hóspedes", "Banheiro", "Chuveiro"],
   };
-
-  // Função para verificar disponibilidade
-const checkAvailability = useCallback(async () => {
-  if (!boatId || !startDate || !startTime || !endDate || !endTime || durationHours <= 0) {
-    setIsAvailable(true);
-    setAvailabilityError("");
-    return;
-  }
-
-  // Formatar para LocalDateTime (YYYY-MM-DDTHH:mm:ss)
-  const startDateTime = `${startDate}T${startTime}:00`;
-  const endDateTime = `${endDate}T${endTime}:00`;
-
-  setCheckingAvailability(true);
-  try {
-    const response = await fetch(
-      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`
-    );
-    
-    if (response.ok) {
-      const isBoatAvailable = await response.json();
-      setIsAvailable(isBoatAvailable);
-      setAvailabilityError(isBoatAvailable ? "" : "Este barco não está disponível para o período selecionado");
-    } else {
-      setIsAvailable(false);
-      setAvailabilityError("Não foi possível verificar a disponibilidade");
-    }
-  } catch (error) {
-    console.error('Erro ao verificar disponibilidade:', error);
-    setIsAvailable(false);
-    setAvailabilityError("Erro na verificação de disponibilidade");
-  } finally {
-    setCheckingAvailability(false);
-  }
-}, [boatId, startDate, startTime, endDate, endTime, durationHours]);
-
-  // Efeito para verificar disponibilidade quando datas/horas mudam
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (durationHours > 0) {
-        checkAvailability();
-      }
-    }, 500); // Debounce de 500ms
-  
-    return () => clearTimeout(timer);
-  }, [checkAvailability, durationHours]);
 
   // Renderização condicional
   if (loading) {
@@ -750,16 +816,18 @@ const checkAvailability = useCallback(async () => {
                     {checkingAvailability ? (
                       "Verificando disponibilidade..."
                     ) : !isAvailable ? (
-                      "Indisponível"
+                      <>
+                        <span className="text-white font-semibold">INDISPONÍVEL</span>
+                      </>
                     ) : (
                       "Reservar agora"
                     )}
                   </Button>
                   
-                  {/* Mensagem de erro abaixo do botão */}
+                  {/* Mensagem de erro abaixo do botão - MAIS VISÍVEL */}
                   {!isAvailable && availabilityError && (
-                    <div className="text-sm text-red-500 mt-2 text-center animate-fade-in">
-                      {availabilityError}
+                    <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 mt-2 text-center animate-fade-in">
+                      <span className="font-semibold">⛔ Atenção:</span> {availabilityError}
                     </div>
                   )}
                 </div>
