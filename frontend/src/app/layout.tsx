@@ -41,8 +41,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${dmSans.variable} ${playfair.variable}`}
     >
       <body className="antialiased font-sans">
-        <Navbar />
         <AuthProvider>
+        <Navbar />
         <main className="min-h-screen">{children}</main>
         </AuthProvider>
       </body>

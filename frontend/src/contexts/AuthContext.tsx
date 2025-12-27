@@ -77,48 +77,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    setIsLoading(true);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
-        throw new Error(errorData.message || 'Login failed');
-      }
-
-      const data: AuthResponse = await response.json();
-      
-      // Salvar no localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({
-        id: data.userId,
-        email: data.email,
-        name: data.name,
-        role: 'ROLE_USER' // Ajuste conforme o back-end retorna
-      }));
-      
-      setToken(data.token);
-      setUser({
-        id: data.userId,
-        email: data.email,
-        name: data.name,
-        role: 'ROLE_USER'
-      });
-      
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+      throw new Error(errorData.message || 'Login failed');
     }
-  };
+
+    const data: AuthResponse = await response.json();
+    
+    // Salvar no localStorage
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify({
+      id: data.userId,
+      email: data.email,
+      name: data.name,
+      role: 'ROLE_USER'
+    }));
+    
+    setToken(data.token);
+    setUser({
+      id: data.userId,
+      email: data.email,
+      name: data.name,
+      role: 'ROLE_USER'
+    });
+    
+    // CHECK FOR PENDING REDIRECTION
+    const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
+    if (redirectAfterLogin) {
+      localStorage.removeItem('redirectAfterLogin'); // Remove after use
+      router.push(redirectAfterLogin);
+    } else {
+      router.push('/dashboard');
+    }
+  } catch (error) {
+    console.error('Login failed:', error);
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const register = async (userData: any) => {
     try {
@@ -135,7 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(errorData.message || 'Registration failed');
       }
 
-      // Após registro bem-sucedido, fazer login automaticamente
+      // After successful registration, log in automatically.
       await login(userData.email, userData.password);
     } catch (error) {
       console.error('Registration failed:', error);
