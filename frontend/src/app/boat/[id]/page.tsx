@@ -65,7 +65,7 @@ const BoatDetails = () => {
   const router = useRouter();
   const boatId = params.id as string;
 
-  // Estados
+  // States
   const [boat, setBoat] = useState<Boat | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,12 +73,12 @@ const BoatDetails = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   
-  // Estados para disponibilidade
+  // Disponibility states
   const [isAvailable, setIsAvailable] = useState<boolean>(true);
   const [checkingAvailability, setCheckingAvailability] = useState<boolean>(false);
   const [availabilityError, setAvailabilityError] = useState<string>("");
   
-  // Estados para datas e horas
+  // Dat/Time States
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [startTime, setStartTime] = useState<string>("09:00");
@@ -86,7 +86,7 @@ const BoatDetails = () => {
   const [durationError, setDurationError] = useState<string>("");
   const [durationHours, setDurationHours] = useState<number>(8);
 
-  // Reviews mockados (substituir por dados do backend quando implementado)
+  // Mocked reviews (replace with backend data when implemented)
   const [reviews] = useState<Review[]>([
     {
       id: 1,
@@ -114,7 +114,7 @@ const BoatDetails = () => {
     },
   ]);
 
-  // Buscar dados do barco
+  // Search for boat data
   useEffect(() => {
     const fetchBoatDetails = async () => {
       try {
@@ -149,7 +149,7 @@ const BoatDetails = () => {
     }
   }, [boatId]);
 
-  // Inicializar datas uma vez quando o componente montar
+  // Initialize dates on the component build
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date();
@@ -160,14 +160,14 @@ const BoatDetails = () => {
     setEndDate(tomorrowStr);
   }, []);
 
-  // Calcular duração em horas
+  // Calculate duration in hours
   const calculateDuration = useCallback(() => {
     if (!startDate || !endDate || !startTime || !endTime) return 0;
     
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${endDate}T${endTime}`);
     
-    // Validar se a data/hora de fim é depois da data/hora de início
+    // Validate if the end date/time is after start date/time 
     if (endDateTime <= startDateTime) {
       setDurationError("A data/hora de fim deve ser posterior à data/hora de início");
       return 0;
@@ -179,16 +179,14 @@ const BoatDetails = () => {
     return durationHours;
   }, [startDate, endDate, startTime, endTime]);
 
-  // Atualizar duração quando datas/horas mudarem
+  // Update duration when date/time change
   useEffect(() => {
     const newDuration = calculateDuration();
     setDurationHours(newDuration);
   }, [startDate, endDate, startTime, endTime, calculateDuration]);
 
-  // Função única para verificar disponibilidade
-  // Função para verificar disponibilidade - VERSÃO APRIMORADA
+  // Single function to check availability.
 const checkAvailability = useCallback(async () => {
-  // Validação básica
   if (!boatId || !startDate || !startTime || !endDate || !endTime) {
     setIsAvailable(false);
     setAvailabilityError("Preencha todas as datas e horários");
@@ -201,7 +199,7 @@ const checkAvailability = useCallback(async () => {
     return;
   }
 
-  // Formatar para LocalDateTime (YYYY-MM-DDTHH:mm:ss)
+  // Format to LocalDateTime (YYYY-MM-DDTHH:mm:ss)
   const startDateTime = `${startDate}T${startTime}:00`;
   const endDateTime = `${endDate}T${endTime}:00`;
 
@@ -217,7 +215,7 @@ const checkAvailability = useCallback(async () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        // Timeout de 10 segundos
+        // 10 sec Timeout
         signal: AbortSignal.timeout(10000)
       }
     );
@@ -231,7 +229,7 @@ const checkAvailability = useCallback(async () => {
       if (!isBoatAvailable) {
         setAvailabilityError("❌ Este barco não está disponível para o período selecionado");
         
-        // Log para debug - mostra exatamente o que foi verificado
+        // Debug - show what was checked
         console.warn('PERÍODO INDISPONÍVEL:', {
           boatId,
           startDateTime,
@@ -250,7 +248,10 @@ const checkAvailability = useCallback(async () => {
     console.error('❌ Erro na verificação:', error);
     setIsAvailable(false);
     
-    if (error.name === 'AbortError') {
+    if (
+    (error instanceof Error && error.name === 'AbortError') ||
+    (typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError')
+    ) {
       setAvailabilityError("Tempo esgotado na verificação");
     } else {
       setAvailabilityError("Erro ao verificar disponibilidade");
@@ -260,25 +261,25 @@ const checkAvailability = useCallback(async () => {
   }
 }, [boatId, startDate, startTime, endDate, endTime, durationHours]);
 
-  // Efeito para verificar disponibilidade quando a página carrega e quando datas/horas mudam
+  // check availability when the page loads and when dates/times change
   useEffect(() => {
-    // Não verificar se ainda não temos as datas inicializadas
+    // Do not check if we already have the initialized dates.
     if (!startDate || !endDate) return;
 
     const timer = setTimeout(() => {
       if (durationHours > 0) {
         checkAvailability();
       } else {
-        // Se a duração não for válida, resetar estado de disponibilidade
+        // If the duration is invalid, reset availability status.
         setIsAvailable(true);
         setAvailabilityError("");
       }
-    }, 500); // Debounce de 500ms
+    }, 500); // Debounce 500ms
 
     return () => clearTimeout(timer);
   }, [checkAvailability, durationHours, startDate, endDate]);
 
-  // Navegação de imagens
+  // Images navigation
   const nextImage = () => {
     if (boat && boat.photos.length > 0) {
       setSelectedImageIndex((prev) => (prev + 1) % boat.photos.length);
@@ -291,26 +292,25 @@ const checkAvailability = useCallback(async () => {
     }
   };
 
-  // Calcular preço total
+  // Total price calculation
   const calculateTotal = useCallback(() => {
     if (!boat) return 0;
     return boat.pricePerHour * durationHours;
   }, [boat, durationHours]);
 
   const handleReservation = async () => {
-  // 1. Verificação básica
   if (durationHours <= 0) {
     alert("Por favor, selecione datas e horários válidos para a reserva.");
     return;
   }
 
-  // 2. Verificação do estado atual (DEVE SER false se indisponível)
+  // Check the current state (MUST BE false if unavailable)
   if (!isAvailable) {
     alert("⚠️ Este barco não está disponível para o período selecionado. Por favor, escolha outras datas.");
     return;
   }
 
-  // 3. VERIFICAÇÃO FINAL EXTRA (para garantir)
+  // Final check
   console.log("🔄 Fazendo verificação final de disponibilidade...");
   
   const startDateTime = `${startDate}T${startTime}:00`;
@@ -327,7 +327,7 @@ const checkAvailability = useCallback(async () => {
       if (!finalAvailability) {
         alert("❌ A disponibilidade mudou! Este barco não está mais disponível para o período selecionado. Atualize as datas.");
         
-        // Atualizar estado imediatamente
+        // Update status immediately
         setIsAvailable(false);
         setAvailabilityError("Período indisponível - atualize as datas");
         
@@ -336,10 +336,10 @@ const checkAvailability = useCallback(async () => {
     }
   } catch (error) {
     console.error("Erro na verificação final:", error);
-    // Continuar mesmo com erro na verificação final
+    // Continue even with an error in the final verification.
   }
 
-  // 4. Se passou todas as verificações, prosseguir
+  // If all checks have passed, proceed.
   const total = calculateTotal();
   
   const queryParams = new URLSearchParams({
@@ -356,7 +356,7 @@ const checkAvailability = useCallback(async () => {
   router.push(`/booking/checkout?${queryParams}`);
 };
 
-  // Comodidades agrupadas por categoria
+  // Amenities grouped by category
   const amenitiesByCategory = {
     "Conforto": ["Ar condicionado", "Churrasqueira", "Som ambiente", "Wi-Fi"],
     "Segurança": ["Coletes salva-vidas", "Extintor de incêndio", "GPS", "Rádio VHF"],
@@ -365,7 +365,7 @@ const checkAvailability = useCallback(async () => {
     "Cabines": ["Cabine principal", "Cabine de hóspedes", "Banheiro", "Chuveiro"],
   };
 
-  // Renderização condicional
+  // Conditional rendering
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -425,7 +425,7 @@ const checkAvailability = useCallback(async () => {
     );
   }
 
-  // Calcular média de avaliações
+  // Calculate average ratings
   const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
   const total = calculateTotal();
 
@@ -727,7 +727,7 @@ const checkAvailability = useCallback(async () => {
               
               {/* Reservation Form */}
               <div className="space-y-4">
-                {/* Data Início */}
+                {/* Start Date */}
                 <div className="space-y-2">
                   <Label htmlFor="start-date">Data início</Label>
                   <input
@@ -740,7 +740,7 @@ const checkAvailability = useCallback(async () => {
                   />
                 </div>
 
-                {/* Data Fim */}
+                {/* End Date */}
                 <div className="space-y-2">
                   <Label htmlFor="end-date">Data fim</Label>
                   <input
@@ -753,7 +753,7 @@ const checkAvailability = useCallback(async () => {
                   />
                 </div>
 
-                {/* Hora Início */}
+                {/* Start Hour */}
                 <div className="space-y-2">
                   <Label htmlFor="start-time">Hora início</Label>
                   <input
@@ -777,7 +777,7 @@ const checkAvailability = useCallback(async () => {
                   />
                 </div>
 
-                {/* Resumo do Preço */}
+                {/* Price Summary */}
                 <div className="space-y-2 pt-2">
                   <Label>Resumo da reserva</Label>
                   <div className="p-4 border border-border rounded-lg space-y-3">
@@ -800,7 +800,7 @@ const checkAvailability = useCallback(async () => {
                   </div>
                 </div>
 
-                {/* Botão de Reserva */}
+                {/* Reservation Button */}
                 <div className="pt-2">
                   <Button 
                     variant={isAvailable ? "ocean" : "destructive"}
@@ -824,7 +824,7 @@ const checkAvailability = useCallback(async () => {
                     )}
                   </Button>
                   
-                  {/* Mensagem de erro abaixo do botão - MAIS VISÍVEL */}
+                  {/* Error message below the button. */}
                   {!isAvailable && availabilityError && (
                     <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 mt-2 text-center animate-fade-in">
                       <span className="font-semibold">⛔ Atenção:</span> {availabilityError}
