@@ -59,7 +59,7 @@ const CheckoutPageContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Dados da reserva da query string
+  // Query string reservation data
   const boatId = searchParams.get("boatId");
   const startDate = searchParams.get("startDate");
   const startTime = searchParams.get("startTime");
@@ -68,14 +68,14 @@ const CheckoutPageContent = () => {
   const durationHours = searchParams.get("durationHours");
   const totalPriceParam = searchParams.get("totalPrice");
 
-  // Estados
+  // States
   const [boat, setBoat] = useState<Boat | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [bookingResult, setBookingResult] = useState<BookingResponse | null>(null);
   
-  // Estados do formulário de pagamento
+  // Payment form states
   const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "PIX" | "BOLETO">("CREDIT_CARD");
   const [cardData, setCardData] = useState({
     cardNumber: "",
@@ -84,7 +84,7 @@ const CheckoutPageContent = () => {
     cvv: "",
   });
 
-  // Verificar se todos os parâmetros necessários estão presentes
+  // Check if all the necessary parameters are present.
   useEffect(() => {
     if (!boatId || !startDate || !startTime || !endDate || !endTime || !durationHours || !totalPriceParam) {
       setError("Dados de reserva incompletos. Por favor, volte e selecione novamente.");
@@ -92,7 +92,7 @@ const CheckoutPageContent = () => {
       return;
     }
 
-    // Buscar detalhes do barco
+    // Search boat details
     fetchBoatDetails();
   }, []);
 
@@ -130,13 +130,23 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   setCardData(prev => ({ ...prev, expirationDate: value }));
 };
 
+// New helper function
+const formatDateForBackend = (dateString: string, timeString: string) => {
+  // Ensure that the date is treated as local, without timezone conversion.
+  const [year, month, day] = dateString.split('-');
+  const [hours, minutes] = timeString.split(':');
+  
+  // Returns in ISO format without timezone
+  return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+};
+
   const handleBooking = async () => {
     if (!boatId || !startDate || !startTime || !endDate || !endTime) {
       alert("Dados incompletos");
       return;
     }
 
-    // Validar dados do cartão se for cartão de crédito
+    // Validate card details if it's a credit card.
     if (paymentMethod === "CREDIT_CARD") {
       if (!cardData.cardNumber || !cardData.holderName || !cardData.expirationDate || !cardData.cvv) {
         alert("Por favor, preencha todos os dados do cartão.");
@@ -144,7 +154,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       }
     }
 
-    // 1. Obter token JWT - verificar diferentes locais de armazenamento
+    // 1. Obtain JWT token - check different storage locations
   const token = localStorage.getItem("token") || 
                 sessionStorage.getItem("token") ||
                 document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
@@ -153,13 +163,13 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   
   if (!token) {
     alert("Por favor, faça login para continuar com a reserva.");
-    // Redirecionar para login com retorno para checkout
+    // Redirect to login with return to checkout.
     const redirectUrl = `/auth?redirect=/booking/checkout?${searchParams.toString()}`;
     router.push(redirectUrl);
     return;
   }
 
-   // 2. Verificar se o token é válido (opcional - pode fazer uma chamada de teste)
+   // 2. Check if the token is valid
   try {
     const testResponse = await fetch("http://localhost:8080/api/auth/validate", {
       headers: {
@@ -178,9 +188,9 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("⚠️ Validação de token não disponível, continuando...");
   }
 
-    // Preparar dados para o backend
-    const startDateTime = `${startDate}T${startTime}:00`;
-    const endDateTime = `${endDate}T${endTime}:00`;
+    // Prepare data for the backend.
+    const startDateTime = formatDateForBackend(startDate!, startTime!);
+    const endDateTime = formatDateForBackend(endDate!, endTime!);
 
     const bookingRequest = {
       boatId: parseInt(boatId),
@@ -282,20 +292,31 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     );
   }
 
-  // Formatar valores
+  // Format values
   const totalPrice = parseFloat(totalPriceParam || "0");
   const duration = parseInt(durationHours || "0");
   
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+  if (!dateString) return "";
+  
+  // Split the string and create a local date
+  const [year, month, day] = dateString.split('-');
+  
+  // Create LOCAL date (not UTC)
+  const localDate = new Date(
+    parseInt(year),
+    parseInt(month) - 1,  // Month is 0-indexed in JS
+    parseInt(day)
+  );
+  
+  return localDate.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
-  // Página de confirmação após reserva bem-sucedida
+  // Confirmation page after successful booking.
   if (bookingResult) {
     const getStatusText = (status: string) => {
       switch (status) {
@@ -339,7 +360,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               <span className="text-foreground font-medium">Confirmação</span>
             </div>
 
-            {/* Confirmação */}
+            {/* Confirmation */}
             <div className="text-center mb-8">
               <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-green-600" />
@@ -350,7 +371,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               </p>
             </div>
 
-            {/* Detalhes da reserva */}
+            {/* Booking details */}
             <div className="bg-card rounded-2xl p-6 shadow-soft mb-8">
               <h2 className="text-xl font-semibold mb-6">Detalhes da reserva</h2>
               <div className="space-y-4">
@@ -390,20 +411,20 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               </div>
             </div>
 
-            {/* Ações */}
+            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="outline" onClick={() => router.push("/bookings")} className="flex-1">
+              <Button variant="outline" onClick={() => router.push("/dashboard#reservas")} className="flex-1">
                 Minhas reservas
               </Button>
               <Button onClick={() => router.push("/search")} className="flex-1">
                 Fazer outra reserva
               </Button>
-              <Button variant="ocean" onClick={() => router.push(`/boats/${boat.id}`)} className="flex-1">
+              <Button variant="ocean" onClick={() => router.push(`/boat/${boat.id}`)} className="flex-1">
                 Ver detalhes do barco
               </Button>
             </div>
 
-            {/* Informações adicionais */}
+            {/* Aditional information */}
             <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
               <h3 className="font-semibold text-blue-800 mb-2">Próximos passos</h3>
               <ul className="text-blue-700 space-y-2">
@@ -428,7 +449,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     );
   }
 
-  // Página principal de checkout
+  // Checkout homepage
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -455,9 +476,9 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <p className="text-muted-foreground mb-8">Confira os detalhes e preencha os dados para concluir</p>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Coluna da esquerda: Resumo da reserva e pagamento */}
+          {/* Left column: Booking and payment summary */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Resumo da reserva */}
+            {/* Booking Summary */}
             <div className="bg-card rounded-2xl p-6 shadow-soft">
               <h2 className="text-xl font-semibold mb-6">Resumo da reserva</h2>
               <div className="space-y-6">
@@ -532,7 +553,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               </div>
             </div>
 
-            {/* Formulário de pagamento */}
+            {/* Payment form */}
             <div className="bg-card rounded-2xl p-6 shadow-soft">
               <h2 className="text-xl font-semibold mb-6">Pagamento</h2>
 
@@ -674,7 +695,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             </div>
           </div>
 
-          {/* Coluna da direita: Resumo do pedido e botão de confirmação */}
+          {/* Right-hand column: Order summary and confirmation button. */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-card rounded-2xl shadow-elevated p-6">
               <h2 className="text-xl font-semibold mb-6">Confirmar reserva</h2>
@@ -728,7 +749,7 @@ const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   );
 };
 
-// Wrapper com Suspense para useSearchParams
+// Wrapper with Suspense for useSearchParams
 const CheckoutPage = () => (
   <Suspense fallback={
     <div className="min-h-screen bg-background">

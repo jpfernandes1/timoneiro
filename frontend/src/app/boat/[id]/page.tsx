@@ -150,22 +150,44 @@ const BoatDetails = () => {
   }, [boatId]);
 
   // Initialize dates on the component build
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    
-    setStartDate(today);
-    setEndDate(tomorrowStr);
-  }, []);
+useEffect(() => {
+  // Usar métodos LOCAIS, não UTC
+  const now = new Date();
+  
+  // Format local date in YYYY-MM-DD format.
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const today = formatLocalDate(now);
+  
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = formatLocalDate(tomorrow);
+  
+  setStartDate(today);
+  setEndDate(tomorrowStr);
+  
+  console.log('📅 Datas inicializadas:', { today, tomorrowStr });
+}, []);
 
   // Calculate duration in hours
   const calculateDuration = useCallback(() => {
     if (!startDate || !endDate || !startTime || !endTime) return 0;
+
+  
+  // Function to create local date without timezone issues.
+  const createLocalDateTime = (dateStr: string, timeStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return new Date(year, month - 1, day, hours, minutes);
+  };
     
-    const startDateTime = new Date(`${startDate}T${startTime}`);
-    const endDateTime = new Date(`${endDate}T${endTime}`);
+  const startDateTime = createLocalDateTime(startDate, startTime);
+  const endDateTime = createLocalDateTime(endDate, endTime);;
     
     // Validate if the end date/time is after start date/time 
     if (endDateTime <= startDateTime) {
