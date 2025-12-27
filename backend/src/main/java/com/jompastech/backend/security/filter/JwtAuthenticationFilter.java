@@ -45,10 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Create authentication token and set security context
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.debug("JWT authentication successful for user: {}", email);
 
             } catch (Exception e) {
                 logger.error("JWT authentication error: {}", e.getMessage());
