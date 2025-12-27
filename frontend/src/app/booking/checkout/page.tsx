@@ -120,13 +120,15 @@ const CheckoutPageContent = () => {
     return value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim();
   };
 
-  const formatExpirationDate = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
-    }
-    return cleaned;
-  };
+const handleExpirationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let value = e.target.value.replace(/\D/g, '');
+  if (value.length > 2) {
+    value = value.slice(0, 2) + '/' + value.slice(2, 4);
+  } else if (value.length === 2) {
+    value = value + '/';
+  }
+  setCardData(prev => ({ ...prev, expirationDate: value }));
+};
 
   const handleBooking = async () => {
     if (!boatId || !startDate || !startTime || !endDate || !endTime) {
@@ -142,13 +144,39 @@ const CheckoutPageContent = () => {
       }
     }
 
-    // Obter token JWT do localStorage
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Por favor, faça login para continuar com a reserva.");
-      router.push(`/login?redirect=/booking/checkout?${searchParams.toString()}`);
+    // 1. Obter token JWT - verificar diferentes locais de armazenamento
+  const token = localStorage.getItem("token") || 
+                sessionStorage.getItem("token") ||
+                document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+
+  console.log('🔑 Token encontrado:', token ? 'SIM' : 'NÃO');
+  
+  if (!token) {
+    alert("Por favor, faça login para continuar com a reserva.");
+    // Redirecionar para login com retorno para checkout
+    const redirectUrl = `/auth?redirect=/booking/checkout?${searchParams.toString()}`;
+    router.push(redirectUrl);
+    return;
+  }
+
+   // 2. Verificar se o token é válido (opcional - pode fazer uma chamada de teste)
+  try {
+    const testResponse = await fetch("http://localhost:8080/api/auth/validate", {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (testResponse.status === 401) {
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      alert("Sua sessão expirou. Por favor, faça login novamente.");
+      router.push(`/auth?redirect=/booking/checkout?${searchParams.toString()}`);
       return;
     }
+  } catch (error) {
+    console.log("⚠️ Validação de token não disponível, continuando...");
+  }
 
     // Preparar dados para o backend
     const startDateTime = `${startDate}T${startTime}:00`;
@@ -167,7 +195,8 @@ const CheckoutPageContent = () => {
       } : null
     };
 
-    console.log("📤 Enviando reserva:", bookingRequest);
+    console.log("📤 Enviando reserva:", JSON.stringify(bookingRequest, null, 2));
+  console.log("🔑 Token sendo enviado:", token.substring(0, 20) + "...");
 
     setProcessing(true);
     try {
@@ -180,24 +209,27 @@ const CheckoutPageContent = () => {
         body: JSON.stringify(bookingRequest),
       });
 
-      if (response.status === 401) {
-        // Token inválido ou expirado
-        localStorage.removeItem("token");
-        alert("Sua sessão expirou. Por favor, faça login novamente.");
-        router.push(`/login?redirect=/booking/checkout?${searchParams.toString()}`);
-        return;
-      }
+      console.log("📥 Resposta do backend:", response.status);
+
+       if (response.status === 401) {
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      alert("Sua sessão expirou. Por favor, faça login novamente.");
+      router.push(`/auth?redirect=/booking/checkout?${searchParams.toString()}`);
+      return;
+    }
 
       if (!response.ok) {
-        let errorMessage = "Erro ao criar reserva";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          // Não foi possível ler o JSON de erro
-        }
-        throw new Error(errorMessage);
+      let errorMessage = "Erro ao criar reserva";
+      try {
+        const errorData = await response.json();
+        console.error("❌ Erro detalhado:", errorData);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        console.error("❌ Erro sem JSON:", e);
       }
+      throw new Error(`${errorMessage} (Status: ${response.status})`);
+    }
 
       const result: BookingResponse = await response.json();
       setBookingResult(result);
@@ -591,12 +623,9 @@ const CheckoutPageContent = () => {
                         <Input
                           id="expirationDate"
                           name="expirationDate"
-                          placeholder="12/25"
-                          value={formatExpirationDate(cardData.expirationDate)}
-                          onChange={(e) => setCardData(prev => ({ 
-                            ...prev, 
-                            expirationDate: e.target.value.replace(/\D/g, '') 
-                          }))}
+                          placeholder="MM/AA"
+                          value={cardData.expirationDate}
+                          onChange={handleExpirationDateChange}
                           maxLength={5}
                         />
                       </div>
