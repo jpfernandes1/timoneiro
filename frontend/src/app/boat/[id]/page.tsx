@@ -398,7 +398,7 @@ const checkAvailability = useCallback(async () => {
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-4">
-                <div className="bg-gray-200 rounded-xl aspect-[4/3]"></div>
+                <div className="bg-gray-200 rounded-xl aspect- 4/3"></div>
                 <div className="grid grid-cols-4 gap-2">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="bg-gray-200 rounded aspect-square"></div>
@@ -478,7 +478,7 @@ const checkAvailability = useCallback(async () => {
             {/* Images Section */}
             <div className="space-y-4">
               {/* Main Image */}
-              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3]">
+              <div className="relative rounded-2xl overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 aspect- 4/3">
                 {boat.photos && boat.photos.length > 0 ? (
                   <>
                     <img

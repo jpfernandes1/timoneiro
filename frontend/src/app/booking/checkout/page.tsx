@@ -429,15 +429,15 @@ const formatDateForBackend = (dateString: string, timeString: string) => {
               <h3 className="font-semibold text-blue-800 mb-2">Próximos passos</h3>
               <ul className="text-blue-700 space-y-2">
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   <span>Você receberá um e-mail com todos os detalhes da reserva</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   <span>Entre em contato com o proprietário para combinar os detalhes do embarque</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   <span>Leve um documento de identificação no dia do passeio</span>
                 </li>
               </ul>
