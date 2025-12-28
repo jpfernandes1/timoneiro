@@ -6,6 +6,7 @@ import Footer from "@/src/components/Footer";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
+import { boatApi, Address } from '@/src/lib/api';
 import {
   Select,
   SelectContent,
@@ -51,9 +52,9 @@ interface Boat {
   amenities: string[];
   photos: string[];
   pricePerHour: number;
-  city: string;
-  state: string;
-  marina: string;
+  city: string;          
+  state: string;         
+  marina: string;        
   ownerName: string;
   ownerId: number;
 }
@@ -120,33 +121,23 @@ const Search = () => {
 
   // Função para buscar barcos do backend
   const fetchBoats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('http://localhost:8080/api/boats', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('📦 Dados recebidos do backend:', data);
-      setBoats(data);
-      setFilteredBoats(data); // Inicialmente mostra todos
-      
-    } catch (err) {
-      console.error('❌ Erro ao buscar barcos:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setError(null);
+    
+    // Use a boatApi que agora inclui autenticação
+    const data = await boatApi.getAllBoats();
+    console.log('📦 Dados recebidos do backend:', data);
+    setBoats(data);
+    setFilteredBoats(data); // Inicialmente mostra todos
+    
+  } catch (err) {
+    console.error('❌ Erro ao buscar barcos:', err);
+    setError(err instanceof Error ? err.message : 'Erro desconhecido');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Componente de Card do Barco
   const BoatCard = ({ boat }: BoatCardProps) => {
@@ -163,8 +154,8 @@ const Search = () => {
         href={`/boat/${boat.id}`}
         className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 block"
       >
-        <div className="relative aspect-[4/3] overflow-hidden">
-          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+        <div className="relative aspect- 4/3 overflow-hidden">
+          <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 flex items-center justify-center">
             {mainPhoto.startsWith('http') ? (
               <img
                 src={mainPhoto}
@@ -218,9 +209,9 @@ const Search = () => {
           <div className="flex items-center gap-2 text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 shrink-0" />
             <span className="text-sm truncate">
-              {boat.city}, {boat.state}
-              {boat.marina && ` • ${boat.marina}`}
-            </span>
+  {boat.city}, {boat.state}
+  {boat.marina && ` • ${boat.marina}`}
+</span>
           </div>
           
           {/* Capacidade */}
@@ -297,17 +288,16 @@ const Search = () => {
     
     // Filtro por estado
     if (estado) {
-      filtered = filtered.filter(boat => 
-        boat.state.toLowerCase().includes(estado.toLowerCase())
-      );
-    }
-    
+  filtered = filtered.filter(boat => 
+    boat.state.toLowerCase().includes(estado.toLowerCase())
+  );
+}
     // Filtro por cidade
     if (cidade) {
-      filtered = filtered.filter(boat => 
-        boat.city.toLowerCase().includes(cidade.toLowerCase())
-      );
-    }
+  filtered = filtered.filter(boat => 
+    boat.city.toLowerCase().includes(cidade.toLowerCase())
+  );
+}
     
     // Filtro por faixa de preço
     filtered = filtered.filter(boat => {
@@ -315,19 +305,20 @@ const Search = () => {
       return pricePerDay >= precoRange[0] && pricePerDay <= precoRange[1];
     });
     
-    // Filtro por capacidade
-    if (capacidade) {
-      const [min, max] = capacidade.split('-').map(num => {
-        if (num.endsWith('+')) return parseInt(num);
-        return parseInt(num);
-      });
-      
-      if (Array.isArray(min) && min.length === 2) {
-        filtered = filtered.filter(boat => 
-          boat.capacity >= min[0] && boat.capacity <= min[1]
+      // Filtro por capacidade
+      if (capacidade) {
+    if (capacidade.includes('+')) {
+      // Para valores como "20+"
+      const min = parseInt(capacidade);
+      filtered = filtered.filter(boat => boat.capacity >= min);
+    } else if (capacidade.includes('-')) {
+      // Para intervalos como "1-5" ou "6-10"
+      const [minStr, maxStr] = capacidade.split('-');
+      const min = parseInt(minStr);
+      const max = parseInt(maxStr);
+      filtered = filtered.filter(boat => 
+        boat.capacity >= min && boat.capacity <= max
         );
-      } else if (typeof min === 'number' && max === '+') {
-        filtered = filtered.filter(boat => boat.capacity >= min);
       }
     }
     
@@ -674,7 +665,7 @@ const Search = () => {
                 <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, index) => (
                     <div key={index} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-2xl aspect-[4/3] mb-4"></div>
+                      <div className="bg-gray-200 rounded-2xl aspect-4/3 mb-4"></div>
                       <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
                       <div className="h-8 bg-gray-200 rounded w-full"></div>
