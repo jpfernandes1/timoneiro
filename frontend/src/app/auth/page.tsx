@@ -8,6 +8,7 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Anchor, Mail, Lock, User, ArrowLeft, Eye, EyeOff, Phone } from "lucide-react";
 import Link from 'next/link';
+import { validateToken, isAuthenticated, authApi } from '@/src/lib/api';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,13 +20,38 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   
   const { login, register } = useAuth();
   const router = useRouter();
   const cpfInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
-  // Função para formatar CPF
+  // Check for existing valid token on component mount
+  useEffect(() => {
+    const checkExistingAuth = async () => {
+      // If no token, show login form
+      if (!isAuthenticated()) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      // If token exists, validate it
+      const isValid = await validateToken();
+      if (isValid) {
+        // Valid token, redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // Invalid token, clear it and stay on login page
+        authApi.logout();
+        setCheckingAuth(false);
+      }
+    };
+
+    checkExistingAuth();
+  }, [router]);
+
+  // Format CPF
   const formatCPF = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     const limited = numbers.substring(0, 11);
@@ -41,15 +67,15 @@ const Auth = () => {
     }
   };
 
-  // Função para formatar Telefone
+  // Format phone number
   const formatPhone = (value: string): string => {
-    // Remove tudo que não é número
+    // Remove non-numeric characters
     const numbers = value.replace(/\D/g, '');
     
-    // Limita a 11 dígitos (DDD + 9 dígitos)
+    // Limit to 11 digits (DDD + 9 digits)
     const limited = numbers.substring(0, 11);
     
-    // Aplica a máscara (XX) X XXXX XXXX
+    // Apply mask (XX) X XXXX XXXX
     if (limited.length <= 2) {
       return limited;
     } else if (limited.length <= 3) {
@@ -62,21 +88,21 @@ const Auth = () => {
     return `(${limited.substring(0, 2)}) ${limited.substring(2, 3)} ${limited.substring(3, 7)} ${limited.substring(7, 11)}`;
   };
 
-  // Função para lidar com a mudança do CPF
+  // Handle CPF change
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const formattedValue = formatCPF(rawValue);
     setCpf(formattedValue);
   };
 
-  // Função para lidar com a mudança do Telefone
+  // Handle phone change
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const formattedValue = formatPhone(rawValue);
     setPhone(formattedValue);
   };
 
-  // Funções para lidar com teclas pressionadas
+  // Handle keydown for CPF input
   const handleCpfKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const allowedKeys = [
       'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -88,6 +114,7 @@ const Auth = () => {
     }
   };
 
+  // Handle keydown for phone input
   const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const allowedKeys = [
       'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -99,7 +126,7 @@ const Auth = () => {
     }
   };
 
-  // Funções para lidar com colar
+  // Handle paste for CPF input
   const handleCpfPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
@@ -108,6 +135,7 @@ const Auth = () => {
     setCpf(formatted);
   };
 
+  // Handle paste for phone input
   const handlePhonePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
@@ -116,7 +144,7 @@ const Auth = () => {
     setPhone(formatted);
   };
 
-  // Focar automaticamente no próximo campo
+  // Auto-focus next field when CPF is complete
   useEffect(() => {
     if (cpf.length === 14 && cpfInputRef.current) {
       const nextInput = cpfInputRef.current.closest('div')?.nextElementSibling?.querySelector('input');
@@ -126,24 +154,28 @@ const Auth = () => {
     }
   }, [cpf]);
 
+  // Auto-focus logic for phone (optional)
   useEffect(() => {
-    if (phone.length === 16 && phoneInputRef.current) { // 16 = (XX) X XXXX XXXX
-      // Aqui você pode focar no próximo campo se quiser
+    if (phone.length === 16 && phoneInputRef.current) {
+      // You can add auto-focus to next field here if needed
     }
   }, [phone]);
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      // Remove formatação antes de enviar
+      // Remove formatting before sending
       const cleanCpf = cpf.replace(/\D/g, '');
       const cleanPhone = phone.replace(/\D/g, '');
       
       if (isLogin) {
         await login(email, password);
+        // Redirect after successful login
+        router.push('/dashboard');
       } else {
         await register({
           name,
@@ -152,6 +184,8 @@ const Auth = () => {
           cpf: cleanCpf,
           phone: cleanPhone
         });
+        // Redirect after successful registration
+        router.push('/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocorreu um erro. Tente novamente.");
@@ -160,9 +194,24 @@ const Auth = () => {
     }
   };
 
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full gradient-ocean flex items-center justify-center mx-auto mb-4">
+            <Anchor className="w-8 h-8 text-primary-foreground animate-pulse" />
+          </div>
+          <p className="text-foreground font-medium">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
