@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
@@ -13,7 +13,6 @@ import {
   Anchor,
   Calendar,
   Heart,
-  Settings,
   CreditCard,
   Bell,
   LogOut,
@@ -24,51 +23,20 @@ import {
   XCircle,
   Edit,
   Trash2,
+  AlertCircle,
+  Loader2,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
-import boat1 from "@/src/assets/boat-1.jpg";
-import boat2 from "@/src/assets/boat-2.jpg";
-import boat3 from "@/src/assets/boat-3.jpg";
+// API
+import { bookingApi, authApi, BookingResponse } from "@/src/lib/api";
 
-const historicoReservas = [
-  {
-    id: 1,
-    barco: "Lancha Azimut 55",
-    imagem: boat1,
-    localizacao: "Angra dos Reis, RJ",
-    dataInicio: "15/11/2024",
-    dataFim: "16/11/2024",
-    valor: 2500,
-    status: "concluido",
-  },
-  {
-    id: 2,
-    barco: "Veleiro Beneteau 40",
-    imagem: boat2,
-    localizacao: "Ilhabela, SP",
-    dataInicio: "28/12/2024",
-    dataFim: "30/12/2024",
-    valor: 5400,
-    status: "confirmado",
-  },
-  {
-    id: 3,
-    barco: "Catamarã Lagoon 42",
-    imagem: boat3,
-    localizacao: "Búzios, RJ",
-    dataInicio: "05/10/2024",
-    dataFim: "05/10/2024",
-    valor: 3200,
-    status: "cancelado",
-  },
-];
-
-const meusBarcos = [
+// Mock data for other tabs
+const myBoats = [
   {
     id: 1,
     nome: "Lancha Ferretti 45",
-    imagem: boat1,
     localizacao: "Guarujá, SP",
     preco: 2100,
     avaliacao: 4.8,
@@ -78,7 +46,6 @@ const meusBarcos = [
   {
     id: 2,
     nome: "Veleiro Bavaria 38",
-    imagem: boat2,
     localizacao: "Ubatuba, SP",
     preco: 1500,
     avaliacao: 4.6,
@@ -87,11 +54,10 @@ const meusBarcos = [
   },
 ];
 
-const favoritos = [
+const favorites = [
   {
     id: 1,
     nome: "Iate Sunseeker 68",
-    imagem: boat1,
     localizacao: "Florianópolis, SC",
     preco: 5500,
     avaliacao: 4.9,
@@ -99,7 +65,6 @@ const favoritos = [
   {
     id: 2,
     nome: "Escuna Pirata",
-    imagem: boat3,
     localizacao: "Paraty, RJ",
     preco: 1200,
     avaliacao: 4.6,
@@ -107,40 +72,108 @@ const favoritos = [
 ];
 
 const statusConfig = {
-  concluido: {
+  FINISHED: {
     label: "Concluído",
     icon: CheckCircle,
     className: "bg-accent/20 text-accent",
   },
-  confirmado: {
+  CONFIRMED: {
     label: "Confirmado",
     icon: Clock,
     className: "bg-primary/20 text-primary",
   },
-  cancelado: {
+  CANCELLED: {
     label: "Cancelado",
     icon: XCircle,
     className: "bg-destructive/20 text-destructive",
+  },
+  PENDING: {
+    label: "Pendente",
+    icon: Clock,
+    className: "bg-yellow-500/20 text-yellow-600",
   },
 };
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("reservas");
+  const [bookings, setBookings] = useState<BookingResponse[] | null>(null); // Changed to null for initial state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 0,
+    totalPages: 0,
+    totalElements: 0,
+  });
   const router = useRouter();
 
-  // Function to switch tabs and update the hash in the URL.
+  // Format date from ISO string to Brazilian format
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
+
+  // Format location from address
+  const formatLocation = (address: any): string => {
+    if (!address) return 'Location not available';
+    
+    const { city, state } = address;
+    if (city && state) {
+      return `${city}, ${state}`;
+    }
+    return city || state || 'Location not available';
+  };
+
+  // Load bookings from API - wrapped in useCallback to prevent infinite re-renders
+  const loadBookings = useCallback(async (page: number = 0) => {
+    // Prevent execution during server-side rendering
+    if (typeof window === 'undefined') return;
+    if (activeTab !== "reservas") return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await bookingApi.getMyBookings(page, 10);
+      setBookings(response.content);
+      setPagination({
+        page: response.number,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      });
+    } catch (err: any) {
+      console.error('Error loading bookings:', err);
+      
+      if (err.status === 401) {
+        // Token expired or invalid
+        authApi.logout();
+        router.push('/login');
+        return;
+      }
+      
+      setError(err.message || 'Error loading bookings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, router]);
+
+  // Function to switch tabs and update the hash in the URL
   const changeTab = (tab: string) => {
     setActiveTab(tab);
-    // Updates the hash in the URL without reloading the page.
+    // Updates the hash in the URL without reloading the page
     if (typeof window !== 'undefined') {
       window.history.replaceState(null, '', `#${tab}`);
     }
   };
 
-  // Effect to read the URL hash when loading the component.
+  // Effect to read the URL hash when loading the component
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.substring(1); // Removes "#"
+      const hash = window.location.hash.substring(1); // Remove "#"
       const validTabs = ["reservas", "barcos", "favoritos", "perfil", "pagamentos", "notificacoes"];
       
       if (hash && validTabs.includes(hash)) {
@@ -148,10 +181,10 @@ const Dashboard = () => {
       }
     };
 
-    // Perform during initial assembly.
+    // Perform during initial mount
     handleHashChange();
 
-    // Add listener for hash changes.
+    // Add listener for hash changes
     window.addEventListener('hashchange', handleHashChange);
 
     // Cleanup
@@ -159,6 +192,30 @@ const Dashboard = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+
+  // Load data when tab changes
+  useEffect(() => {
+    if (activeTab === "reservas") {
+      loadBookings();
+    }
+  }, [activeTab, loadBookings]);
+
+  const handleLogout = () => {
+    authApi.logout();
+    router.push('/login');
+  };
+
+  const handleNextPage = () => {
+    if (pagination.page < pagination.totalPages - 1) {
+      loadBookings(pagination.page + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (pagination.page > 0) {
+      loadBookings(pagination.page - 1);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,6 +260,11 @@ const Dashboard = () => {
                   >
                     <Calendar className="w-5 h-5" />
                     Minhas Reservas
+                    {bookings && bookings.length > 0 && (
+                      <Badge className="ml-auto bg-primary text-primary-foreground">
+                        {bookings.length}
+                      </Badge>
+                    )}
                   </button>
                   <button
                     onClick={() => changeTab("barcos")}
@@ -267,7 +329,10 @@ const Dashboard = () => {
                 </nav>
 
                 <div className="mt-6 pt-6 border-t border-border">
-                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors">
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                  >
                     <LogOut className="w-5 h-5" />
                     Sair
                   </button>
@@ -285,72 +350,139 @@ const Dashboard = () => {
                       Minhas Reservas
                     </h1>
                     <Link href="/search">
-                      <Button variant="ocean">Nova Reserva</Button>
+                      <Button variant="ocean">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Reserva
+                      </Button>
                     </Link>
                   </div>
 
-                  <div className="space-y-4">
-                    {historicoReservas.map((reserva) => {
-                      const status =
-                        statusConfig[
-                          reserva.status as keyof typeof statusConfig
-                        ];
-                      return (
-                        <div
-                          key={reserva.id}
-                          className="bg-card rounded-xl shadow-card p-4 flex flex-col md:flex-row gap-4"
-                        >
-                          <img
-                            src={reserva.imagem.src}
-                            alt={reserva.barco}
-                            className="w-full md:w-40 h-32 object-cover rounded-lg"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="font-semibold text-foreground">
-                                  {reserva.barco}
-                                </h3>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <MapPin className="w-4 h-4" />
-                                  {reserva.localizacao}
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                      <p className="text-muted-foreground">Carregando suas reservas...</p>
+                    </div>
+                  ) : error ? (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
+                      <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+                      <h3 className="font-semibold text-foreground mb-2">Erro ao carregar reservas</h3>
+                      <p className="text-muted-foreground mb-4">{error}</p>
+                      <Button variant="outline" onClick={() => loadBookings()}>
+                        Tentar novamente
+                      </Button>
+                    </div>
+                  ) : bookings === null ? (
+                    // Initial state - not loaded yet
+                    <div className="text-center py-12 text-muted-foreground">
+                      Inicializando...
+                    </div>
+                  ) : bookings.length === 0 ? (
+                    <div className="bg-card rounded-xl shadow-card p-8 text-center">
+                      <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h3 className="font-semibold text-foreground mb-2">Nenhuma reserva encontrada</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Você ainda não fez nenhuma reserva. Que tal explorar nossos barcos?
+                      </p>
+                      <Link href="/search">
+                        <Button variant="ocean">Explorar Barcos</Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-4">
+                        {bookings.map((booking) => {
+                          const status = statusConfig[booking.status as keyof typeof statusConfig];
+                          return (
+                            <div
+                              key={booking.id}
+                              className="bg-card rounded-xl shadow-card p-4 flex flex-col md:flex-row gap-4"
+                            >
+                              {/* Image placeholder - update when BoatBasicDTO has imageUrl */}
+                              <div className="w-full md:w-40 h-32 bg-linear-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                                <Anchor className="w-12 h-12 text-gray-400" />
+                              </div>
+                              
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <h3 className="font-semibold text-foreground">
+                                      {booking.boat.name}
+                                    </h3>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <MapPin className="w-4 h-4" />
+                                      {formatLocation(booking.boat.address)}
+                                    </div>
+                                  </div>
+                                  <Badge
+                                    className={cn(
+                                      "flex items-center gap-1",
+                                      status.className
+                                    )}
+                                  >
+                                    <status.icon className="w-3 h-3" />
+                                    {status.label}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                                  <span>
+                                    {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-primary">
+                                    R$ {booking.totalPrice.toLocaleString('pt-BR', {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                  <div className="flex gap-2">
+                                    {booking.status === "FINISHED" && (
+                                      <Button variant="outline" size="sm">
+                                        Avaliar
+                                      </Button>
+                                    )}
+                                    <Button variant="outline" size="sm">
+                                      Ver detalhes
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                              <Badge
-                                className={cn(
-                                  "flex items-center gap-1",
-                                  status.className
-                                )}
-                              >
-                                <status.icon className="w-3 h-3" />
-                                {status.label}
-                              </Badge>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                              <span>
-                                {reserva.dataInicio} - {reserva.dataFim}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-primary">
-                                R$ {reserva.valor.toLocaleString()}
-                              </span>
-                              <div className="flex gap-2">
-                                {reserva.status === "concluido" && (
-                                  <Button variant="outline" size="sm">
-                                    Avaliar
-                                  </Button>
-                                )}
-                                <Button variant="outline" size="sm">
-                                  Ver detalhes
-                                </Button>
-                              </div>
-                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Pagination */}
+                      {pagination.totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-6 border-t border-border">
+                          <div className="text-sm text-muted-foreground">
+                            Mostrando {bookings.length} de {pagination.totalElements} reservas
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handlePrevPage}
+                              disabled={pagination.page === 0 || loading}
+                            >
+                              Anterior
+                            </Button>
+                            <span className="text-sm text-foreground">
+                              Página {pagination.page + 1} de {pagination.totalPages}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleNextPage}
+                              disabled={pagination.page >= pagination.totalPages - 1 || loading}
+                            >
+                              Próxima
+                            </Button>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
@@ -362,22 +494,23 @@ const Dashboard = () => {
                       Meus Barcos
                     </h1>
                     <Link href="/register-boat">
-                      <Button variant="ocean">Adicionar Barco</Button>
+                      <Button variant="ocean">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Barco
+                      </Button>
                     </Link>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
-                    {meusBarcos.map((barco) => (
+                    {myBoats.map((barco) => (
                       <div
                         key={barco.id}
                         className="bg-card rounded-xl shadow-card overflow-hidden"
                       >
                         <div className="relative aspect-video">
-                          <img
-                            src={barco.imagem.src}
-                            alt={barco.nome}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <Anchor className="w-16 h-16 text-gray-400" />
+                          </div>
                           <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">
                             {barco.status === "ativo" ? "Ativo" : "Inativo"}
                           </Badge>
@@ -431,18 +564,16 @@ const Dashboard = () => {
                   </h1>
 
                   <div className="grid md:grid-cols-2 gap-6">
-                    {favoritos.map((barco) => (
+                    {favorites.map((barco) => (
                       <Link
                         key={barco.id}
                         href={`/barco/${barco.id}`}
                         className="group bg-card rounded-xl shadow-card overflow-hidden hover:shadow-elevated transition-all"
                       >
                         <div className="relative aspect-video">
-                          <img
-                            src={barco.imagem.src}
-                            alt={barco.nome}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                          <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <Anchor className="w-16 h-16 text-gray-400" />
+                          </div>
                           <button
                             className="absolute top-3 right-3 w-10 h-10 bg-card/90 rounded-full flex items-center justify-center"
                             onClick={(e) => {
