@@ -1,7 +1,6 @@
 package com.jompastech.backend.config;
 
 import com.jompastech.backend.security.filter.JwtAuthenticationFilter;
-import com.jompastech.backend.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,9 +28,6 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -40,16 +36,21 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints - no authentication required
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Authentication endpoints
+                        .requestMatchers("/api/users/register").permitAll()
                         .requestMatchers(
-                                "/api/auth/**",           // Authentication endpoints
-                                "/api/public/**",         // Public API endpoints
-                                "/swagger-ui/**",         // Swagger UI
-                                "/v3/api-docs/**",        // API documentation
-                                "/swagger-resources/**",  // Swagger resources
-                                "/api/users/register",    // User registration
-                                "/webjars/**",             // Web jars
-                                "/api/boats/**"
+                                "/swagger-ui/**", // Swagger UI
+                                         "/v3/api-docs/**", // API documentation
+                                         "/swagger-resources/**",
+                                         "/webjars/**",
+                                         "/api/boats",      // LISTAGEM de barcos (GET)
+                                         "/api/boats/{id}", // DETALHES de um barco (GET)
+                                         "/api/boats/{id}/availability/**", // DETALHES de um barco (GET)
+                                         "/api/search/**"
                         ).permitAll()
+                        .requestMatchers("/api/public/**").permitAll() // Public API endpoints
+                        .requestMatchers("/api/bookings/**").authenticated()
 
                         // Protected endpoints with role-based authorization
                         .requestMatchers("/api/boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
