@@ -4,10 +4,12 @@ import com.jompastech.backend.exception.EntityNotFoundException;
 import com.jompastech.backend.mapper.BookingMapper;
 import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
 import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
+import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.User;
+import com.jompastech.backend.model.enums.BookingStatus;
+import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.service.BookingApplicationService;
-import com.jompastech.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,10 +18,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST Controller for managing boat rental bookings.
@@ -43,6 +53,7 @@ public class BookingController {
     private final BookingApplicationService bookingApplicationService;
     private final BookingMapper bookingMapper;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     /**
      * Creates a new boat rental booking with dynamic pricing.
@@ -154,6 +165,61 @@ public class BookingController {
 
         log.warn("Booking retrieval endpoint not yet implemented - returning 501");
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Retrieves all bookings for the currently authenticated user.
+     *
+     * <p>Returns a paginated list of bookings where the authenticated user
+     * is either the booking owner (renter) or the boat owner. Results are
+     * ordered by start date descending (most recent first).</p>
+     *
+     * @param page Page number for pagination (default: 0)
+     * @param size Page size for pagination (default: 20)
+     * @param status Optional filter by booking status
+     * @return ResponseEntity with paginated list of user's bookings
+     */
+    @GetMapping("/my-bookings")
+    @Operation(
+            summary = "Get user's bookings",
+            description = "Retrieves all bookings for the authenticated user (as renter or boat owner) "
+                    + "with pagination support and optional status filtering."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bookings retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters")
+    })
+    public ResponseEntity<Page<BookingResponseDTO>> getMyBookings(
+            @Parameter(hidden = true) @AuthenticationPrincipal String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) BookingStatus status) {
+
+        log.info("📋 Retrieving bookings for user: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("❌ User not found with email: {}", email);
+                    return new EntityNotFoundException("User not found with email: " + email);
+                });
+
+        log.info("✅ User found: {} (ID: {})", user.getName(), user.getId());
+
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startDate"));
+        Page<Booking> bookings;
+
+        if (status != null) {
+            bookings = bookingRepository.findByUserIdAndStatus(user.getId(), status, pageable);
+        } else {
+            bookings = bookingRepository.findByUserId(user.getId(), pageable);
+        }
+
+        // Search user reservations
+        Page<BookingResponseDTO> response = bookings.map(bookingMapper::toResponseDTO);
+        return ResponseEntity.ok(response);
+
     }
 
     /**

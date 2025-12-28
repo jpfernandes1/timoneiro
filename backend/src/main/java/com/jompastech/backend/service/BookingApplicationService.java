@@ -2,7 +2,9 @@ package com.jompastech.backend.service;
 
 import com.jompastech.backend.exception.BookingCreationException;
 import com.jompastech.backend.exception.PaymentProcessingException;
+import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
 import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
+import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
 import com.jompastech.backend.model.dto.payment.MockCardData;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
@@ -16,6 +18,8 @@ import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -169,5 +173,24 @@ public class BookingApplicationService {
                         bookingRequest.getStartDate().toLocalDate(),
                         bookingRequest.getEndDate().toLocalDate()))
                 .build();
+    }
+
+    /**
+     * Retrieves bookings for a specific user with pagination and optional status filter.
+     *
+     * @param userId ID of the user
+     * @param pageable Pagination information
+     * @param status Optional booking status filter
+     * @return Page of bookings
+     */
+    @Transactional(readOnly = true)
+    public Page<Booking> getBookingsByUserId(Long userId, Pageable pageable, BookingStatus status) {
+        log.debug("Fetching bookings for user ID: {} with status: {}", userId, status);
+
+        if (status != null) {
+            return bookingRepository.findByUserIdAndStatus(userId, status, pageable);
+        } else {
+            return bookingRepository.findByUserId(userId, pageable);
+        }
     }
 }

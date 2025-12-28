@@ -1,7 +1,11 @@
 package com.jompastech.backend.repository;
 
+import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.Booking;
+import com.jompastech.backend.model.enums.BookingStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -57,4 +61,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Provides additional business context for validation.
      */
     long countByUserIdAndBoatIdAndStatus(Long userId, Long boatId, String status);
+
+    // Search for all of a user's bookings.
+    Page<Booking> findByUserId(Long userId, Pageable pageable);
+
+    // Search for a user's bookings by status.
+    Page<Booking> findByUserIdAndStatus(Long userId, BookingStatus status, Pageable pageable);
+
+    // Search for bookings where the user owns the boat.
+    @Query("SELECT b FROM Booking b WHERE b.boat.owner.id = :userId")
+    Page<Booking> findByBoatOwnerId(@Param("userId") Long userId, Pageable pageable);
+
 }
