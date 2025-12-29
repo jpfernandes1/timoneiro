@@ -536,142 +536,165 @@ const handleBoatsPrevPage = () => {
 
               {/* My Boats */}
               {activeTab === "meus-barcos" && (
-              <div className="space-y-6 animate-fade-up">
-                <div className="flex items-center justify-between">
-                  <h1 className="font-display text-2xl font-bold text-foreground">
-                    Meus Barcos
-                  </h1>
-                  <Link href="/register-boat">
-                    <Button variant="ocean">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Barco
-                    </Button>
-                  </Link>
-                </div>
-                          
-                {boatsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                    <p className="text-muted-foreground">Carregando seus barcos...</p>
-                  </div>
-                ) : boatsError ? (
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
-                    <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-                    <h3 className="font-semibold text-foreground mb-2">Erro ao carregar barcos</h3>
-                    <p className="text-muted-foreground mb-4">{boatsError}</p>
-                    <Button variant="outline" onClick={() => loadMyBoats()}>
-                      Tentar novamente
-                    </Button>
-                  </div>
-                ) : myBoats.length === 0 ? (
-                  <div className="bg-card rounded-xl shadow-card p-8 text-center">
-                    <Anchor className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <h3 className="font-semibold text-foreground mb-2">Nenhum barco cadastrado</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Você ainda não cadastrou nenhum barco. Que tal oferecer seu barco para aluguel?
-                    </p>
+                <div className="space-y-6 animate-fade-up">
+                  <div className="flex items-center justify-between">
+                    <h1 className="font-display text-2xl font-bold text-foreground">
+                      Meus Barcos
+                    </h1>
                     <Link href="/register-boat">
-                      <Button variant="ocean">Cadastrar Barco</Button>
+                      <Button variant="ocean">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Barco
+                      </Button>
                     </Link>
                   </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {myBoats.map((barco) => (
-                      <div
-                        key={barco.id}
-                        className="bg-card rounded-xl shadow-card overflow-hidden"
-                      >
-                        <div className="relative aspect-video">
-                          {barco.photos && barco.photos.length > 0 ? (
-                            <img
-                              src={barco.photos[0]}
-                              alt={barco.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                              <Anchor className="w-16 h-16 text-gray-400" />
+
+                  {boatsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                      <p className="text-muted-foreground">Carregando seus barcos...</p>
+                    </div>
+                  ) : boatsError ? (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
+                      <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+                      <h3 className="font-semibold text-foreground mb-2">Erro ao carregar barcos</h3>
+                      <p className="text-muted-foreground mb-4">{boatsError}</p>
+                      <Button variant="outline" onClick={() => loadMyBoats()}>
+                        Tentar novamente
+                      </Button>
+                    </div>
+                  ) : myBoats.length === 0 ? (
+                    <div className="bg-card rounded-xl shadow-card p-8 text-center">
+                      <Anchor className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h3 className="font-semibold text-foreground mb-2">Nenhum barco cadastrado</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Você ainda não cadastrou nenhum barco. Que tal oferecer seu barco para aluguel?
+                      </p>
+                      <Link href="/register-boat">
+                        <Button variant="ocean">Cadastrar Barco</Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {myBoats.map((barco) => (
+                        <div
+                          key={barco.id}
+                          className="bg-card rounded-xl shadow-card overflow-hidden hover:shadow-elevated transition-all"
+                        >
+                          {/* Imagem clicável */}
+                          <Link href={`/boat/${barco.id}/owner`} className="block">
+                            <div className="relative aspect-video group">
+                              {barco.photos && barco.photos.length > 0 ? (
+                                <>
+                                  <img
+                                    src={barco.photos[0]}
+                                    alt={barco.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  />
+                                  <div className="absolute inset-0 bg-linear-to-t from-black/0 via-black/0 to-black/0 group-hover:from-black/20 group-hover:via-black/10 group-hover:to-black/5 transition-all duration-500" />
+                                </>
+                              ) : (
+                                <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                                  <Anchor className="w-16 h-16 text-gray-400" />
+                                </div>
+                              )}
+                              <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">
+                                Ativo
+                              </Badge>
+                              {/* Overlay de clique */}
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                  Ver detalhes
+                                </div>
+                              </div>
                             </div>
-                          )}
-                          <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">
-                            Ativo
-                          </Badge>
-                        </div>
-                        <div className="p-5">
-                          <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                            {barco.name}
-                          </h3>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                            <MapPin className="w-4 h-4" />
-                            {barco.city && barco.state ? `${barco.city}, ${barco.state}` : barco.marina || 'Localização não disponível'}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm mb-4">
-                            <div className="flex items-center gap-1">
-                              <User className="w-4 h-4" />
-                              <span>Capacidade: {barco.capacity} pessoas</span>
+                          </Link>
+                            
+                          <div className="p-5">
+                            {/* Título clicável */}
+                            <Link href={`/boat/${barco.id}/owner`} className="group">
+                              <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                                {barco.name}
+                              </h3>
+                            </Link>
+                            
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                              <MapPin className="w-4 h-4" />
+                              {barco.city && barco.state ? `${barco.city}, ${barco.state}` : barco.marina || 'Localização não disponível'}
                             </div>
-                            <span className="text-muted-foreground">
-                              {barco.type}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between pt-4 border-t border-border">
-                            <span className="font-bold text-primary">
-                              R$ {barco.pricePerHour.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/hora
-                            </span>
-                            <div className="flex gap-2">
-                              <Link href={`/boats/edit/${barco.id}`}>
-                                <Button variant="outline" size="icon">
-                                  <Edit className="w-4 h-4" />
+                            <div className="flex items-center gap-4 text-sm mb-4">
+                              <div className="flex items-center gap-1">
+                                <User className="w-4 h-4" />
+                                <span>Capacidade: {barco.capacity} pessoas</span>
+                              </div>
+                              <span className="text-muted-foreground">
+                                {barco.type}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between pt-4 border-t border-border">
+                              <span className="font-bold text-primary">
+                                R$ {barco.pricePerHour.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/hora
+                              </span>
+                              <div className="flex gap-2">
+                                {/* Botão de edição - agora com ícone de edição direta */}
+                                <Link href={`/boat/${barco.id}/owner`}>
+                                  <Button 
+                                    variant="outline" 
+                                    size="icon"
+                                    title="Editar barco"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => {
+                                    // TODO: Implementar deleção com confirmação
+                                    console.log('Deletar barco:', barco.id);
+                                  }}
+                                  title="Excluir barco"
+                                >
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
-                              </Link>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  // TODO: Implementar deleção com confirmação
-                                  console.log('Deletar barco:', barco.id);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                  {boatsPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-border">
+                    <div className="text-sm text-muted-foreground">
+                      Mostrando {myBoats.length} de {boatsPagination.totalElements} barcos
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBoatsPrevPage}
+                        disabled={boatsPagination.page === 0 || boatsLoading}
+                      >
+                        Anterior
+                      </Button>
+                      <span className="text-sm text-foreground">
+                        Página {boatsPagination.page + 1} de {boatsPagination.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBoatsNextPage}
+                        disabled={boatsPagination.page >= boatsPagination.totalPages - 1 || boatsLoading}
+                      >
+                        Próxima
+                      </Button>
+                    </div>
                   </div>
                 )}
-                {boatsPagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-6 border-t border-border">
-                  <div className="text-sm text-muted-foreground">
-                    Mostrando {myBoats.length} de {boatsPagination.totalElements} barcos
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBoatsPrevPage}
-                      disabled={boatsPagination.page === 0 || boatsLoading}
-                    >
-                      Anterior
-                    </Button>
-                    <span className="text-sm text-foreground">
-                      Página {boatsPagination.page + 1} de {boatsPagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBoatsNextPage}
-                      disabled={boatsPagination.page >= boatsPagination.totalPages - 1 || boatsLoading}
-                    >
-                      Próxima
-                    </Button>
-                  </div>
                 </div>
               )}
-              </div>
-            )}
 
               {/* Favorites */}
               {activeTab === "favoritos" && (
