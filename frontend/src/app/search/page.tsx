@@ -6,7 +6,7 @@ import Footer from "@/src/components/Footer";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { boatApi, Address } from '@/src/lib/api';
+import { boatApi,  type BoatResponseDTO } from '@/src/lib/api';
 import {
   Select,
   SelectContent,
@@ -60,7 +60,7 @@ interface Boat {
 }
 
 interface BoatCardProps {
-  boat: Boat;
+  boat: BoatResponseDTO;
 }
 
 const estados = [
@@ -102,7 +102,7 @@ const comodidades = [
 ];
 
 const Search = () => {
-  // Estados do formulário de busca
+  // Search form states
   const [estado, setEstado] = useState("");
   const [cidade, setCidade] = useState("");
   const [dataInicio, setDataInicio] = useState<Date>();
@@ -113,23 +113,22 @@ const Search = () => {
   const [comodidadesSelecionadas, setComodidadesSelecionadas] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   
-  // Estados para os dados do backend
-  const [boats, setBoats] = useState<Boat[]>([]);
+  // States for backend data
+  const [boats, setBoats] = useState<BoatResponseDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filteredBoats, setFilteredBoats] = useState<Boat[]>([]);
+  const [filteredBoats, setFilteredBoats] = useState<BoatResponseDTO[]>([]);
 
-  // Função para buscar barcos do backend
+  // Function to search for boats from the backend.
   const fetchBoats = async () => {
   try {
     setLoading(true);
     setError(null);
     
-    // Use a boatApi que agora inclui autenticação
     const data = await boatApi.getAllBoats();
     console.log('📦 Dados recebidos do backend:', data);
     setBoats(data);
-    setFilteredBoats(data); // Inicialmente mostra todos
+    setFilteredBoats(data); // initially shows all
     
   } catch (err) {
     console.error('❌ Erro ao buscar barcos:', err);
@@ -139,14 +138,14 @@ const Search = () => {
   }
 };
 
-  // Componente de Card do Barco
+  // Boat Card Component
   const BoatCard = ({ boat }: BoatCardProps) => {
-    // Use a primeira foto do barco ou um placeholder
+    // first photo of the boat or a placeholder.
     const mainPhoto = boat.photos && boat.photos.length > 0 
       ? boat.photos[0] 
       : '/placeholder-boat.jpg';
     
-    // Calcular preço por dia (8 horas como padrão)
+    // Calculate price per day (8 hours as standard)
     const pricePerDay = boat.pricePerHour * 8;
     
     return (
@@ -173,7 +172,7 @@ const Search = () => {
             )}
           </div>
           
-          {/* Botão de favoritos */}
+          {/* Favorite Button */}
           <button
             className="absolute top-4 right-4 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors"
             onClick={(e) => {
@@ -184,7 +183,7 @@ const Search = () => {
             <Heart className="w-5 h-5 text-foreground" />
           </button>
           
-          {/* Badge do tipo */}
+          {/* Type badge */}
           <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full">
             <span className="text-sm font-medium text-foreground">
               {boat.type}
@@ -205,22 +204,22 @@ const Search = () => {
             </div>
           </div>
           
-          {/* Localização */}
+          {/* Location */}
           <div className="flex items-center gap-2 text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 shrink-0" />
             <span className="text-sm truncate">
-  {boat.city}, {boat.state}
-  {boat.marina && ` • ${boat.marina}`}
-</span>
+              {boat.city}, {boat.state}
+              {boat.marina && ` • ${boat.marina}`}
+            </span>
           </div>
           
-          {/* Capacidade */}
+          {/* Capacity */}
           <div className="flex items-center gap-2 text-muted-foreground mb-4">
             <Users className="w-4 h-4 shrink-0" />
             <span className="text-sm">Até {boat.capacity} pessoas</span>
           </div>
           
-          {/* Amenidades (primeiras 2) */}
+          {/* Amenidades (two first) */}
           {boat.amenities && boat.amenities.length > 0 && (
             <div className="mb-4">
               <div className="flex flex-wrap gap-2">
@@ -241,7 +240,7 @@ const Search = () => {
             </div>
           )}
           
-          {/* Preço */}
+          {/* Price */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
             <div>
               {pricePerDay > 0 ? (
@@ -267,7 +266,7 @@ const Search = () => {
     );
   };
 
-  // Funções de filtro
+  // Filter Functions
   const toggleTipo = (tipo: string) => {
     setTiposSelecionados((prev) =>
       prev.includes(tipo) ? prev.filter((t) => t !== tipo) : [...prev, tipo]
@@ -282,37 +281,37 @@ const Search = () => {
     );
   };
 
-  // Função de busca com filtros
+  // Search function with filters
   const handleSearch = () => {
     let filtered = [...boats];
     
-    // Filtro por estado
+    // Filter by state
     if (estado) {
   filtered = filtered.filter(boat => 
     boat.state.toLowerCase().includes(estado.toLowerCase())
   );
 }
-    // Filtro por cidade
+    // Filter by city
     if (cidade) {
   filtered = filtered.filter(boat => 
     boat.city.toLowerCase().includes(cidade.toLowerCase())
   );
 }
     
-    // Filtro por faixa de preço
+    // Filter by price range
     filtered = filtered.filter(boat => {
       const pricePerDay = boat.pricePerHour * 8;
       return pricePerDay >= precoRange[0] && pricePerDay <= precoRange[1];
     });
     
-      // Filtro por capacidade
+      // Filter by capacity
       if (capacidade) {
     if (capacidade.includes('+')) {
-      // Para valores como "20+"
+      // For values ​​such as "20+"
       const min = parseInt(capacidade);
       filtered = filtered.filter(boat => boat.capacity >= min);
     } else if (capacidade.includes('-')) {
-      // Para intervalos como "1-5" ou "6-10"
+      // For intervals such as "1-5" or "6-10"
       const [minStr, maxStr] = capacidade.split('-');
       const min = parseInt(minStr);
       const max = parseInt(maxStr);
@@ -322,14 +321,14 @@ const Search = () => {
       }
     }
     
-    // Filtro por tipos
+    // Filter by types
     if (tiposSelecionados.length > 0) {
       filtered = filtered.filter(boat => 
         tiposSelecionados.includes(boat.type)
       );
     }
     
-    // Filtro por comodidades
+    // Filter by amenities
     if (comodidadesSelecionadas.length > 0) {
       filtered = filtered.filter(boat => 
         comodidadesSelecionadas.every(comodidade => 
@@ -342,7 +341,7 @@ const Search = () => {
     setShowFilters(false);
   };
 
-  // Limpar filtros
+  // Clear filters
   const clearFilters = () => {
     setEstado("");
     setCidade("");
@@ -355,7 +354,7 @@ const Search = () => {
     setFilteredBoats(boats);
   };
 
-  // Carregar barcos quando o componente montar
+  // Load boats when the component is assembled.
   useEffect(() => {
     fetchBoats();
   }, []);
