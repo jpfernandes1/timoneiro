@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 // Backend-based types
 export interface Address {
@@ -19,6 +19,7 @@ export interface BoatBasicDTO {
   name: string;
   type: string;
   address: Address;
+  photos?: string[];
 }
 
 export interface UserBasicDTO {
@@ -31,8 +32,8 @@ export interface BookingResponse {
   id: number;
   user: UserBasicDTO;
   boat: BoatBasicDTO;
-  startDate: string; // ISO string of LocalDateTime
-  endDate: string;   // ISO string of LocalDateTime
+  startDate: string;
+  endDate: string;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'FINISHED';
   totalPrice: number;
 }
@@ -43,6 +44,26 @@ export interface PaginatedResponse<T> {
   totalElements: number;
   number: number;
   size: number;
+}
+
+// Interface para resposta de barcos do usuário
+export interface BoatResponseDTO {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  capacity: number;
+  length: number | null;
+  speed: number | null;
+  fabrication: number | null;
+  amenities: string[];
+  photos: string[]; // VEM ORDENADO PELO MAPPER!
+  pricePerHour: number;
+  city: string;
+  state: string;
+  marina: string;
+  ownerName: string;
+  ownerId: number;
 }
 
 // Custom error class
@@ -59,15 +80,12 @@ export class ApiError extends Error {
 
 /**
  * Validates the current JWT token stored in localStorage.
- * Checks if the token exists, is properly formatted, and not expired.
- * @returns Promise<boolean> True if token is valid, false otherwise.
  */
 export const validateToken = async (): Promise<boolean> => {
   const token = localStorage.getItem('token');
   if (!token) return false;
   
   try {
-    // Try to decode token first to check expiration
     const parts = token.split('.');
     if (parts.length !== 3) {
       return false;
@@ -104,7 +122,12 @@ async function apiRequest<T>(
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    // CORREÇÃO: Remove /api duplicado do endpoint
+    const url = endpoint.startsWith('/') 
+      ? `${API_BASE_URL}${endpoint}`
+      : `${API_BASE_URL}/${endpoint}`;
+    
+    const response = await fetch(url, {
       ...options,
       headers,
     });
@@ -114,22 +137,18 @@ async function apiRequest<T>(
       console.log(`Token invalid (${response.status}), clearing auth`);
       authApi.logout();
       
-      // If we're on the client side and not on a public frontend route, redirect to login
       if (typeof window !== 'undefined') {
-        // Public frontend routes that don't require authentication
-        const publicFrontendRoutes = ['/auth', '/login', '/register', '/', '/forgot-password', '/search','/dashboard'];
+        const publicFrontendRoutes = ['/auth', '/login', '/register', '/', '/forgot-password', '/search'];
         const currentPath = window.location.pathname;
 
-        // Only redirect if the user is not already on a public frontend route
         const isPublicFrontendRoute = publicFrontendRoutes.some(
           route => currentPath === route || currentPath.startsWith(route + '/')
         );
 
         if (!isPublicFrontendRoute) {
           console.log('Redirecting to /auth from:', currentPath);
-          window.location.href = '/auth'; // Frontend login page
+          window.location.href = '/auth';
         } else {
-          // If already trying to access a public route (like /auth), don't redirect to avoid loop
           console.log('Already on a public frontend route:', currentPath);
         }
       }
@@ -142,11 +161,23 @@ async function apiRequest<T>(
     }
     
     if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: response.statusText };
+      }
+      
       throw new ApiError(
-        `API request failed: ${response.statusText}`,
+        errorData.message || `API request failed: ${response.statusText}`,
         response.status,
         response.statusText
       );
+    }
+    
+    // Se for resposta sem conteúdo (204 No Content)
+    if (response.status === 204) {
+      return null as T;
     }
     
     return response.json();
@@ -157,7 +188,7 @@ async function apiRequest<T>(
   }
 }
 
-// Bookings API (for Dashboard)
+// Bookings API
 export const bookingApi = {
   // Search user bookings
   getMyBookings: async (
@@ -171,7 +202,7 @@ export const bookingApi = {
       ...(status && { status }),
     });
     
-     return apiRequest<PaginatedResponse<BookingResponse>>(`/bookings/my-bookings?${params}`);
+    return apiRequest<PaginatedResponse<BookingResponse>>(`/api/bookings/my-bookings?${params}`);
   },
   
   // booking details
@@ -187,9 +218,10 @@ export const bookingApi = {
   },
 };
 
-// Authentication API (for login/logout)
+// Authentication API
 export const authApi = {
   login: async (email: string, password: string) => {
+    // CORREÇÃO: Usar API_BASE_URL corretamente
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -203,13 +235,8 @@ export const authApi = {
     
     const data = await response.json();
     
-    // DEBUG: Log what we received
-    console.log('Login response data:', data);
-    
-    // Save the token to localStorage
     if (data.token) {
       localStorage.setItem('token', data.token);
-      console.log('Token saved to localStorage');
     } else {
       console.warn('No token in login response!', data);
     }
@@ -219,18 +246,17 @@ export const authApi = {
   
   logout: () => {
     localStorage.removeItem('token');
-    console.log('Token removed from localStorage');
   },
   
   getCurrentUser: async () => {
-    return apiRequest<UserBasicDTO>('/auth/me');
+    return apiRequest<UserBasicDTO>('/auth/my-boats');
   },
 };
 
-// Boat API (to maintain compatibility with Search page)
+// Boat API
 export const boatApi = {
-  // public
-  getAllBoats: async () => {
+  // Public endpoint (sem autenticação)
+  getAllBoats: async (): Promise<BoatResponseDTO[]> => {
     const response = await fetch(`${API_BASE_URL}/boats`, {
       headers: {
         'Content-Type': 'application/json',
@@ -244,9 +270,19 @@ export const boatApi = {
     return response.json();
   },
   
-  // New method using apiRequest (with authentication if necessary)
-  getBoatById: async (boatId: number) => {
-    return apiRequest(`/boats/${boatId}`);
+  // Get boat by ID (pode requerer autenticação dependendo da regra)
+  getBoatById: async (boatId: number): Promise<BoatResponseDTO> => {
+    return apiRequest<BoatResponseDTO>(`/boats/${boatId}`);
+  },
+
+  // Get logged user boats (REQUER AUTENTICAÇÃO)
+  getMyBoats: async (page: number = 0, size: number = 10): Promise<PaginatedResponse<BoatResponseDTO>> => {
+    return apiRequest<PaginatedResponse<BoatResponseDTO>>(`api/boats/my-boats?page=${page}&size=${size}`);
+  },
+  
+  // Get logged user boats with pagination (se implementado no backend)
+  getMyBoatsPaginated: async (page: number = 0, size: number = 10): Promise<PaginatedResponse<BoatResponseDTO>> => {
+    return apiRequest<PaginatedResponse<BoatResponseDTO>>(`api/boats/my-boats?page=${page}&size=${size}`);
   },
 };
 
@@ -262,7 +298,6 @@ export const requireAuth = async (router: any): Promise<boolean> => {
     return false;
   }
 
-  // Validate the token (check expiration)
   const isValid = await validateToken();
   if (!isValid) {
     authApi.logout();

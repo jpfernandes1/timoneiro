@@ -24,6 +24,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -335,6 +339,43 @@ public class BoatController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             log.error("Error updating photo order for boat ID {}: {}", boatId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Operation(
+            summary = "Get boats by current user with pagination",
+            description = "Retrieves a paginated list of boats owned by the currently authenticated user"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of boats retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = BoatResponseDTO.class))),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/my-boats")
+    public ResponseEntity<Page<BoatResponseDTO>> getMyBoatsPaginated(
+            @Parameter(hidden = true) @AuthenticationPrincipal String email,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sort) {
+
+        log.info("GET /api/boats/my-boats requested by user: {}", email);
+
+        if (email == null) {
+            log.error("User email is null - authentication failed");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+            Page<BoatResponseDTO> boats = boatService.findBoatsByUserPaginated(email, pageable);
+            return ResponseEntity.ok(boats);
+        } catch (EntityNotFoundException e) {
+            log.error("User not found with email: {}", email);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("Error getting user boats: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

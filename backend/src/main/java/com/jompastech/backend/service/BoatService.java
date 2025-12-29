@@ -10,9 +10,13 @@ import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.AddressRepository;
 import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BoatService {
 
     private final BoatRepository boatRepository;
@@ -140,5 +145,27 @@ public class BoatService {
     public Boat getBoatEntity(Long id) {
         return boatRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Boat not found"));
+    }
+
+    @Operation(
+            summary = "Get boats by current user",
+            description = "Retrieves a list of boats owned by the currently authenticated user"
+    )
+    @Transactional(readOnly = true)
+    public Page<BoatResponseDTO> findBoatsByUserPaginated(String email, Pageable pageable) {
+        log.info("Buscando barcos do usuário com paginação: {}", email);
+
+        // Find user by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com email: " + email));
+
+        log.info("Usuário encontrado: {} (ID: {})", user.getName(), user.getId());
+
+        // Search for user's boats with pagination.
+        Page<Boat> boatsPage = boatRepository.findByOwner(user, pageable);
+        log.info("Encontrados {} barcos para o usuário {}", boatsPage.getTotalElements(), email);
+
+        // Convert to DTO
+        return boatsPage.map(boatMapper::toResponseDTO);
     }
 }

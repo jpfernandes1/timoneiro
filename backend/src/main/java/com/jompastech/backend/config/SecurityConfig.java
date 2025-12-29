@@ -44,9 +44,9 @@ public class SecurityConfig {
                                          "/v3/api-docs/**", // API documentation
                                          "/swagger-resources/**",
                                          "/webjars/**",
-                                         "/api/boats",      // LISTAGEM de barcos (GET)
-                                         "/api/boats/{id}", // DETALHES de um barco (GET)
-                                         "/api/boats/{id}/availability/**", // DETALHES de um barco (GET)
+                                         "/api/boats",      // BOAT LIST (GET)
+                                         "/api/boats/{id}", // BOAT DETAILS (GET)
+                                         "/api/boats/{id}/availability/**", // BOAT AVAILABILITY (GET)
                                          "/api/search/**"
                         ).permitAll()
                         .requestMatchers("/api/public/**").permitAll() // Public API endpoints

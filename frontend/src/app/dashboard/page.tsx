@@ -30,29 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
 // API
-import { bookingApi, authApi, BookingResponse } from "@/src/lib/api";
-
-// Mock data for other tabs
-const myBoats = [
-  {
-    id: 1,
-    nome: "Lancha Ferretti 45",
-    localizacao: "Guarujá, SP",
-    preco: 2100,
-    avaliacao: 4.8,
-    reservas: 12,
-    status: "ativo",
-  },
-  {
-    id: 2,
-    nome: "Veleiro Bavaria 38",
-    localizacao: "Ubatuba, SP",
-    preco: 1500,
-    avaliacao: 4.6,
-    reservas: 8,
-    status: "ativo",
-  },
-];
+import { bookingApi, authApi, boatApi, BookingResponse, BoatResponseDTO } from "@/src/lib/api";
 
 const favorites = [
   {
@@ -104,6 +82,15 @@ const Dashboard = () => {
     totalPages: 0,
     totalElements: 0,
   });
+  const [myBoats, setMyBoats] = useState<BoatResponseDTO[]>([]);
+  const [boatsLoading, setBoatsLoading] = useState(false);
+  const [boatsError, setBoatsError] = useState<string | null>(null);
+  const [boatsPagination, setBoatsPagination] = useState({
+  page: 0,
+  totalPages: 0,
+  totalElements: 0,
+  });
+
   const router = useRouter();
 
   // Format date from ISO string to Brazilian format
@@ -161,6 +148,49 @@ const Dashboard = () => {
     }
   }, [activeTab, router]);
 
+  const loadMyBoats = useCallback(async (page: number = 0) => {
+  if (typeof window === 'undefined') return;
+  if (activeTab !== "meus-barcos") return;
+  
+  setBoatsLoading(true);
+  setBoatsError(null);
+  
+  try {
+    const response = await boatApi.getMyBoats(page, 10);
+    setMyBoats(response.content);
+    setBoatsPagination({
+      page: response.number,
+      totalPages: response.totalPages,
+      totalElements: response.totalElements,
+    });
+  } catch (err: any) {
+    console.error('Error loading boats:', err);
+    
+    if (err.status === 401) {
+      authApi.logout();
+      router.push('/login');
+      return;
+    }
+    
+    setBoatsError(err.message || 'Erro ao carregar barcos. Tente novamente.');
+  } finally {
+    setBoatsLoading(false);
+  }
+}, [activeTab, router]);
+
+// Adicione funções de navegação de página para barcos:
+const handleBoatsNextPage = () => {
+  if (boatsPagination.page < boatsPagination.totalPages - 1) {
+    loadMyBoats(boatsPagination.page + 1);
+  }
+};
+
+const handleBoatsPrevPage = () => {
+  if (boatsPagination.page > 0) {
+    loadMyBoats(boatsPagination.page - 1);
+  }
+};
+
   // Function to switch tabs and update the hash in the URL
   const changeTab = (tab: string) => {
     setActiveTab(tab);
@@ -174,7 +204,7 @@ const Dashboard = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.substring(1); // Remove "#"
-      const validTabs = ["reservas", "barcos", "favoritos", "perfil", "pagamentos", "notificacoes"];
+      const validTabs = ["reservas", "meus-barcos", "favoritos", "perfil", "pagamentos", "notificacoes"];
       
       if (hash && validTabs.includes(hash)) {
         setActiveTab(hash);
@@ -197,8 +227,10 @@ const Dashboard = () => {
   useEffect(() => {
     if (activeTab === "reservas") {
       loadBookings();
+    } else if (activeTab === "meus-barcos"){
+      loadMyBoats();
     }
-  }, [activeTab, loadBookings]);
+  }, [activeTab, loadBookings, loadMyBoats]);
 
   const handleLogout = () => {
     authApi.logout();
@@ -267,16 +299,21 @@ const Dashboard = () => {
                     )}
                   </button>
                   <button
-                    onClick={() => changeTab("barcos")}
+                    onClick={() => changeTab("meus-barcos")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
-                      activeTab === "barcos"
+                      activeTab === "meus-barcos"
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-muted"
                     )}
                   >
                     <Anchor className="w-5 h-5" />
                     Meus Barcos
+                     {myBoats.length > 0 && (
+                      <Badge className="ml-auto bg-primary text-primary-foreground">
+                          {myBoats.length}
+                      </Badge>
+                     )}
                   </button>
                   <button
                     onClick={() => changeTab("favoritos")}
@@ -487,20 +524,46 @@ const Dashboard = () => {
               )}
 
               {/* My Boats */}
-              {activeTab === "barcos" && (
-                <div className="space-y-6 animate-fade-up">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-display text-2xl font-bold text-foreground">
-                      Meus Barcos
-                    </h1>
+              {activeTab === "meus-barcos" && (
+              <div className="space-y-6 animate-fade-up">
+                <div className="flex items-center justify-between">
+                  <h1 className="font-display text-2xl font-bold text-foreground">
+                    Meus Barcos
+                  </h1>
+                  <Link href="/register-boat">
+                    <Button variant="ocean">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Barco
+                    </Button>
+                  </Link>
+                </div>
+                          
+                {boatsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                    <p className="text-muted-foreground">Carregando seus barcos...</p>
+                  </div>
+                ) : boatsError ? (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
+                    <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">Erro ao carregar barcos</h3>
+                    <p className="text-muted-foreground mb-4">{boatsError}</p>
+                    <Button variant="outline" onClick={() => loadMyBoats()}>
+                      Tentar novamente
+                    </Button>
+                  </div>
+                ) : myBoats.length === 0 ? (
+                  <div className="bg-card rounded-xl shadow-card p-8 text-center">
+                    <Anchor className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <h3 className="font-semibold text-foreground mb-2">Nenhum barco cadastrado</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Você ainda não cadastrou nenhum barco. Que tal oferecer seu barco para aluguel?
+                    </p>
                     <Link href="/register-boat">
-                      <Button variant="ocean">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Adicionar Barco
-                      </Button>
+                      <Button variant="ocean">Cadastrar Barco</Button>
                     </Link>
                   </div>
-
+                ) : (
                   <div className="grid md:grid-cols-2 gap-6">
                     {myBoats.map((barco) => (
                       <div
@@ -508,42 +571,56 @@ const Dashboard = () => {
                         className="bg-card rounded-xl shadow-card overflow-hidden"
                       >
                         <div className="relative aspect-video">
-                          <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <Anchor className="w-16 h-16 text-gray-400" />
-                          </div>
+                          {barco.photos && barco.photos.length > 0 ? (
+                            <img
+                              src={barco.photos[0]}
+                              alt={barco.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                              <Anchor className="w-16 h-16 text-gray-400" />
+                            </div>
+                          )}
                           <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">
-                            {barco.status === "ativo" ? "Ativo" : "Inativo"}
+                            Ativo
                           </Badge>
                         </div>
                         <div className="p-5">
                           <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                            {barco.nome}
+                            {barco.name}
                           </h3>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
                             <MapPin className="w-4 h-4" />
-                            {barco.localizacao}
+                            {barco.city && barco.state ? `${barco.city}, ${barco.state}` : barco.marina || 'Localização não disponível'}
                           </div>
                           <div className="flex items-center gap-4 text-sm mb-4">
                             <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              <span>{barco.avaliacao}</span>
+                              <User className="w-4 h-4" />
+                              <span>Capacidade: {barco.capacity} pessoas</span>
                             </div>
                             <span className="text-muted-foreground">
-                              {barco.reservas} reservas
+                              {barco.type}
                             </span>
                           </div>
                           <div className="flex items-center justify-between pt-4 border-t border-border">
                             <span className="font-bold text-primary">
-                              R$ {barco.preco.toLocaleString()}/dia
+                              R$ {barco.pricePerHour.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/hora
                             </span>
                             <div className="flex gap-2">
-                              <Button variant="outline" size="icon">
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <Link href={`/boats/edit/${barco.id}`}>
+                                <Button variant="outline" size="icon">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
                               <Button
                                 variant="outline"
                                 size="icon"
                                 className="text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  // TODO: Implementar deleção com confirmação
+                                  console.log('Deletar barco:', barco.id);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -553,8 +630,37 @@ const Dashboard = () => {
                       </div>
                     ))}
                   </div>
+                )}
+                {boatsPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-6 border-t border-border">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {myBoats.length} de {boatsPagination.totalElements} barcos
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBoatsPrevPage}
+                      disabled={boatsPagination.page === 0 || boatsLoading}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-foreground">
+                      Página {boatsPagination.page + 1} de {boatsPagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBoatsNextPage}
+                      disabled={boatsPagination.page >= boatsPagination.totalPages - 1 || boatsLoading}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
                 </div>
               )}
+              </div>
+            )}
 
               {/* Favorites */}
               {activeTab === "favoritos" && (
