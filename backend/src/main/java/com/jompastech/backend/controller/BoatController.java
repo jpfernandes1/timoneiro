@@ -379,4 +379,43 @@ public class BoatController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @Operation(
+            summary = "Update boat",
+            description = "Updates an existing boat with new information"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boat updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Boat not found"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner of the boat")
+    })
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BoatResponseDTO> updateBoat(
+            @Parameter(description = "ID of the boat to update", required = true)
+            @PathVariable Long id,
+
+            @Parameter(description = "Updated boat data", required = true)
+            @Valid @RequestBody BoatRequestDTO boatDTO,
+
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("Updating boat ID: {}", id);
+
+        try {
+            var updatedBoat = boatService.updateBoat(id, boatDTO, userDetails);
+            return ResponseEntity.ok(updatedBoat);
+        } catch (RuntimeException e) {
+            log.error("Error updating boat ID {}: {}", id, e.getMessage());
+
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            } else if (e.getMessage().contains("not the owner")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        }
+    }
 }
