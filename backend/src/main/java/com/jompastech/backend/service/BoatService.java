@@ -168,4 +168,59 @@ public class BoatService {
         // Convert to DTO
         return boatsPage.map(boatMapper::toResponseDTO);
     }
+
+    /**
+     * Updates an existing boat.
+     *
+     * @param id the ID of the boat to update
+     * @param dto the updated boat data
+     * @param userDetails the authenticated user details
+     * @return the updated boat as a response DTO
+     * @throws RuntimeException if the boat is not found or user is not the owner
+     */
+    @Transactional
+    public BoatResponseDTO updateBoat(Long id, BoatRequestDTO dto, UserDetails userDetails) {
+        log.info("Updating boat with ID: {}", id);
+
+        // Find the boat
+        var boat = boatRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boat not found with id: " + id));
+
+        // Verify ownership
+        var currentUserEmail = userDetails.getUsername();
+        if (!boat.getOwner().getEmail().equals(currentUserEmail)) {
+            throw new RuntimeException("User is not the owner of this boat");
+        }
+
+        // Update boat fields
+        boat.setName(dto.getName());
+        boat.setDescription(dto.getDescription());
+        boat.setType(dto.getType());
+        boat.setCapacity(dto.getCapacity());
+        boat.setLength(dto.getLength());
+        boat.setSpeed(dto.getSpeed());
+        boat.setFabrication(dto.getFabrication());
+        boat.setAmenities(dto.getAmenities());
+        boat.setPricePerHour(dto.getPricePerHour());
+
+        // Update address
+        var address = boat.getAddress();
+        if (address == null) {
+            address = new Address();
+            boat.setAddress(address);
+        }
+        address.setCep(dto.getCep());
+        address.setNumber(dto.getNumber());
+        address.setStreet(dto.getStreet());
+        address.setNeighborhood(dto.getNeighborhood());
+        address.setCity(dto.getCity());
+        address.setState(dto.getState());
+        address.setMarina(dto.getMarina());
+
+        // Save the updated boat
+        boat = boatRepository.save(boat);
+        log.info("Boat with ID: {} updated successfully", id);
+
+        return boatMapper.toResponseDTO(boat);
+    }
 }
