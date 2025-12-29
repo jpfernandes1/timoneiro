@@ -435,10 +435,21 @@ const handleBoatsPrevPage = () => {
                               className="bg-card rounded-xl shadow-card p-4 flex flex-col md:flex-row gap-4"
                             >
                               {/* Image placeholder - update when BoatBasicDTO has imageUrl */}
-                              <div className="w-full md:w-40 h-32 bg-linear-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                                <Anchor className="w-12 h-12 text-gray-400" />
-                              </div>
                               
+                              <div className="w-full md:w-40 h-32 rounded-lg overflow-hidden shrink-0">
+                                {booking.boat.photos && booking.boat.photos.length > 0 ? (
+                                  <img
+                                    src={booking.boat.photos[0]}
+                                    alt={booking.boat.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                    <Anchor className="w-12 h-12 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                            
                               <div className="flex-1">
                                 <div className="flex items-start justify-between mb-2">
                                   <div>

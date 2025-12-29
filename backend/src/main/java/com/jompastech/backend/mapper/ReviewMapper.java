@@ -6,9 +6,14 @@ import com.jompastech.backend.model.dto.ReviewResponseDTO;
 import com.jompastech.backend.model.dto.basicDTO.BoatBasicDTO;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatPhoto;
 import com.jompastech.backend.model.entity.Review;
 import com.jompastech.backend.model.entity.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Mapper class for converting between Review entities and DTOs.
@@ -100,11 +105,25 @@ public class ReviewMapper {
      * Extracted as separate method for consistency and potential reuse.
      */
     public BoatBasicDTO mapBoatBasicDTO(Boat boat){
+
+        if (boat == null) {
+            return null;
+        }
+
+        List<String> photoUrls = null;
+        if (boat.getPhotos() != null && !boat.getPhotos().isEmpty()) {
+            photoUrls = boat.getPhotos().stream()
+                    .sorted(Comparator.comparing(BoatPhoto::getOrdem))
+                    .map(BoatPhoto::getPhotoUrl)
+                    .toList();
+        }
+
         return new BoatBasicDTO(
                 boat.getId(),
                 boat.getName(),
                 boat.getType(),
-                boat.getAddress()
+                boat.getAddress(),
+                photoUrls
         );
     }
 }
