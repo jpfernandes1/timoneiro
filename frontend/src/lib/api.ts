@@ -257,7 +257,7 @@ export const authApi = {
 export const boatApi = {
   // Public endpoint (sem autenticação)
   getAllBoats: async (): Promise<BoatResponseDTO[]> => {
-    const response = await fetch(`${API_BASE_URL}/boats`, {
+    const response = await fetch(`${API_BASE_URL}/api/boats`, {
       headers: {
         'Content-Type': 'application/json',
       },
