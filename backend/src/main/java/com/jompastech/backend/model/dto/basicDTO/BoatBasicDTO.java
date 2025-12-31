@@ -2,7 +2,11 @@ package com.jompastech.backend.model.dto.basicDTO;
 
 import com.jompastech.backend.model.entity.Address;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatPhoto;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class BoatBasicDTO {
@@ -10,21 +14,15 @@ public class BoatBasicDTO {
     private String name;
     private String type;
     private Address address;
-
-    // For Boat Entity
-    public BoatBasicDTO(Boat boat) {
-        this.id = boat.getId();
-        this.name = boat.getName();
-        this.type = boat.getType();
-        this.address = boat.getAddress();
-    }
+    private List<String> photos;
 
     // For Mapper
-    public BoatBasicDTO(Long id, String name, String type, Address address) {
+    public BoatBasicDTO(Long id, String name, String type, Address address, List<String> photos) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.address = address;
+        this.photos = photos;
     }
 
     // For serialization

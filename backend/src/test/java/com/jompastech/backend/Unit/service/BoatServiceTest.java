@@ -5,16 +5,20 @@ import com.jompastech.backend.model.dto.BoatRequestDTO;
 import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.User;
+import com.jompastech.backend.repository.AddressRepository;
 import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.service.BoatService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +51,9 @@ public class BoatServiceTest {
 
     @InjectMocks
     private BoatService boatService;
+
+    @Mock
+    private AddressRepository addressRepository;
 
     @Mock
     private BoatMapper boatMapper;
@@ -88,7 +95,24 @@ public class BoatServiceTest {
         testBoat2.setType("Submarine");
 
         // Request DTOs - represent API inputs for different contexts
-        testRequestDTO = new BoatRequestDTO("Nautilus", "Submarine", null, 8, null, null, null, 1L);
+        testRequestDTO = new BoatRequestDTO(
+                "Nautilus",
+                "Submarine",
+                null,
+                8,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+                );
 
         // Response DTOs - represent API output format
         testResponseDTO = new BoatResponseDTO(
@@ -101,8 +125,24 @@ public class BoatServiceTest {
                 null,
                 null,
                 null,
-                testBoat.getOwner().getName()
+                null,
+                null,
+                null,
+                null,
+                null,
+                testBoat.getOwner().getName(),
+                testBoatOwner.getId()
         );
+
+        // Manual injection of UserRepository on BoatService
+        // The UserRepository is not in the constructor, so we need to inject it via reflection.
+        try {
+            Field userRepositoryField = BoatService.class.getDeclaredField("userRepository");
+            userRepositoryField.setAccessible(true);
+            userRepositoryField.set(boatService, userRepository);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to inject userRepository into BoatService", e);
+        }
     }
 
     /**
@@ -116,21 +156,37 @@ public class BoatServiceTest {
      * </ul>
      */
     @Test
-    void save_WithValidBookingContext_ShouldSuccess(){
+    void save_WithValidBookingContext_ShouldSuccess() {
         // Arrange
-        when(boatMapper.toEntity(testRequestDTO)).thenReturn(testBoat);
-        when(boatRepository.save(testBoat)).thenReturn(testBoat);
-        when(boatMapper.toResponseDTO(testBoat)).thenReturn(testResponseDTO);
+        UserDetails mockUserDetails = mock(UserDetails.class);
+        when(mockUserDetails.getUsername()).thenReturn("teste@teste.com");
+
+        when(userRepository.findByEmail("teste@teste.com")).thenReturn(Optional.of(testBoatOwner));
+
+        testBoat.setOwner(testBoatOwner);
+
+        // Mock do BoatMapper para garantir que o boat tenha owner
+        Boat boatWithOwner = new Boat();
+        boatWithOwner.setId(1L);
+        boatWithOwner.setName("Demeter");
+        boatWithOwner.setType("Long Boat");
+        boatWithOwner.setOwner(testBoatOwner);
+
+        when(boatMapper.toEntity(testRequestDTO)).thenReturn(boatWithOwner);
+        when(boatRepository.save(any(Boat.class))).thenReturn(boatWithOwner);
+        when(boatMapper.toResponseDTO(any(Boat.class))).thenReturn(testResponseDTO);
 
         // Act
-        BoatResponseDTO result = boatService.save(testRequestDTO);
+        BoatResponseDTO result = boatService.save(testRequestDTO, mockUserDetails);
 
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(testBoat.getId());
-        verify(boatRepository).save(testBoat);
-        verify(boatMapper).toResponseDTO(testBoat);
+
+        verify(boatRepository).save(any(Boat.class));
+        verify(boatMapper).toResponseDTO(any(Boat.class));
         verify(boatMapper).toEntity(testRequestDTO);
+        verify(userRepository).findByEmail("teste@teste.com");
     }
 
     /**
@@ -146,13 +202,16 @@ public class BoatServiceTest {
     void findById_ShouldReturnABoatByIdIfItExists(){
         // Arrange
         when(boatRepository.findById(testBoat.getId())).thenReturn(Optional.of(testBoat));
+        when(boatMapper.toResponseDTO(testBoat)).thenReturn(testResponseDTO);
 
         // Act
-        Boat result = boatService.findById(testBoat.getId());
+        BoatResponseDTO result = boatService.findById(testBoat.getId());
 
         // Assert
-        assertThat(result).isEqualTo(testBoat);
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(testBoat.getId());
         verify(boatRepository).findById(testBoat.getId());
+        verify(boatMapper).toResponseDTO(testBoat);
     }
 
     /**
@@ -175,7 +234,7 @@ public class BoatServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> boatService.findById(nonExistingId));
 
-        assertThat(exception.getMessage()).isEqualTo("Boat not found!");
+        assertThat(exception.getMessage()).isEqualTo("Boat not found");
         verify(boatRepository).findById(nonExistingId);
     }
 
@@ -218,23 +277,24 @@ public class BoatServiceTest {
         // Arrange
         Long boatId = 1L;
         when(boatRepository.findById(boatId)).thenReturn(Optional.of(testBoat));
+        when(boatMapper.toResponseDTO(testBoat)).thenReturn(testResponseDTO);
 
         // Act - First find to ensure boat exists
-        Boat beforeDelete = boatService.findById(boatId);
+        BoatResponseDTO beforeDelete = boatService.findById(boatId);
         assertThat(beforeDelete).isNotNull();
+        assertThat(beforeDelete.getId()).isEqualTo(boatId);
 
         // Delete the boat
         boatService.deleteById(boatId);
+        verify(boatRepository).deleteById(boatId);
 
         // Now mock the repository to return empty for findById
         when(boatRepository.findById(boatId)).thenReturn(Optional.empty());
 
-        // Act & Assert - Now findById should throw exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        // Act & Assert - Should Throw an exception when search after delete
+        assertThrows(EntityNotFoundException.class,
                 () -> boatService.findById(boatId));
 
-        assertThat(exception.getMessage()).isEqualTo("Boat not found!");
-        verify(boatRepository).deleteById(boatId);
     }
 
     /**
@@ -308,8 +368,42 @@ public class BoatServiceTest {
         // Arrange
         List<Boat> mockBoats = Arrays.asList(testBoat, testBoat2);
 
-        BoatResponseDTO dto1 = new BoatResponseDTO(1L, "Demeter", null, "Long Boat", 80, null, null, null, null, testBoatOwner.getName());
-        BoatResponseDTO dto2 = new BoatResponseDTO(2L, "Nautilus", null, "Submarine", 12, null, null, null, null, testBoatOwner.getName());
+        BoatResponseDTO dto1 = new BoatResponseDTO(
+                1L,
+                "Demeter",
+                null,
+                "Long Boat",
+                80,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                testBoatOwner.getName(),
+                testBoatOwner.getId());
+
+        BoatResponseDTO dto2 = new BoatResponseDTO(
+                2L,
+                "Nautilus",
+                null,
+                "Submarine",
+                12,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                testBoatOwner.getName(),
+                testBoatOwner.getId());
+
         List<BoatResponseDTO> expectedDTOs = Arrays.asList(dto1, dto2);
 
         when(boatRepository.findAll()).thenReturn(mockBoats);

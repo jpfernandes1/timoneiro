@@ -79,7 +79,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should validate successfully with all conditions met")
         void validateBookingCreation_WithAllConditionsMet_ShouldPassValidation() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(startDate), eq(endDate)))
@@ -96,8 +96,8 @@ class BookingValidationServiceTest {
         @DisplayName("Should validate when multiple availability periods exist")
         void validateBookingCreation_WithMultipleAvailabilityPeriods_ShouldPassValidation() {
             // Arrange
-            BoatAvailability availability1 = new BoatAvailability(testBoat, startDate.minusHours(5), startDate.minusHours(1));
-            BoatAvailability availability2 = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(2));
+            BoatAvailability availability1 = new BoatAvailability(testBoat, startDate.minusHours(5), startDate.minusHours(1), new BigDecimal("100.00"));
+            BoatAvailability availability2 = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(2), new BigDecimal("100.00"));
             List<BoatAvailability> availabilities = Arrays.asList(availability1, availability2);
 
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
@@ -113,7 +113,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should validate when booking exactly matches availability period")
         void validateBookingCreation_WithExactAvailabilityMatch_ShouldPassValidation() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate, endDate);
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate, endDate, new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(startDate), eq(endDate)))
@@ -127,7 +127,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should validate when no existing bookings exist")
         void validateBookingCreation_WithNoExistingBookings_ShouldPassValidation() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(startDate), eq(endDate)))
@@ -164,7 +164,7 @@ class BookingValidationServiceTest {
             LocalDateTime exactEndDate = exactStartDate.plusHours(4); // Exactly 4 hours
             Booking exactBooking = new Booking(testUser, testBoat, exactStartDate, exactEndDate, new BigDecimal("400.00"));
 
-            BoatAvailability availability = new BoatAvailability(testBoat, exactStartDate.minusHours(1), exactEndDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, exactStartDate.minusHours(1), exactEndDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(exactStartDate), eq(exactEndDate)))
                     .thenReturn(Collections.singletonList(availability));
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(exactStartDate), eq(exactEndDate)))
@@ -199,7 +199,8 @@ class BookingValidationServiceTest {
             // Availability that starts after booking start or ends before booking end
             BoatAvailability availability = new BoatAvailability(testBoat,
                     startDate.plusHours(1),  // Availability starts 1 hour after booking
-                    endDate.minusHours(1));   // Availability ends 1 hour before booking
+                    endDate.minusHours(1),
+                    new BigDecimal("100.00"));   // Availability ends 1 hour before booking
 
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
@@ -216,7 +217,8 @@ class BookingValidationServiceTest {
             // Arrange
             BoatAvailability availability = new BoatAvailability(testBoat,
                     startDate.plusHours(1),  // Availability starts 1 hour after booking
-                    endDate.plusHours(2));
+                    endDate.plusHours(2),
+                    new BigDecimal("100.00"));
 
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
@@ -233,7 +235,8 @@ class BookingValidationServiceTest {
             // Arrange
             BoatAvailability availability = new BoatAvailability(testBoat,
                     startDate.minusHours(2),
-                    endDate.minusHours(1));  // Availability ends 1 hour before booking
+                    endDate.minusHours(1),
+                    new BigDecimal("100.00"));  // Availability ends 1 hour before booking
 
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
@@ -253,7 +256,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should throw BookingConflictException when conflicting booking exists")
         void validateBookingCreation_WithConflictingBooking_ShouldThrowBookingConflictException() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1),new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
@@ -276,7 +279,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should throw exception when new booking completely overlaps existing booking")
         void validateBookingCreation_WhenCompletelyOverlapsExistingBooking_ShouldThrowBookingConflictException() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
@@ -299,7 +302,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should throw exception when new booking starts during existing booking")
         void validateBookingCreation_WhenStartsDuringExistingBooking_ShouldThrowBookingConflictException() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
@@ -322,7 +325,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should throw exception when new booking ends during existing booking")
         void validateBookingCreation_WhenEndsDuringExistingBooking_ShouldThrowBookingConflictException() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
@@ -345,7 +348,7 @@ class BookingValidationServiceTest {
         @DisplayName("Should handle multiple conflicting bookings")
         void validateBookingCreation_WithMultipleConflictingBookings_ShouldThrowBookingConflictException() {
             // Arrange
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
@@ -373,7 +376,7 @@ class BookingValidationServiceTest {
             // Arrange
             LocalDateTime availabilityStart = startDate;
             LocalDateTime availabilityEnd = endDate;
-            BoatAvailability availability = new BoatAvailability(testBoat, availabilityStart, availabilityEnd);
+            BoatAvailability availability = new BoatAvailability(testBoat, availabilityStart, availabilityEnd, new BigDecimal("100.00"));
 
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
@@ -390,11 +393,11 @@ class BookingValidationServiceTest {
             // Arrange
             // This test relies on the repository method excluding CANCELLED bookings
             // The repository method uses: "b.status != 'CANCELLED'"
-            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.singletonList(availability));
 
-            // Repository should return empty list because cancelled bookings are excluded
+            // Repository should return empty list because canceled bookings are excluded
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(startDate), eq(endDate)))
                     .thenReturn(Collections.emptyList());
 
@@ -410,7 +413,7 @@ class BookingValidationServiceTest {
             LocalDateTime longEndDate = longStartDate.plusDays(7); // 7 days = 168 hours
             Booking longBooking = new Booking(testUser, testBoat, longStartDate, longEndDate, new BigDecimal("5000.00"));
 
-            BoatAvailability availability = new BoatAvailability(testBoat, longStartDate.minusHours(1), longEndDate.plusHours(1));
+            BoatAvailability availability = new BoatAvailability(testBoat, longStartDate.minusHours(1), longEndDate.plusHours(1), new BigDecimal("100.00"));
             when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(longStartDate), eq(longEndDate)))
                     .thenReturn(Collections.singletonList(availability));
             when(bookingRepository.findConflictingBookings(eq(testBoat), eq(longStartDate), eq(longEndDate)))
@@ -437,7 +440,7 @@ class BookingValidationServiceTest {
     @DisplayName("Should throw exception when booking repository returns null")
     void validateBookingCreation_WhenBookingRepositoryReturnsNull_ShouldThrowException() {
         // Arrange
-        BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1));
+        BoatAvailability availability = new BoatAvailability(testBoat, startDate.minusHours(1), endDate.plusHours(1), new BigDecimal("100.00"));
         when(boatAvailabilityRepository.findByBoatAndDateRange(eq(testBoat), eq(startDate), eq(endDate)))
                 .thenReturn(Collections.singletonList(availability));
         when(bookingRepository.findConflictingBookings(eq(testBoat), eq(startDate), eq(endDate)))

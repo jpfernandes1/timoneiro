@@ -1,4 +1,4 @@
-package com.jompastech.backend.model.dto;
+package com.jompastech.backend.model.dto.booking;
 
 import com.jompastech.backend.model.dto.basicDTO.BoatBasicDTO;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;

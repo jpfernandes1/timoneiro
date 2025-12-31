@@ -1,8 +1,11 @@
 package com.jompastech.backend.Unit.service;
 
+import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
+import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.repository.BoatAvailabilityRepository;
+import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.service.BoatAvailabilityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +49,9 @@ class BoatAvailabilityServiceTest {
     @Mock
     private BoatAvailabilityRepository boatAvailabilityRepository;
 
+    @Mock
+    private BoatRepository boatRepository;
+
     @InjectMocks
     private BoatAvailabilityService boatAvailabilityService;
 
@@ -53,6 +60,7 @@ class BoatAvailabilityServiceTest {
     private BoatAvailability testAvailability2;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private BoatAvailabilityRequestDTO requestDTO;
 
     /**
      * Initializes comprehensive test data before each test execution.
@@ -71,14 +79,23 @@ class BoatAvailabilityServiceTest {
         startDate = LocalDateTime.of(2024, 1, 15, 10, 0);
         endDate = LocalDateTime.of(2024, 1, 15, 18, 0);
 
+        // Request DTO for creating/updating availability
+        requestDTO = new BoatAvailabilityRequestDTO(
+                startDate,
+                endDate,
+                new BigDecimal("100.00")
+        );
+
         // BoatAvailability entities - represent concrete time slots when boats are available
-        testAvailability = new BoatAvailability(testBoat, startDate, endDate);
+        testAvailability = new BoatAvailability(testBoat, startDate, endDate, new BigDecimal("100.00"));
         testAvailability.setId(1L);
 
         // Second availability slot for testing multiple slots scenarios
-        testAvailability2 = new BoatAvailability(testBoat,
+        testAvailability2 = new BoatAvailability(
+                testBoat,
                 startDate.plusDays(1),
-                endDate.plusDays(1));
+                endDate.plusDays(1),
+                new BigDecimal("120.00"));
         testAvailability2.setId(2L);
     }
 
@@ -87,56 +104,88 @@ class BoatAvailabilityServiceTest {
      *
      * <p>Verifies that:
      * <ul>
-     *   <li>Availability entity is properly passed to repository for persistence</li>
-     *   <li>Saved entity is returned with all data intact including generated ID</li>
+     *   <li>Boat is retrieved from repository before creating availability</li>
+     *   <li>Availability entity is properly created and saved</li>
+     *   <li>Response DTO is returned with all data intact including generated ID</li>
      *   <li>Repository save method is called exactly once with the correct entity</li>
-     *   <li>All entity properties (boat, startDate, endDate) are preserved</li>
+     *   <li>All DTO properties (startDate, endDate, pricePerHour) are preserved</li>
      * </ul>
      */
     @Test
-    @DisplayName("CREATE - Should successfully create availability")
-    void createAvailability_WhenValidAvailability_ShouldSaveAndReturn() {
+    @DisplayName("CREATE - Should successfully create availability with DTO")
+    void createAvailability_WhenValidData_ShouldSaveAndReturnDTO() {
         // Arrange
-        when(boatAvailabilityRepository.save(any(BoatAvailability.class)))
-                .thenReturn(testAvailability);
+        when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
+        when(boatAvailabilityRepository.save(any(BoatAvailability.class))).thenReturn(testAvailability);
 
         // Act
-        BoatAvailability result = boatAvailabilityService.createAvailability(testAvailability);
+        BoatAvailabilityResponseDTO result = boatAvailabilityService.createAvailability(1L, requestDTO);
 
         // Assert
         assertNotNull(result);
         assertEquals(1L, result.getId());
-        assertEquals(testBoat, result.getBoat());
+        assertEquals(1L, result.getBoatId());
         assertEquals(startDate, result.getStartDate());
         assertEquals(endDate, result.getEndDate());
+        assertEquals(new BigDecimal("100.00"), result.getPricePerHour());
 
-        verify(boatAvailabilityRepository, times(1)).save(testAvailability);
+        verify(boatRepository, times(1)).findById(1L);
+        verify(boatAvailabilityRepository, times(1)).save(any(BoatAvailability.class));
     }
 
     /**
-     * Tests successful retrieval of availability slot by existing ID.
+     * Tests exception handling when creating availability for non-existent boat.
      *
      * <p>Verifies that:
      * <ul>
-     *   <li>Service returns the correct availability entity when ID exists in repository</li>
-     *   <li>Repository findById method is properly called with the correct ID</li>
-     *   <li>Returned entity contains all expected data including relationships</li>
-     *   <li>Service correctly handles Optional wrapping from repository</li>
+     *   <li>Service throws RuntimeException when boat ID is not found</li>
+     *   <li>Exception message includes the non-existent boat ID for debugging</li>
+     *   <li>Repository save method is never called when boat doesn't exist</li>
      * </ul>
      */
     @Test
-    @DisplayName("READ - findById should return availability when exists")
-    void findById_WhenAvailabilityExists_ShouldReturnAvailability() {
+    @DisplayName("CREATE - Should throw exception when boat not found")
+    void createAvailability_WhenBoatNotFound_ShouldThrowException() {
         // Arrange
-        when(boatAvailabilityRepository.findById(1L))
-                .thenReturn(Optional.of(testAvailability));
+        when(boatRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            boatAvailabilityService.createAvailability(999L, requestDTO);
+        });
+
+        assertEquals("Boat not found with id: 999", exception.getMessage());
+        verify(boatRepository, times(1)).findById(999L);
+        verify(boatAvailabilityRepository, never()).save(any());
+    }
+
+    /**
+     * Tests successful retrieval of availability slot by existing ID as DTO.
+     *
+     * <p>Verifies that:
+     * <ul>
+     *   <li>Service returns the correct availability DTO when ID exists in repository</li>
+     *   <li>Repository findById method is properly called with the correct ID</li>
+     *   <li>Returned DTO contains all expected data including relationships</li>
+     * </ul>
+     */
+    @Test
+    @DisplayName("READ - findById should return availability DTO when exists")
+    void findById_WhenAvailabilityExists_ShouldReturnDTO() {
+        // Arrange
+        when(boatAvailabilityRepository.findById(1L)).thenReturn(Optional.of(testAvailability));
 
         // Act
-        BoatAvailability result = boatAvailabilityService.findById(1L);
+        BoatAvailabilityResponseDTO result = boatAvailabilityService.findById(1L);
 
         // Assert
         assertNotNull(result);
         assertEquals(1L, result.getId());
+        assertEquals(1L, result.getBoatId());
+        assertEquals(startDate, result.getStartDate());
+        assertEquals(endDate, result.getEndDate());
+        assertEquals(new BigDecimal("100.00"), result.getPricePerHour());
+
         verify(boatAvailabilityRepository, times(1)).findById(1L);
     }
 
@@ -147,16 +196,13 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Service throws RuntimeException with descriptive error message when ID not found</li>
      *   <li>Exception message includes the non-existent ID for debugging purposes</li>
-     *   <li>Repository findById method is properly called before exception is thrown</li>
-     *   <li>Exception type is RuntimeException as defined in service contract</li>
      * </ul>
      */
     @Test
     @DisplayName("READ - findById should throw RuntimeException when not found")
     void findById_WhenAvailabilityNotFound_ShouldThrowRuntimeException() {
         // Arrange
-        when(boatAvailabilityRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
+        when(boatAvailabilityRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -168,30 +214,41 @@ class BoatAvailabilityServiceTest {
     }
 
     /**
-     * Tests retrieval of all availability slots for a specific boat ID.
+     * Tests retrieval of all availability slots for a specific boat ID as DTOs.
      *
      * <p>Verifies that:
      * <ul>
-     *   <li>Service returns complete list of availability slots for the given boat ID</li>
+     *   <li>Service returns complete list of availability DTOs for the given boat ID</li>
      *   <li>Repository findByBoatId method is called with correct boat ID parameter</li>
-     *   <li>Returned list contains all expected availability entities in correct order</li>
-     *   <li>List size matches the number of availability slots for that boat</li>
+     *   <li>Returned list contains all expected DTOs with correct data</li>
      * </ul>
      */
     @Test
-    @DisplayName("READ - findAvailabilityByBoatId should return list of availabilities")
-    void findAvailabilityByBoatId_ShouldReturnList() {
+    @DisplayName("READ - findAvailabilityByBoatId should return list of DTOs")
+    void findAvailabilityByBoatId_ShouldReturnListOfDTOs() {
         // Arrange
-        List<BoatAvailability> expectedList = Arrays.asList(testAvailability, testAvailability2);
-        when(boatAvailabilityRepository.findByBoatId(1L))
-                .thenReturn(expectedList);
+        List<BoatAvailability> availabilityList = Arrays.asList(testAvailability, testAvailability2);
+        when(boatAvailabilityRepository.findByBoatId(1L)).thenReturn(availabilityList);
 
         // Act
-        List<BoatAvailability> result = boatAvailabilityService.findAvailabilityByBoatId(1L);
+        List<BoatAvailabilityResponseDTO> result = boatAvailabilityService.findAvailabilityByBoatId(1L);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
+
+        // Verify first availability
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(1L, result.get(0).getBoatId());
+        assertEquals(startDate, result.get(0).getStartDate());
+        assertEquals(endDate, result.get(0).getEndDate());
+
+        // Verify second availability
+        assertEquals(2L, result.get(1).getId());
+        assertEquals(1L, result.get(1).getBoatId());
+        assertEquals(startDate.plusDays(1), result.get(1).getStartDate());
+        assertEquals(endDate.plusDays(1), result.get(1).getEndDate());
+
         verify(boatAvailabilityRepository, times(1)).findByBoatId(1L);
     }
 
@@ -202,8 +259,6 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Service returns only slots that fall completely within the specified date range</li>
      *   <li>Repository method with date range parameters is called with correct values</li>
-     *   <li>Returned list is filtered to contain only matching slots</li>
-     *   <li>Method handles both start and end date boundaries correctly</li>
      * </ul>
      */
     @Test
@@ -234,8 +289,6 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Service returns true when boat is completely available during requested period</li>
      *   <li>Repository exists method is called with correct parameters and date logic</li>
-     *   <li>Negative logic (not exists) is properly applied to determine availability</li>
-     *   <li>Date comparison logic correctly identifies non-overlapping periods</li>
      * </ul>
      */
     @Test
@@ -246,8 +299,7 @@ class BoatAvailabilityServiceTest {
         LocalDateTime checkEnd = LocalDateTime.of(2024, 1, 16, 18, 0);
 
         when(boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                1L, checkEnd, checkStart))
-                .thenReturn(false);
+                1L, checkEnd, checkStart)).thenReturn(false);
 
         // Act
         boolean isAvailable = boatAvailabilityService.isBoatAvailable(1L, checkStart, checkEnd);
@@ -265,8 +317,6 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Service returns false when boat is already booked during requested period</li>
      *   <li>Repository exists method correctly identifies overlapping time periods</li>
-     *   <li>Negative logic (not exists) properly converts repository result to availability status</li>
-     *   <li>Date comparison logic correctly identifies overlapping periods</li>
      * </ul>
      */
     @Test
@@ -274,8 +324,7 @@ class BoatAvailabilityServiceTest {
     void isBoatAvailable_WhenOverlapExists_ShouldReturnFalse() {
         // Arrange
         when(boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                1L, endDate, startDate))
-                .thenReturn(true);
+                1L, endDate, startDate)).thenReturn(true);
 
         // Act
         boolean isAvailable = boatAvailabilityService.isBoatAvailable(1L, startDate, endDate);
@@ -287,39 +336,47 @@ class BoatAvailabilityServiceTest {
     }
 
     /**
-     * Tests successful update of availability slot dates with valid new time range.
+     * Tests successful update of availability slot with valid DTO data.
      *
      * <p>Verifies that:
      * <ul>
      *   <li>Existing availability is first retrieved by ID to ensure existence</li>
-     *   <li>Date fields (startDate and endDate) are properly updated with new values</li>
+     *   <li>All fields (startDate, endDate, pricePerHour) are properly updated</li>
      *   <li>Updated entity is persisted back to repository</li>
-     *   <li>Both findById (for retrieval) and save (for persistence) methods are called</li>
-     *   <li>Updated entity with new dates is returned to caller</li>
+     *   <li>Updated DTO with new values is returned to caller</li>
      * </ul>
      */
     @Test
-    @DisplayName("UPDATE - updateAvailability should update dates and save")
-    void updateAvailability_ShouldUpdateAndSave() {
+    @DisplayName("UPDATE - updateAvailability should update with DTO and save")
+    void updateAvailability_ShouldUpdateWithDTOAndSave() {
         // Arrange
         LocalDateTime newStart = startDate.plusHours(2);
         LocalDateTime newEnd = endDate.plusHours(2);
+        BigDecimal newPrice = new BigDecimal("150.00");
 
-        when(boatAvailabilityRepository.findById(1L))
-                .thenReturn(Optional.of(testAvailability));
-        when(boatAvailabilityRepository.save(any(BoatAvailability.class)))
-                .thenReturn(testAvailability);
+        BoatAvailabilityRequestDTO updateDTO = new BoatAvailabilityRequestDTO(newStart, newEnd, newPrice);
+
+        when(boatAvailabilityRepository.findById(1L)).thenReturn(Optional.of(testAvailability));
+        when(boatAvailabilityRepository.save(any(BoatAvailability.class))).thenAnswer(invocation -> {
+            BoatAvailability saved = invocation.getArgument(0);
+            saved.setStartDate(newStart);
+            saved.setEndDate(newEnd);
+            saved.setPricePerHour(newPrice);
+            return saved;
+        });
 
         // Act
-        BoatAvailability result = boatAvailabilityService.updateAvailability(1L, newStart, newEnd);
+        BoatAvailabilityResponseDTO result = boatAvailabilityService.updateAvailability(1L, updateDTO);
 
         // Assert
         assertNotNull(result);
+        assertEquals(1L, result.getId());
         assertEquals(newStart, result.getStartDate());
         assertEquals(newEnd, result.getEndDate());
+        assertEquals(newPrice, result.getPricePerHour());
 
         verify(boatAvailabilityRepository, times(1)).findById(1L);
-        verify(boatAvailabilityRepository, times(1)).save(testAvailability);
+        verify(boatAvailabilityRepository, times(1)).save(any(BoatAvailability.class));
     }
 
     /**
@@ -329,16 +386,19 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Repository deleteById method is called exactly once with correct ID</li>
      *   <li>Method executes without throwing exceptions for valid deletion</li>
-     *   <li>Service properly delegates deletion operation to repository layer</li>
      * </ul>
      */
     @Test
     @DisplayName("DELETE - deleteAvailability should delete by id")
     void deleteAvailability_ShouldCallDeleteById() {
+        // Arrange
+        when(boatAvailabilityRepository.existsById(1L)).thenReturn(true);
+
         // Act
         boatAvailabilityService.deleteAvailability(1L);
 
         // Assert
+        verify(boatAvailabilityRepository, times(1)).existsById(1L);
         verify(boatAvailabilityRepository, times(1)).deleteById(1L);
     }
 
@@ -349,8 +409,6 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>All availability slots for the boat are first retrieved to determine what to delete</li>
      *   <li>Repository deleteAll method is called with the complete list of slots to delete</li>
-     *   <li>Both findByBoatId (for retrieval) and deleteAll (for deletion) methods are called</li>
-     *   <li>Method handles batch deletion efficiently for multiple slots</li>
      * </ul>
      */
     @Test
@@ -358,8 +416,7 @@ class BoatAvailabilityServiceTest {
     void deleteByBoatId_ShouldDeleteAllForBoat() {
         // Arrange
         List<BoatAvailability> availabilities = Arrays.asList(testAvailability, testAvailability2);
-        when(boatAvailabilityRepository.findByBoatId(1L))
-                .thenReturn(availabilities);
+        when(boatAvailabilityRepository.findByBoatId(1L)).thenReturn(availabilities);
 
         // Act
         boatAvailabilityService.deleteByBoatId(1L);
@@ -376,23 +433,17 @@ class BoatAvailabilityServiceTest {
      * <ul>
      *   <li>Service throws RuntimeException with descriptive error message when ID not found</li>
      *   <li>Repository save method is never called when entity doesn't exist</li>
-     *   <li>Repository findById method is called first to verify existence before any update</li>
-     *   <li>Exception prevents partial or invalid updates to non-existent records</li>
      * </ul>
      */
     @Test
     @DisplayName("Edge Case - updateAvailability should throw exception when not found")
     void updateAvailability_WhenNotFound_ShouldThrowException() {
         // Arrange
-        LocalDateTime newStart = startDate.plusHours(2);
-        LocalDateTime newEnd = endDate.plusHours(2);
-
-        when(boatAvailabilityRepository.findById(999L))
-                .thenReturn(Optional.empty());
+        when(boatAvailabilityRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            boatAvailabilityService.updateAvailability(999L, newStart, newEnd);
+            boatAvailabilityService.updateAvailability(999L, requestDTO);
         });
 
         assertEquals("Availability not found with id: 999", exception.getMessage());
@@ -401,14 +452,37 @@ class BoatAvailabilityServiceTest {
     }
 
     /**
+     * Tests exception handling when attempting to delete non-existent availability.
+     *
+     * <p>Verifies that:
+     * <ul>
+     *   <li>Service throws RuntimeException with descriptive error message when ID not found</li>
+     *   <li>Repository deleteById method is never called when entity doesn't exist</li>
+     * </ul>
+     */
+    @Test
+    @DisplayName("Edge Case - deleteAvailability should throw exception when not found")
+    void deleteAvailability_WhenNotFound_ShouldThrowException() {
+        // Arrange
+        when(boatAvailabilityRepository.existsById(999L)).thenReturn(false);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            boatAvailabilityService.deleteAvailability(999L);
+        });
+
+        assertEquals("Availability not found with id: 999", exception.getMessage());
+        verify(boatAvailabilityRepository, times(1)).existsById(999L);
+        verify(boatAvailabilityRepository, never()).deleteById(anyLong());
+    }
+
+    /**
      * Tests behavior when no available slots are found within specified date range.
      *
      * <p>Verifies that:
      * <ul>
      *   <li>Service returns empty list when no slots match the search criteria</li>
-     *   <li>Repository method is called with correct parameters even for empty results</li>
      *   <li>Empty list is properly returned (not null) and can be handled by callers</li>
-     *   <li>Method correctly handles "no results" scenarios without errors</li>
      * </ul>
      */
     @Test
@@ -429,5 +503,29 @@ class BoatAvailabilityServiceTest {
         assertTrue(result.isEmpty());
         verify(boatAvailabilityRepository, times(1))
                 .findByBoatIdAndStartDateAfterAndEndDateBefore(1L, queryStart, queryEnd);
+    }
+
+    /**
+     * Tests behavior when no availability slots exist for a boat.
+     *
+     * <p>Verifies that:
+     * <ul>
+     *   <li>Service returns empty list when boat has no availability slots</li>
+     *   <li>Empty list is properly returned (not null) and can be handled by callers</li>
+     * </ul>
+     */
+    @Test
+    @DisplayName("Edge Case - findAvailabilityByBoatId with empty result")
+    void findAvailabilityByBoatId_WhenNoSlots_ShouldReturnEmptyList() {
+        // Arrange
+        when(boatAvailabilityRepository.findByBoatId(1L)).thenReturn(Arrays.asList());
+
+        // Act
+        List<BoatAvailabilityResponseDTO> result = boatAvailabilityService.findAvailabilityByBoatId(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(boatAvailabilityRepository, times(1)).findByBoatId(1L);
     }
 }

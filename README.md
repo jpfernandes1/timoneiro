@@ -3,18 +3,10 @@
 ## 🎯 **Stack Escolhida**
 - **Java + Spring Boot** - API REST
 - **PostgreSQL** - Dados relacionais e metadados
-- **CloudFlare R2** - Armazenamento de imagens e vídeos
-- **Railway/Render** - Deploy (free tier)
+- **Cloudinary** - Armazenamento de imagens e vídeos
+- **Northflank/Vercel/Neon** - Deploy (free tier)
 
 ## 🔄 **ANÁLISE DE TRADE-OFFS**
-
-### **🏗️ Arquitetura "PostgreSQL + R2"**
-| **Vantagens** | **Desvantagens** |
-|---------------|------------------|
-| Separação de concerns clara | Complexidade aumentada |
-| Performance otimizada | Mais pontos de falha |
-| Custos previsíveis | Consistência distribuída complexa |
-| Escalabilidade independente | Backup precisa ser coordenado |
 
 ### **🗄️ PostgreSQL**
 | **Prós** | **Contras** |
@@ -25,16 +17,6 @@
 | JSONB para flexibilidade | Deployment gratuito tem limites |
 
 Escala verticalmente bem, mas precisa de replicação para alta disponibilidade.
-
-### **☁️ CloudFlare R2**
-| **Prós** | **Contras** |
-|----------|-------------|
-| Zero custo de egress | Vendor lock-in leve |
-| 10GB free generoso | Menos maduro que AWS S3 |
-| Integração com CDN nativa | API menos documentada |
-| Rate limiting básico incluído | Menos opções de segurança avançada |
-
-Em produção usaria AWS S3 + CloudFront + WAF para proteção enterprise.
 
 ### **⚙️ Spring Boot**
 | **Prós** | **Contras** |
@@ -49,14 +31,13 @@ Em produção usaria AWS S3 + CloudFront + WAF para proteção enterprise.
 ## 🚨 **PONTOS DE ATENÇÃO**
 
 ### **Riscos Técnicos:**
-- Consistência entre PostgreSQL e R2 - Deletar embarcação deve deletar imagens
+- Consistência entre PostgreSQL e Cloudinary - Deletar embarcação deve deletar imagens
 - Rate limiting necessário - Proteger contra uploads maliciosos
-- Backup coordenado - PostgreSQL dump + R2 bucket sync
 - Monitoramento distribuído
 
 ### **Riscos de Custo:**
 - PostgreSQL gratuito tem limites (10GB)
-- R2 free tier (10GB storage)
+- Cloudinary free tier (10GB storage)
 - Deploy platform pode cobrar por build minutes
 
 ## 🛡️ **MITIGAÇÕES IMPLEMENTADAS**

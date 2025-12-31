@@ -5,10 +5,15 @@ import com.jompastech.backend.model.dto.UserResponseDTO;
 import com.jompastech.backend.security.dto.AuthResponseDTO;
 import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -26,6 +31,22 @@ public class UserController {
 
     // PUBLIC REGISTER - everyone can access
     @PostMapping("/register")
+    @Operation(
+            summary = "Register a new user",
+            description = "Public endpoint for user registration. Returns authentication tokens.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "User successfully created",
+                            content = @Content(schema = @Schema(implementation = AuthResponseDTO.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid input data",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                    )
+            }
+    )
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody UserRequestDTO dto) {
         AuthResponseDTO response = userService.register(dto);
         return ResponseEntity.created(URI.create("/api/users/" + response.getUserId()))
