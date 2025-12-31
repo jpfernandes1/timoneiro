@@ -2,22 +2,22 @@ services:
   postgres:
     image: 'postgres:latest'
     environment:
-      - 'POSTGRES_DB=boat_rental'  # Use o nome do seu banco
-      - 'POSTGRES_PASSWORD=admin'   # Sua senha do PostgreSQL
+      - 'POSTGRES_DB=boat_rental'
+      - 'POSTGRES_PASSWORD=admin'
       - 'POSTGRES_USER=postgres'
     ports:
-      - '5432:5432'  # Expor na porta 5432 para acesso local
+      - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persistir dados
+      - postgres_data:/var/lib/postgresql/data
 
   app:
-    build: .  # ou image: sua-imagem
+    build: .
     environment:
-      - SPRING_PROFILES_ACTIVE=docker  # ⬅️ CRÍTICO: ativa o perfil docker
-      - DB_URL=jdbc:postgresql://postgres:5432/boat_rental  # ⬅️ URL para dentro do Docker
+      - SPRING_PROFILES_ACTIVE=docker  # Activates Docker Profile
+      - DB_URL=jdbc:postgresql://postgres:5432/boat_rental  # URL inside Docker
       - DB_USERNAME=postgres
       - DB_PASSWORD=admin
-      # Credenciais do Cloudinary - o Docker Compose vai buscar do .env do HOST
+      # Cloudinary credentials - Docker Compose retrieves them from the HOST's .env file.
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}

@@ -25,7 +25,7 @@ public class CloudinaryConfig {
         System.out.println("API Secret: " + (apiSecret != null && !apiSecret.isEmpty() ? "***CONFIGURADA***" : "NÃO CONFIGURADA"));
         System.out.println("Secure: " + secure);
 
-        // Log também as variáveis diretamente do sistema
+        // Log the variables directly from the system as well.
         System.out.println("CLOUDINARY_CLOUD_NAME do sistema: " + System.getenv("CLOUDINARY_CLOUD_NAME"));
     }
 }

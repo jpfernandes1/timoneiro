@@ -1,77 +1,10 @@
 # ==============================
-# Main Configuration
+# MAIN CONFIG - Profile Selector
 # ==============================
 spring:
-  application:
-    name: timoneiro
-
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   config:
-    import: classpath:.env.properties
-
-  # DataSource Configuration
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-      format_sql: true
-
-  flyway:
-    enabled: true
-
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 10MB
-      max-request-size: 100MB
-
-# Configurações do Cloudinary
-cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
-  secure: true
-
-# Logging Configuration
-logging:
-  level:
-    com.jompastech.backend: DEBUG
-    org.springframework.web: DEBUG
-    org.springdoc: DEBUG  # DEBUG para SpringDoc
-  file:
-    name: logs/application.log
-
-# Configuração SIMPLIFICADA do SpringDoc
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-
-
-# App-specific configurations
-app:
-  payment:
-    pagseguro:
-      sandbox:
-        url: "https://sandbox.pagseguro.uol.com.br/v2/transactions"
-        token: ${PAGSEGURO_SANDBOX_TOKEN:dev_token_${random.value}}
-        timeout-ms: 10000
-      production:
-        enabled: false
-        url: "https://ws.pagseguro.uol.com.br/v2/transactions"
-        token: ${PAGSEGURO_PRODUCTION_TOKEN:}
-    policies:
-      max-retries: 3
-      retry-delay-ms: 1000
-
-# Server Configuration
-server:
-  port: 8080
-  servlet:
-    context-path: /
+    import:
+      - optional:classpath:.env.properties
+      - optional:classpath:application-${spring.profiles.active}.yml

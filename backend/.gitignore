@@ -39,5 +39,6 @@ src/main/resources/application-local.yml
 .env
 *.env.local
 .env.*.local
+.env.properties
 
 .log
