@@ -1,15 +1,19 @@
+// BoatAvailabilityController.java - Versão atualizada
 package com.jompastech.backend.controller;
 
-import com.jompastech.backend.model.entity.Boat;
-import com.jompastech.backend.model.entity.BoatAvailability;
+import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
+import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.service.BoatAvailabilityService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/boats/{boatId}/availability")
 @RequiredArgsConstructor
@@ -18,36 +22,83 @@ public class BoatAvailabilityController {
     private final BoatAvailabilityService availabilityService;
 
     @PostMapping
-    public ResponseEntity<BoatAvailability> createAvailability(
-            @PathVariable Long boatID,
-            @RequestBody BoatAvailability availability){
-        availability.getBoat().setId(boatID); // Associates boatId
-        BoatAvailability saved = availabilityService.createAvailability(availability);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<BoatAvailabilityResponseDTO> createAvailability(
+            @PathVariable Long boatId,
+            @RequestBody BoatAvailabilityRequestDTO requestDTO) {
+
+        log.info("POST /api/boats/{}/availability called", boatId);
+
+        try {
+            var responseDTO = availabilityService.createAvailability(boatId, requestDTO);
+            return ResponseEntity.ok(responseDTO);
+        } catch (RuntimeException e) {
+            log.error("Failed to create availability for boat ID {}: {}", boatId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<BoatAvailability>> getBoatAvailabilities(@PathVariable Long boatId){
-        return ResponseEntity.ok(availabilityService.findAvailabilityByBoatId(boatId));
+    public ResponseEntity<List<BoatAvailabilityResponseDTO>> getBoatAvailabilities(@PathVariable Long boatId) {
+        log.info("GET /api/boats/{}/availability called", boatId);
+
+        try {
+            var availabilities = availabilityService.findAvailabilityByBoatId(boatId);
+            return ResponseEntity.ok(availabilities);
+        } catch (Exception e) {
+            log.error("Failed to get availabilities for boat ID {}: {}", boatId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BoatAvailability> getAvailability(@PathVariable Long id){
-        return ResponseEntity.ok(availabilityService.findById(id));
+    public ResponseEntity<BoatAvailabilityResponseDTO> getAvailability(@PathVariable Long id) {
+        log.info("GET /api/boats/{}/availability/{} called", "{boatId}", id);
+
+        try {
+            var availability = availabilityService.findById(id);
+            return ResponseEntity.ok(availability);
+        } catch (RuntimeException e) {
+            log.error("Availability not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            log.error("Failed to get availability with ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BoatAvailability> updateAvailability(
+    public ResponseEntity<BoatAvailabilityResponseDTO> updateAvailability(
             @PathVariable Long id,
-            @RequestParam LocalDateTime startDate,
-            @RequestParam LocalDateTime endDate) {
-        return ResponseEntity.ok(availabilityService.updateAvailability(id, startDate, endDate));
+            @RequestBody BoatAvailabilityRequestDTO requestDTO) {
+
+        log.info("PUT /api/boats/{}/availability/{} called", "{boatId}", id);
+
+        try {
+            var updatedAvailability = availabilityService.updateAvailability(id, requestDTO);
+            return ResponseEntity.ok(updatedAvailability);
+        } catch (RuntimeException e) {
+            log.error("Availability not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            log.error("Failed to update availability with ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAvailability(@PathVariable Long id){
-        availabilityService.deleteAvailability(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteAvailability(@PathVariable Long id) {
+        log.info("DELETE /api/boats/{}/availability/{} called", "{boatId}", id);
+
+        try {
+            availabilityService.deleteAvailability(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            log.error("Availability not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("Failed to delete availability with ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/check-availability")
@@ -55,8 +106,16 @@ public class BoatAvailabilityController {
             @PathVariable Long boatId,
             @RequestParam LocalDateTime startDate,
             @RequestParam LocalDateTime endDate) {
-        return ResponseEntity.ok(availabilityService.isBoatAvailable(boatId, startDate, endDate));
-    }
 
-    }
+        log.info("GET /api/boats/{}/availability/check-availability?startDate={}&endDate={} called",
+                boatId, startDate, endDate);
 
+        try {
+            var isAvailable = availabilityService.isBoatAvailable(boatId, startDate, endDate);
+            return ResponseEntity.ok(isAvailable);
+        } catch (Exception e) {
+            log.error("Failed to check availability for boat ID {}: {}", boatId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+}

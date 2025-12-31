@@ -109,12 +109,10 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.PENDING);
         payment.setPaymentDate(LocalDateTime.now());
 
-        // Set booking relationship if provided
-        if (paymentInfo.getBookingId() != null) {
-            Booking booking = bookingRepository.findById(paymentInfo.getBookingId())
-                    .orElseThrow(() -> new PaymentValidationException("Booking not found with ID: " + paymentInfo.getBookingId()));
-            payment.setBooking(booking);
-        }
+        // Set booking relationship
+        Booking booking = bookingRepository.findById(paymentInfo.getBookingId())
+                .orElseThrow(() -> new PaymentValidationException("Booking not found with ID: " + paymentInfo.getBookingId()));
+        payment.setBooking(booking);
 
         // Set description from payment info or default
         if (paymentInfo.getDescription() != null) {

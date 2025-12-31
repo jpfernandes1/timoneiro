@@ -89,4 +89,25 @@ public interface BoatAvailabilityRepository extends JpaRepository<BoatAvailabili
      */
     boolean existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
             Long boatId, LocalDateTime endDate, LocalDateTime startDate);
+
+    /**
+     * Finds availability windows that completely cover a specific period.
+     *
+     * <p>Used for dynamic pricing to identify which price per hour applies
+     * to a booking request. The window must completely contain the requested
+     * period (start to end) to be considered a match.</p>
+     *
+     * @param boat the boat to check availability for
+     * @param startDate start of the requested period
+     * @param endDate end of the requested period
+     * @return list of availability windows that cover the entire period
+     */
+    @Query("SELECT ba FROM BoatAvailability ba " +
+            "WHERE ba.boat = :boat " +
+            "AND ba.startDate <= :startDate " +
+            "AND ba.endDate >= :endDate")
+    List<BoatAvailability> findCoveringAvailabilityWindow(
+            @Param("boat") Boat boat,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

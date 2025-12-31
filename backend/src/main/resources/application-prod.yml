@@ -1,0 +1,11 @@
+# ==============================
+# PRODUCTION Configuration (Neon + Cloudinary)
+# ==============================
+spring:
+  config:
+    activate-on-profile: prod
+  datasource:
+    url: ${DB_URL_DEPLOY}
+    username: ${DB_USERNAME_DEPLOY}
+    password: ${DB_PASSWORD_DEPLOY}
+    driver-class-name: org.postgresql.Driver

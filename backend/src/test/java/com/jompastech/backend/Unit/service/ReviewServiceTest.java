@@ -2,6 +2,7 @@ package com.jompastech.backend.Unit.service;
 
 import com.jompastech.backend.exception.BusinessValidationException;
 import com.jompastech.backend.exception.EntityNotFoundException;
+import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.dto.ReviewRequestDTO;
 import com.jompastech.backend.model.dto.ReviewResponseDTO;
 import com.jompastech.backend.model.entity.Review;
@@ -68,6 +69,7 @@ class ReviewServiceTest {
 
     private User testUser;
     private Boat testBoat;
+    private BoatResponseDTO testBoatResponseDTO;
     private ReviewRequestDTO testRequestDTO;
     private Review testReview;
     private ReviewResponseDTO testResponseDTO;
@@ -116,7 +118,7 @@ class ReviewServiceTest {
     void createReview_WithValidData_ShouldReturnReviewResponse() {
         // Arrange - Configure all required mocks for successful flow
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoat);
+        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(true);
         when(reviewRepository.existsByUserIdAndBoatId(1L, 1L)).thenReturn(false);
 
@@ -187,7 +189,7 @@ class ReviewServiceTest {
     void createReview_WhenUserNotRentedBoat_ShouldThrowBusinessValidationException() {
         // Arrange - Mock rental validation to return false
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoat);
+        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(false);
 
         // Act & Assert - Verify business rule violation
@@ -205,7 +207,7 @@ class ReviewServiceTest {
     void createReview_WhenDuplicateReview_ShouldThrowBusinessValidationException() {
         // Arrange - Mock duplicate review check to return true
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoat);
+        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(true);
         when(reviewRepository.existsByUserIdAndBoatId(1L, 1L)).thenReturn(true);
 

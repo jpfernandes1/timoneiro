@@ -1,7 +1,6 @@
 package com.jompastech.backend.security.filter;
 
 import com.jompastech.backend.security.util.JwtUtil;
-import com.jompastech.backend.security.service.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,11 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Collections;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -25,50 +23,68 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Extract JWT token from Authorization header
-        String token = extractToken(request);
+        logger.info("🔐 JWT Filter: {} {}", request.getMethod(), request.getRequestURI());
 
-        // Validate token and authenticate user if valid
-        if (token != null && jwtUtil.isValidToken(token)) {
-            try {
-                // Extract email from token and load user details
-                String email = jwtUtil.getEmail(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-                // Create authentication token and set security context
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            } catch (Exception e) {
-                logger.error("JWT authentication error: {}", e.getMessage());
-            }
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            logger.info("🔧 Ignoring OPTIONS preflight request");
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // Continue request processing
+        // Extract Token
+        String token = extractToken(request);
+
+        if (token != null) {
+            logger.info("✅ Token found, length: {}", token.length());
+
+            try {
+                if (jwtUtil.isValidToken(token)) {
+                    String email = jwtUtil.getEmail(token);
+                    logger.info("✅ Valid JWT for user: {}", email);
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    Collections.emptyList()
+                            );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("🔐 SecurityContext set for: {}", email);
+                } else {
+                    logger.warn("❌ Invalid JWT token");
+                }
+            } catch (Exception e) {
+                logger.error("💥 Error processing JWT: {}", e.getMessage());
+            }
+        } else {
+            logger.warn("❌ No JWT token found in Authorization header");
+            // Log all headers for debugging.
+            logger.debug("Request headers:");
+            request.getHeaderNames().asIterator().forEachRemaining(headerName ->
+                    logger.debug("  {}: {}", headerName, request.getHeader(headerName))
+            );
+        }
+
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Extracts JWT token from Authorization header
-     * @param request HTTP request
-     * @return JWT token or null if not found
-     */
     private String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7); // Remove "Bearer " prefix
+            return header.substring(7);
         }
         return null;
+    }
+
+    // ⚠️ IMPORTANTE: Não filtrar requisições OPTIONS
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "OPTIONS".equalsIgnoreCase(request.getMethod());
     }
 }

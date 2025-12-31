@@ -1,13 +1,18 @@
 package com.jompastech.backend.mapper;
 
-import com.jompastech.backend.model.dto.BookingRequestDTO;
-import com.jompastech.backend.model.dto.BookingResponseDTO;
+import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
+import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
 import com.jompastech.backend.model.dto.basicDTO.BoatBasicDTO;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
+import com.jompastech.backend.model.entity.BoatPhoto;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Mapper for converting between Booking entities and DTOs.
@@ -104,11 +109,22 @@ public class BookingMapper {
         if (boat == null) {
             return null;
         }
-        return new BoatBasicDTO(
-                boat.getId(),
-                boat.getName(),
-                boat.getType(),
-                boat.getAddress()
-        );
+
+        // Extract only the URLs of the photos, ordered by the 'order' field.
+        List<String> photoUrls = null;
+        if (boat.getPhotos() != null && !boat.getPhotos().isEmpty()) {
+            photoUrls = boat.getPhotos().stream()
+                    .sorted(Comparator.comparing(BoatPhoto::getOrdem))
+                    .map(BoatPhoto::getPhotoUrl)
+                    .collect(Collectors.toList());
+        }
+
+            return new BoatBasicDTO(
+                    boat.getId(),
+                    boat.getName(),
+                    boat.getType(),
+                    boat.getAddress(),
+                    photoUrls
+            );
+        }
     }
-}

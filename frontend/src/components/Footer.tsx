@@ -101,7 +101,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-10 mt-10 border-t border-primary-foreground/10">
           <p className="text-primary-foreground/50 text-sm">
-            © 2025 NavegarBem. Todos os direitos reservados.
+            © 2025 Timoneiro. Todos os direitos reservados.
           </p>
           
           {/* Social Links */}
