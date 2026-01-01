@@ -10,6 +10,12 @@ spring:
     password: ${DB_PASSWORD_DEPLOY}
     driver-class-name: org.postgresql.Driver
 
+logging:
+  level:
+    root: INFO
+    org.springframework.jdbc: WARN
+    com.zaxxer.hikari: WARN
+
 server:
   port: 8080
   address: 0.0.0.0
