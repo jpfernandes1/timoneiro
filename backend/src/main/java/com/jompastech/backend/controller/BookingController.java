@@ -263,34 +263,4 @@ public class BookingController {
         log.warn("Booking cancellation endpoint not yet implemented - returning 501");
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
-
-    /**
-     * Health check endpoint for booking service.
-     *
-     * <p>Provides a simple status check to verify the booking service
-     * is operational. Can be extended to check connectivity with
-     * dependent services (database, payment gateway, etc.)</p>
-     *
-     * @return ResponseEntity with service health status message
-     */
-    @GetMapping("/health")
-    @Operation(
-            summary = "Booking service health check",
-            description = "Check booking service status and dependency connectivity"
-    )
-    public ResponseEntity<String> healthCheck() {
-        log.debug("Booking service health check requested");
-
-        // Basic health check - can be expanded with actual dependency checks
-        boolean isHealthy = true;
-        // TODO: Add actual health checks (database, payment service, etc.)
-
-        if (isHealthy) {
-            return ResponseEntity.ok("Booking service is operational and healthy");
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Booking service is experiencing issues");
-        }
-    }
 }
