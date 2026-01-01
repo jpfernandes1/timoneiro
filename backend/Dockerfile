@@ -10,10 +10,13 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-RUN ls -la /app
-ENTRYPOINT ["java",
- "-XX:+UseContainerSupport",
- "-XX:MaxRAMPercentage=50.0",
- "-Xms64m",
- "-Xmx256m",
- "-jar", "app.jar"]
+
+ENTRYPOINT [
+  "java",
+  "-XX:+UseContainerSupport",
+  "-XX:MaxRAMPercentage=50.0",
+  "-Xms64m",
+  "-Xmx256m",
+  "-jar",
+  "app.jar"
+]
