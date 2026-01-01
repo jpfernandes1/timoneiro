@@ -6,8 +6,14 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+RUN ls -la /app
+ENTRYPOINT ["java",
+ "-XX:+UseContainerSupport",
+ "-XX:MaxRAMPercentage=50.0",
+ "-Xms64m",
+ "-Xmx256m",
+ "-jar", "app.jar"]
