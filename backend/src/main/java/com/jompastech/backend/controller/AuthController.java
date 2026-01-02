@@ -1,10 +1,12 @@
 package com.jompastech.backend.controller;
 
-import com.jompastech.backend.model.dto.UserRequestDTO;
+import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
+import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.security.dto.AuthRequestDTO;
 import com.jompastech.backend.security.dto.AuthResponseDTO;
 import com.jompastech.backend.security.service.AuthService;
 import com.jompastech.backend.security.util.JwtUtil;
+import com.jompastech.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,9 +31,11 @@ public class AuthController {
     @Autowired
     private AuthService authService;
     private final JwtUtil jwtUtil;
+    private final UserService userService;
 
-    public AuthController(JwtUtil jwtUtil) {
+    public AuthController(JwtUtil jwtUtil, UserService userService) {
         this.jwtUtil = jwtUtil;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -97,6 +101,40 @@ public class AuthController {
             log.error("Error validating token: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Token validation failed: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Get current user information",
+            description = "Returns the current authenticated user's basic information (id, name, email)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User information retrieved"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
+    public ResponseEntity<UserBasicDTO> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = authentication.getName();
+
+        try {
+            User user = userService.findByEmail(email);
+
+            // Create UserBasicDTO
+            UserBasicDTO userDTO = new UserBasicDTO();
+            userDTO.setId(user.getId());
+            userDTO.setName(user.getName());
+            userDTO.setEmail(user.getEmail());
+
+            return ResponseEntity.ok(userDTO);
+        } catch (Exception e) {
+            log.error("Error getting current user: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 

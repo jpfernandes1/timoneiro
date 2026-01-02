@@ -157,10 +157,20 @@ public class UserService {
     /**
      * Get user by email
      */
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserByEmail(String email) {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         return userMapper.toResponseDTO(user);
+    }
+
+    /**
+     * Find user by email (returns entity)
+     */
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
 
