@@ -83,6 +83,8 @@ public class SecurityConfig {
             configuration.setAllowedOrigins(Arrays.asList(
                     "http://localhost",          // Frontend on port 80
                     "http://localhost:3000",     // React dev server
+                    "https://p01--timoneirobackend--8l8h9wd8hfcr.code.run", // Northflank (deploy-prod)
+                    "https://*.code.run",        // wildcard access to everything coming from the northflank
                     "https://seusite.com"        // Future: production domain
             ));
         }
