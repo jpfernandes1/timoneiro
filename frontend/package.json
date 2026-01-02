@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "rd /s /q .next 2>nul && set NEXT_PUBLIC_API_URL=http://localhost:8080/api&& npm run dev",
+    "dev:remote": "rd /s /q .next 2>nul && set NEXT_PUBLIC_API_URL=https://p01--timoneirobackend--8l8h9wd8hfcr.code.run/api&& npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
