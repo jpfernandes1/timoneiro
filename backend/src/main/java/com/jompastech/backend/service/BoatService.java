@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -35,24 +34,26 @@ public class BoatService {
     private final BoatRepository boatRepository;
     private final AddressRepository addressRepository;
     private final BoatMapper boatMapper;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     /**
      * Saves a new boat with associated photos.
+     *
+     * @param boatRequestDTO Boat data transfer object
+     * @param photos List of boat photos to associate with the boat
+     * @param email Email of the authenticated user (boat owner)
+     * @return BoatResponseDTO with saved boat information
      */
     @Transactional
     public BoatResponseDTO saveWithPhotos(BoatRequestDTO boatRequestDTO,
                                           List<BoatPhoto> photos,
-                                          UserDetails userDetails) {
+                                          String email) {
 
-        // 1. Find user by Email
-        String username = userDetails.getUsername();
-        User owner = userRepository.findByEmail(username)
+        // 1. Find user by email
+        User owner = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "User not found: " + username
+                        "User not found: " + email
                 ));
 
         // 2. Create Address from DTO data
@@ -86,12 +87,25 @@ public class BoatService {
 
     /**
      * Saves a boat without photos (for compatibility with existing code).
+     *
+     * @param boatRequestDTO Boat data transfer object
+     * @param userDetails Authenticated user details
+     * @return BoatResponseDTO with saved boat information
      */
     @Transactional
     public BoatResponseDTO save(BoatRequestDTO boatRequestDTO, UserDetails userDetails) {
-        return saveWithPhotos(boatRequestDTO, List.of(), userDetails);
+        // Extract email from UserDetails and pass it to saveWithPhotos
+        String email = userDetails.getUsername();
+        return saveWithPhotos(boatRequestDTO, List.of(), email);
     }
 
+    /**
+     * Finds a boat by ID.
+     *
+     * @param id Boat ID
+     * @return BoatResponseDTO with boat information
+     * @throws EntityNotFoundException if boat not found
+     */
     @Transactional(readOnly = true)
     public BoatResponseDTO findById(Long id) {
         Boat boat = boatRepository.findById(id)
@@ -111,27 +125,53 @@ public class BoatService {
         return boatRepository.findById(boatId);
     }
 
+    /**
+     * Retrieves all boats from the database.
+     *
+     * @return List of all boats
+     */
     @Transactional(readOnly = true)
     public List<Boat> findAll() {
         return boatRepository.findAll();
     }
 
+    /**
+     * Deletes a boat by ID.
+     *
+     * @param id Boat ID to delete
+     */
     @Transactional
     public void deleteById(Long id) {
         boatRepository.deleteById(id);
     }
 
-    // Additional business methods - Return entities for internal use
+    /**
+     * Finds boats by type.
+     *
+     * @param type Boat type to search for
+     * @return List of boats with the specified type
+     */
     @Transactional(readOnly = true)
     public List<Boat> findByType(String type) {
         return boatRepository.findByType(type);
     }
 
+    /**
+     * Finds boats by owner ID.
+     *
+     * @param ownerId Owner user ID
+     * @return List of boats owned by the specified user
+     */
     @Transactional(readOnly = true)
     public List<Boat> findByOwnerId(Long ownerId) {
         return boatRepository.findByOwnerId(ownerId);
     }
 
+    /**
+     * Retrieves all boats as DTOs.
+     *
+     * @return List of BoatResponseDTO for all boats
+     */
     @Transactional(readOnly = true)
     public List<BoatResponseDTO> findAllBoats() {
         return boatRepository.findAll()
@@ -140,30 +180,43 @@ public class BoatService {
                 .collect(Collectors.toList());
     }
 
-    // Auxiliary method for internal use (if other services need the entity)
+    /**
+     * Retrieves boat entity by ID for internal use.
+     *
+     * @param id Boat ID
+     * @return Boat entity
+     * @throws EntityNotFoundException if boat not found
+     */
     @Transactional(readOnly = true)
     public Boat getBoatEntity(Long id) {
         return boatRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Boat not found"));
     }
 
+    /**
+     * Retrieves a paginated list of boats owned by the authenticated user.
+     *
+     * @param email Authenticated user email
+     * @param pageable Pagination information
+     * @return Page of BoatResponseDTO for user's boats
+     */
     @Operation(
             summary = "Get boats by current user",
             description = "Retrieves a list of boats owned by the currently authenticated user"
     )
     @Transactional(readOnly = true)
     public Page<BoatResponseDTO> findBoatsByUserPaginated(String email, Pageable pageable) {
-        log.info("Buscando barcos do usuário com paginação: {}", email);
+        log.info("Searching user boats with pagination: {}", email);
 
         // Find user by email
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com email: " + email));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
-        log.info("Usuário encontrado: {} (ID: {})", user.getName(), user.getId());
+        log.info("User found: {} (ID: {})", user.getName(), user.getId());
 
-        // Search for user's boats with pagination.
+        // Search for user's boats with pagination
         Page<Boat> boatsPage = boatRepository.findByOwner(user, pageable);
-        log.info("Encontrados {} barcos para o usuário {}", boatsPage.getTotalElements(), email);
+        log.info("Found {} boats for user {}", boatsPage.getTotalElements(), email);
 
         // Convert to DTO
         return boatsPage.map(boatMapper::toResponseDTO);
@@ -174,21 +227,20 @@ public class BoatService {
      *
      * @param id the ID of the boat to update
      * @param dto the updated boat data
-     * @param userDetails the authenticated user details
+     * @param email the authenticated user email
      * @return the updated boat as a response DTO
      * @throws RuntimeException if the boat is not found or user is not the owner
      */
     @Transactional
-    public BoatResponseDTO updateBoat(Long id, BoatRequestDTO dto, UserDetails userDetails) {
-        log.info("Updating boat with ID: {}", id);
+    public BoatResponseDTO updateBoat(Long id, BoatRequestDTO dto, String email) {
+        log.info("Updating boat with ID: {} for user: {}", id, email);
 
         // Find the boat
         var boat = boatRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Boat not found with id: " + id));
 
-        // Verify ownership
-        var currentUserEmail = userDetails.getUsername();
-        if (!boat.getOwner().getEmail().equals(currentUserEmail)) {
+        // Verify ownership using email
+        if (!boat.getOwner().getEmail().equals(email)) {
             throw new RuntimeException("User is not the owner of this boat");
         }
 

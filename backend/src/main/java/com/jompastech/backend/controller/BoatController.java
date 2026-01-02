@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,7 +31,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -88,9 +86,15 @@ public class BoatController {
             )
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
 
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal String email) {
 
-        log.info("Creating new boat. JSON received: {} chars", boatJson.length());
+        log.info("Creating new boat. JSON received: {} chars, for user: {}", boatJson.length(), email);
+
+        // Check if email is null (authentication failed)
+        if (email == null) {
+            log.error("User email is null - authentication failed");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         try {
             // Parse JSON to DTO
@@ -105,7 +109,7 @@ public class BoatController {
             try {
                 // 1. Process images if provided
                 if (images != null && !images.isEmpty()) {
-                    // Validação de quantidade
+                    // Validate quantity
                     if (images.size() > 10) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
                     }
@@ -120,14 +124,14 @@ public class BoatController {
                         boatPhoto.setPhotoUrl(result.getUrl());
                         boatPhoto.setPublicId(result.getPublicId());
                         boatPhoto.setFileName(result.getFileName());
-                        boatPhoto.setOrdem(i); // Ordem baseada na posição na lista
+                        boatPhoto.setOrdem(i); // Order based on position in list
 
                         boatPhotos.add(boatPhoto);
                     }
                 }
 
-                // 2. Save boat with photos
-                BoatResponseDTO savedBoat = boatService.saveWithPhotos(dto, boatPhotos, userDetails);
+                // 2. Save boat with photos using the email
+                BoatResponseDTO savedBoat = boatService.saveWithPhotos(dto, boatPhotos, email);
                 return ResponseEntity.status(HttpStatus.CREATED).body(savedBoat);
 
             } catch (Exception e) {
@@ -248,9 +252,13 @@ public class BoatController {
             @Parameter(description = "Images to upload (max 10 files, 10MB each)")
             @RequestPart(value = "images", required = true) List<MultipartFile> images,
 
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal String email) {
 
-        log.info("Adding {} photos to boat ID: {}", images.size(), boatId);
+        log.info("Adding {} photos to boat ID: {}, user: {}", images.size(), boatId, email);
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         try {
             // Validate number of images
@@ -289,9 +297,13 @@ public class BoatController {
             @Parameter(description = "ID of the photo to delete", required = true)
             @PathVariable Long photoId,
 
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal String email) {
 
-        log.info("Deleting photo ID: {} from boat ID: {}", photoId, boatId);
+        log.info("Deleting photo ID: {} from boat ID: {}, user: {}", photoId, boatId, email);
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         try {
             photoService.deletePhoto(boatId, photoId);
@@ -325,9 +337,13 @@ public class BoatController {
             @Parameter(description = "Photo order update data", required = true)
             @Valid @RequestBody PhotoOrderUpdateDTO orderUpdate,
 
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal String email) {
 
-        log.info("Updating photo order for boat ID: {}", boatId);
+        log.info("Updating photo order for boat ID: {}, user: {}", boatId, email);
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         try {
             photoService.updatePhotoOrder(boatId, orderUpdate);
@@ -399,12 +415,17 @@ public class BoatController {
             @Parameter(description = "Updated boat data", required = true)
             @Valid @RequestBody BoatRequestDTO boatDTO,
 
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal String email) {
 
-        log.info("Updating boat ID: {}", id);
+        log.info("Updating boat ID: {}, user: {}", id, email);
+
+        if (email == null) {
+            log.error("User email is null - authentication failed");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         try {
-            var updatedBoat = boatService.updateBoat(id, boatDTO, userDetails);
+            var updatedBoat = boatService.updateBoat(id, boatDTO, email);
             return ResponseEntity.ok(updatedBoat);
         } catch (RuntimeException e) {
             log.error("Error updating boat ID {}: {}", id, e.getMessage());
