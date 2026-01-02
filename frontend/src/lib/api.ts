@@ -1,5 +1,14 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
+// Helper for building consistent URLs.
+const buildUrl = (endpoint: string): string => {
+  // Remove duplicate /api if present
+  const cleanEndpoint = endpoint.replace(/^\/api/, '');
+  // Make sure it starts with /
+  const normalizedEndpoint = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+  return `${API_BASE_URL}${normalizedEndpoint}`;
+};
+
 // Backend-based types
 export interface Address {
   id?: number;
@@ -46,7 +55,6 @@ export interface PaginatedResponse<T> {
   size: number;
 }
 
-// Interface para resposta de barcos do usuário
 export interface BoatResponseDTO {
   id: number;
   name: string;
@@ -57,7 +65,7 @@ export interface BoatResponseDTO {
   speed: number | null;
   fabrication: number | null;
   amenities: string[];
-  photos: string[]; // VEM ORDENADO PELO MAPPER!
+  photos: string[];
   pricePerHour: number;
   city: string;
   state: string;
@@ -82,6 +90,8 @@ export class ApiError extends Error {
  * Validates the current JWT token stored in localStorage.
  */
 export const validateToken = async (): Promise<boolean> => {
+  if (typeof window === 'undefined') return false;
+  
   const token = localStorage.getItem('token');
   if (!token) return false;
   
@@ -112,6 +122,11 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+
+  if (typeof window === 'undefined') {
+    throw new Error('apiRequest can only be called in the browser');
+  }
+  
   const token = localStorage.getItem('token');
   
   const headers = new Headers();
@@ -122,7 +137,6 @@ async function apiRequest<T>(
   }
 
   try {
-    // CORREÇÃO: Remove /api duplicado do endpoint
     const url = endpoint.startsWith('/') 
       ? `${API_BASE_URL}${endpoint}`
       : `${API_BASE_URL}/${endpoint}`;
@@ -130,27 +144,24 @@ async function apiRequest<T>(
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include', 
+      mode: 'cors'
     });
     
     if (response.status === 401 || response.status === 403) {
-      // Token is invalid or expired
-      console.log(`Token invalid (${response.status}), clearing auth`);
       authApi.logout();
       
-      if (typeof window !== 'undefined') {
-        const publicFrontendRoutes = ['/auth', '/login', '/register', '/', '/forgot-password', '/search'];
-        const currentPath = window.location.pathname;
+      // It only redirects if you are not on a public page.
+      const publicFrontendRoutes = ['/auth', '/login', '/register', '/', '/forgot-password', '/search'];
+      const currentPath = window.location.pathname;
 
-        const isPublicFrontendRoute = publicFrontendRoutes.some(
-          route => currentPath === route || currentPath.startsWith(route + '/')
-        );
+      const isPublicFrontendRoute = publicFrontendRoutes.some(
+        route => currentPath === route || currentPath.startsWith(route + '/')
+      );
 
-        if (!isPublicFrontendRoute) {
-          console.log('Redirecting to /auth from:', currentPath);
-          window.location.href = '/auth';
-        } else {
-          console.log('Already on a public frontend route:', currentPath);
-        }
+      if (!isPublicFrontendRoute) {
+        console.log('Redirecting to /auth from:', currentPath);
+        window.location.href = '/auth';
       }
       
       throw new ApiError(
@@ -175,7 +186,6 @@ async function apiRequest<T>(
       );
     }
     
-    // Se for resposta sem conteúdo (204 No Content)
     if (response.status === 204) {
       return null as T;
     }
@@ -202,7 +212,7 @@ export const bookingApi = {
       ...(status && { status }),
     });
     
-    return apiRequest<PaginatedResponse<BookingResponse>>(`/api/bookings/my-bookings?${params}`);
+    return apiRequest<PaginatedResponse<BookingResponse>>(`/bookings/my-bookings?${params}`);
   },
   
   // booking details
@@ -221,15 +231,24 @@ export const bookingApi = {
 // Authentication API
 export const authApi = {
   login: async (email: string, password: string) => {
-    // CORREÇÃO: Usar API_BASE_URL corretamente
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    
+    const url = buildUrl('/auth/login');
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+      credentials: 'include', 
+      mode: 'cors'
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorText;
+      try {
+        const errorData = await response.json();
+        errorText = errorData.message || JSON.stringify(errorData);
+      } catch {
+        errorText = await response.text();
+      }
       throw new Error(`Login failed: ${response.status} - ${errorText}`);
     }
     
@@ -245,22 +264,73 @@ export const authApi = {
   },
   
   logout: () => {
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
   },
   
-  getCurrentUser: async () => {
-    return apiRequest<UserBasicDTO>('/auth/my-boats');
+  getCurrentUser: async (): Promise<UserBasicDTO> => {
+    return apiRequest<UserBasicDTO>('/auth/me');
   },
+  
+  // Add to check backend health.
+  checkBackendHealth: async (): Promise<{ status: string }> => {
+    // Remove /api from the base URL to access /actuator/health
+    const baseWithoutApi = API_BASE_URL.replace(/\/api$/, '');
+    const response = await fetch(`${baseWithoutApi}/actuator/health`, {
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Backend health check failed: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  register: async (userData: {
+  name: string;
+  email: string;
+  password: string;
+  cpf: string;
+  phone: string;
+}) => {
+  const url = buildUrl('/auth/register');
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData),
+    credentials: 'include',
+    mode: 'cors'
+  });
+
+  
+  if (!response.ok) {
+    let errorText;
+    try {
+      const errorData = await response.json();
+      errorText = errorData.message || JSON.stringify(errorData);
+    } catch {
+      errorText = await response.text();
+    }
+    throw new Error(`Registration failed: ${response.status} - ${errorText}`);
+  }
+  
+  return response.json();
+},
 };
 
 // Boat API
 export const boatApi = {
   // Public endpoint (sem autenticação)
   getAllBoats: async (): Promise<BoatResponseDTO[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/boats`, {
+    const url = buildUrl('/boats');
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -270,28 +340,49 @@ export const boatApi = {
     return response.json();
   },
   
-  // Get boat by ID (pode requerer autenticação dependendo da regra)
+  // Get boat by ID
   getBoatById: async (boatId: number): Promise<BoatResponseDTO> => {
     return apiRequest<BoatResponseDTO>(`/boats/${boatId}`);
   },
 
-  // Get logged user boats (REQUER AUTENTICAÇÃO)
+  // Get logged user boats
   getMyBoats: async (page: number = 0, size: number = 10): Promise<PaginatedResponse<BoatResponseDTO>> => {
-    return apiRequest<PaginatedResponse<BoatResponseDTO>>(`api/boats/my-boats?page=${page}&size=${size}`);
+    return apiRequest<PaginatedResponse<BoatResponseDTO>>(`/boats/my-boats?page=${page}&size=${size}`);
   },
   
-  // Get logged user boats with pagination (se implementado no backend)
-  getMyBoatsPaginated: async (page: number = 0, size: number = 10): Promise<PaginatedResponse<BoatResponseDTO>> => {
-    return apiRequest<PaginatedResponse<BoatResponseDTO>>(`api/boats/my-boats?page=${page}&size=${size}`);
+  searchBoats: async (params?: {
+    city?: string;
+    state?: string;
+    type?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    page?: number;
+    size?: number;
+  }) => {
+    const searchParams = new URLSearchParams();
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const queryString = searchParams.toString();
+    return apiRequest<PaginatedResponse<BoatResponseDTO>>(
+      `/boats/search${queryString ? `?${queryString}` : ''}`
+    );
   },
 };
 
 // Helper to verify authentication
 export const isAuthenticated = (): boolean => {
+  if (typeof window === 'undefined') return false;
   return !!localStorage.getItem('token');
 };
 
-// Helper to redirect if not authenticated.
+// Helper to redirect if not authenticated
 export const requireAuth = async (router: any): Promise<boolean> => {
   if (!isAuthenticated()) {
     router.push('/auth');

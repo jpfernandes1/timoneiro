@@ -4,7 +4,7 @@ import { Menu, X, Anchor, User, LogOut, AlertCircle } from "lucide-react";
 import { Button } from '@/src/components/ui/button'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/contexts/AuthContext'; // Certifique-se que este caminho está correto
+import { useAuth } from '@/src/contexts/AuthContext';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +12,6 @@ const Navbar = () => {
     const [mounted, setMounted] = useState(false);
     const router = useRouter();
     
-    // Usando o AuthContext REAL (baseado no código que você mostrou)
     const { user, isAuthenticated, logout } = useAuth();
 
     const navLinks = [
@@ -40,13 +39,13 @@ const Navbar = () => {
             setShowLoginModal(true);
             setIsOpen(false);
         } else {
-            // Se já estiver logado, vai direto para a página
+            // If you are already logged in, go directly to the page.
             router.push('/register-boat');
         }
     };
 
     const handleNavigateToRegisterBoat = () => {
-        // Armazena a intenção de redirecionamento
+        // Stores the redirection intent.
         localStorage.setItem('redirectAfterLogin', '/register-boat');
         setShowLoginModal(false);
         router.push('/auth');
@@ -189,9 +188,9 @@ const Navbar = () => {
                 </div>
             </nav>
 
-            {/* Modal de Login Requerido */}
+            {/* Required Login Method */}
             {showLoginModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-card rounded-2xl shadow-elevated p-6 max-w-md w-full animate-fade-up">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
