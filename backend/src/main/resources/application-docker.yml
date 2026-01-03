@@ -1,12 +1,11 @@
-# Configurações ESPECÍFICAS para ambiente Docker
+# Specific configurations for a Docker environment.
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/boat_rental}  # Container do PostgreSQL
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/boat_rental}  # PostgreSQL Container
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin}
 
-  # NÃO importar arquivo .env - as variáveis vêm do container
-  # config.import: NÃO COLOQUE NADA AQUI
+  # Do not import the .env file - the variables come from the container.
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
