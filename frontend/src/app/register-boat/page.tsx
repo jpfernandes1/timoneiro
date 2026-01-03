@@ -26,6 +26,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buildUrl } from '@/src/lib/api';
+import { ImageCompressor, type CompressionOptions } from '@/src/lib/image-compressor';
 
 const estados = [
   "Rio de Janeiro",
@@ -77,15 +79,17 @@ const etapas = [
   { numero: 5, titulo: "Preço" },
 ];
 
+
+
 const RegisterBoat = () => {
   const [etapaAtual, setEtapaAtual] = useState(1);
   const [formData, setFormData] = useState({
-    // step 1
+    // Step 1
     nome: "",
     tipo: "",
     descricao: "",
 
-    // step 2
+    // Step 2
     cep: "",
     numero: "",
     rua: "",
@@ -94,14 +98,14 @@ const RegisterBoat = () => {
     cidade: "",
     marina: "",
 
-    // step 3
+    // Step 3
     comprimento: "",
     capacidade: "",
     velocidade: "",
     ano: "",
     comodidades: [] as string[],
 
-    // step 4 - AGORA É ARRAY DE FILES, NÃO STRINGS
+    // Step 4
     fotos: [] as File[],
   });
 
@@ -137,58 +141,77 @@ const RegisterBoat = () => {
     return cep;
   };
 
-  // ✅ UPLOAD DE FOTOS REAL - MULTIPLE FILES
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Photo upload - multiple files
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
     setUploadingPhotos(true);
     
     try {
-      // Converter FileList para array
-      const newFiles = Array.from(files);
+      // Convert FileList to array
+      const originalFiles = Array.from(files);
+
+    console.log(`📤 ${originalFiles.length} arquivo(s) selecionado(s)`);
+    
+    // ✅ Compression utility.
+    console.log('🔄 Comprimindo imagens para otimização...');
+
+    // Compression options
+    const compressionOptions: CompressionOptions = {
+      maxWidth: 1920,
+      quality: 0.8,
+      outputFormat: 'image/jpeg'
+    };
+    
+    const compressionResults = await ImageCompressor.compressAll(originalFiles, compressionOptions);
+    
+    // Extract only the compressed files.
+    const compressedFiles = compressionResults.map(result => result.file);
+    
       
-      // Validações
+      // Validations
       const maxFiles = 10;
-      if (formData.fotos.length + newFiles.length > maxFiles) {
-        alert(`Máximo de ${maxFiles} fotos permitidas`);
-        setUploadingPhotos(false);
-        return;
-      }
+       if (formData.fotos.length + compressedFiles.length > maxFiles) {
+      alert(`Máximo de ${maxFiles} fotos permitidas`);
+      setUploadingPhotos(false);
+      return;
+    }
       
       const maxSize = 10 * 1024 * 1024; // 10MB
-      const oversized = newFiles.filter(file => file.size > maxSize);
+      const oversized = compressedFiles.filter(file => file.size > maxSize);
       if (oversized.length > 0) {
-        alert("Algumas imagens excedem 10MB");
-        setUploadingPhotos(false);
-        return;
+      alert(`⚠️ Após compressão, ${oversized.length} imagem(nes) ainda excede(m) 10MB. 
+Tente selecionar imagens menores ou entre em contato com o suporte.`);
+      setUploadingPhotos(false);
+      return;
       }
       
-      // Adicionar novos arquivos
-      const allFiles = [...formData.fotos, ...newFiles];
+      // Add new files
+      const allFiles = [...formData.fotos, ...compressedFiles];
       updateForm("fotos", allFiles);
       
-      // Criar previews
-      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-      setPhotoPreviews(prev => [...prev, ...newPreviews]);
-      
-      console.log(`${newFiles.length} fotos adicionadas`);
+      // Create previews
+       const newPreviews = compressedFiles.map(file => URL.createObjectURL(file));
+    setPhotoPreviews(prev => [...prev, ...newPreviews]);
+    
+    console.log(`✅ ${compressedFiles.length} foto(s) adicionada(s) após compressão`);
       
     } catch (error) {
-      console.error("Erro no upload:", error);
-      alert("Erro ao processar fotos");
+      console.error("❌ Erro no processamento das imagens:", error);
+      alert("Ocorreu um erro ao processar as imagens. Tente novamente ou selecione outras fotos.");
     } finally {
       setUploadingPhotos(false);
-      // Limpar input para permitir selecionar os mesmos arquivos novamente
+      // Clear input to allow selecting the same files again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
-  // ✅ REMOVER FOTO
+  // Remove photo
   const removePhoto = (index: number) => {
-    // Revogar URL do preview para evitar memory leak
+    // Revoke preview URL to avoid memory leak
     URL.revokeObjectURL(photoPreviews[index]);
     
     const newFiles = formData.fotos.filter((_, i) => i !== index);
@@ -198,7 +221,7 @@ const RegisterBoat = () => {
     setPhotoPreviews(newPreviews);
   };
 
-  // ✅ VALIDAÇÃO DO FORMULÁRIO
+  // Form validation
   const validarFormulario = () => {
     const camposObrigatorios = [
       { campo: formData.nome, nome: 'Nome do barco' },
@@ -218,13 +241,13 @@ const RegisterBoat = () => {
       return false;
     }
     
-    // Validação do CEP (se preenchido)
+    // CEP validation (if filled)
     if (formData.cep && formData.cep.replace(/\D/g, '').length !== 8) {
       alert('CEP inválido. Deve conter 8 dígitos.');
       return false;
     }
     
-    // Validação numérica
+    // Numeric validation
     const numericos = [
       { campo: formData.capacidade, nome: 'Capacidade', min: 1 },
       { campo: formData.comprimento, nome: 'Comprimento', min: 1, required: true },
@@ -250,7 +273,7 @@ const RegisterBoat = () => {
       }
     }
     
-    // Validação de fotos (pelo menos 1)
+    // Photo validation (at least 1)
     if (formData.fotos.length === 0) {
       const confirmacao = confirm("Você não selecionou nenhuma foto. Deseja continuar mesmo assim?");
       if (!confirmacao) return false;
@@ -259,7 +282,7 @@ const RegisterBoat = () => {
     return true;
   };
 
-  // ✅ FORM SUBMIT - MULTIPART/FORM-DATA
+  // Form submit - multipart/form-data
   const handleSubmit = async () => {
     // Login Verification
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -279,20 +302,20 @@ const RegisterBoat = () => {
     console.log("📤 Iniciando cadastro...");
     
     try {
-      // Mapear os dados do formulário para o formato do DTO
+      // Map form data to DTO format
       const boatRequestDTO = {
-        // Dados básicos
+        // Basic data
         name: formData.nome,
         description: formData.descricao,
         type: formData.tipo,
         capacity: formData.capacidade ? parseInt(formData.capacidade) : 0,
         
-        // Características técnicas
+        // Technical characteristics
         length: formData.comprimento ? parseFloat(formData.comprimento) : 0,
         speed: formData.velocidade ? parseFloat(formData.velocidade) : 0,
         fabrication: formData.ano ? parseInt(formData.ano) : new Date().getFullYear(),
         
-        // Localização
+        // Location
         city: formData.cidade,
         state: formData.estado,
         marina: formData.marina || "",
@@ -301,33 +324,36 @@ const RegisterBoat = () => {
         street: formData.rua || "",
         neighborhood: formData.bairro || "",
         
-        // Listas
+        // Lists
         amenities: formData.comodidades,
         
-        // Campo obrigatório no backend
+        // Required field in backend
         pricePerHour: 0.00,
       };
       
       console.log("📦 Payload JSON:", JSON.stringify(boatRequestDTO, null, 2));
-      console.log("📸 Fotos para upload:", formData.fotos.length);
+      console.log("📸 Photos to upload:", formData.fotos.length);
+
       
-      // Criar FormData para envio multipart
+      // Use buildUrl function to dynamically build the URL
+      const url = buildUrl('/boats');
+      
+      // Create FormData for multipart submission
       const formDataToSend = new FormData();
       
-      // Adicionar JSON como string
+      // Add JSON as string
       formDataToSend.append('boat', JSON.stringify(boatRequestDTO));
       
-      // Adicionar cada foto
+      // Add each photo
       formData.fotos.forEach((file, index) => {
         formDataToSend.append('images', file);
         console.log(`📎 Anexando foto ${index + 1}:`, file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       });
       
-      const response = await fetch('http://localhost:8080/api/boats', {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          // NÃO definir Content-Type - o navegador vai definir automaticamente com boundary
         },
         body: formDataToSend
       });
@@ -349,12 +375,12 @@ const RegisterBoat = () => {
       const savedBoat = await response.json();
       console.log("✅ Barco cadastrado com sucesso:", savedBoat);
       
-      // Limpar previews de fotos
+      // Clear photo previews
       photoPreviews.forEach(preview => URL.revokeObjectURL(preview));
       
       alert('Barco cadastrado com sucesso!');
       
-      // Resetar formulário
+      // Reset form
       setFormData({
         nome: "",
         tipo: "",
@@ -388,7 +414,7 @@ const RegisterBoat = () => {
     }
   };
 
-  // ✅ BUSCA DE CEP
+  // CEP lookup
   useEffect(() => {
     const buscarEnderecoPorCEP = async () => {
       const cepLimpo = formData.cep.replace(/\D/g, '');
@@ -408,7 +434,7 @@ const RegisterBoat = () => {
         const data = await response.json();
         console.log('📦 Dados COMPLETOS da API:', JSON.stringify(data, null, 2));
         
-        // Mapeamento de siglas para estados
+        // Mapping state abbreviations to full names
         const siglasParaEstados: Record<string, string> = {
           'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas',
           'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo',
@@ -446,7 +472,7 @@ const RegisterBoat = () => {
     return () => clearTimeout(timeoutId);
   }, [formData.cep]);
 
-  // ✅ CONVERTER SIGLAS DE ESTADOS PARA NOMES COMPLETOS
+  // Convert state abbreviations to full names
   useEffect(() => {
     if (formData.estado && formData.estado.length === 2) {
       const siglasParaEstados: Record<string, string> = {
@@ -469,7 +495,7 @@ const RegisterBoat = () => {
     }
   }, [formData.estado]);
 
-  // Limpar previews ao desmontar componente
+  // Clean previews when component unmounts
   useEffect(() => {
     return () => {
       photoPreviews.forEach(preview => URL.revokeObjectURL(preview));
@@ -805,7 +831,7 @@ const RegisterBoat = () => {
                 </div>
               )}
 
-              {/* Step 4: Photos - AGORA REAL */}
+              {/* Step 4: Photos */}
               {etapaAtual === 4 && (
                 <div className="space-y-6 animate-fade-up">
                   <div className="flex items-center gap-3 mb-6">

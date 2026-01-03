@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 // Helper for building consistent URLs.
-const buildUrl = (endpoint: string): string => {
+export const buildUrl = (endpoint: string): string => {
   // Remove duplicate /api if present
   const cleanEndpoint = endpoint.replace(/^\/api/, '');
   // Make sure it starts with /
