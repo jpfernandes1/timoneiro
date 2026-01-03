@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import Link from "next/link";
+import { buildUrl } from "@/src/lib/api";
 
 // Interfaces
 interface Boat {
@@ -98,7 +99,7 @@ const CheckoutPageContent = () => {
 
   const fetchBoatDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/boats/${boatId}`);
+      const response = await fetch(buildUrl(`/boats/${boatId}`));
       if (!response.ok) {
         throw new Error("Barco não encontrado");
       }
@@ -171,7 +172,7 @@ const formatDateForBackend = (dateString: string, timeString: string) => {
 
    // 2. Check if the token is valid
   try {
-    const testResponse = await fetch("http://localhost:8080/api/auth/validate", {
+    const testResponse = await fetch(buildUrl(`/auth/validate`), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -210,7 +211,7 @@ const formatDateForBackend = (dateString: string, timeString: string) => {
 
     setProcessing(true);
     try {
-      const response = await fetch("http://localhost:8080/api/bookings", {
+      const response = await fetch(buildUrl(`/api/bookings`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

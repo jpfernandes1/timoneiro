@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import Link from "next/link";
+import { buildUrl, buildUrlWithParams } from '@/src/lib/api';
 
 // Interfaces/types
 interface Boat {
@@ -114,12 +115,16 @@ const BoatDetails = () => {
     },
   ]);
 
+  // Use buildUrl function to dynamically build the URL
+    const url = buildUrl(`/boats/${boatId}`);
+    console.log("🌐 API URL:", url);
+
   // Search for boat data
   useEffect(() => {
     const fetchBoatDetails = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/api/boats/${boatId}`, {
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -225,13 +230,21 @@ const checkAvailability = useCallback(async () => {
   const startDateTime = `${startDate}T${startTime}:00`;
   const endDateTime = `${endDate}T${endTime}:00`;
 
+  const availabilityUrl = buildUrlWithParams(
+  `/boats/${boatId}/availability/check-availability`,
+  {
+    startDate: startDateTime,
+    endDate: endDateTime
+  }
+);
+
   console.log(`🔍 Verificando disponibilidade: ${startDateTime} → ${endDateTime}`);
   
   setCheckingAvailability(true);
   
   try {
     const response = await fetch(
-      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`,
+      availabilityUrl,
       {
         method: 'GET',
         headers: {
@@ -337,10 +350,18 @@ const checkAvailability = useCallback(async () => {
   
   const startDateTime = `${startDate}T${startTime}:00`;
   const endDateTime = `${endDate}T${endTime}:00`;
+
+  const finalAvailabilityUrl = buildUrlWithParams(
+  `/boats/${boatId}/availability/check-availability`,
+  {
+    startDate: startDateTime,
+    endDate: endDateTime
+  }
+);
   
   try {
     const finalCheck = await fetch(
-      `http://localhost:8080/api/boats/${boatId}/availability/check-availability?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`
+      finalAvailabilityUrl
     );
     
     if (finalCheck.ok) {

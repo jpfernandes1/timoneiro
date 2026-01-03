@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { buildUrl } from "@/src/lib/api";
 
 // Interfaces
 interface Boat {
@@ -177,7 +178,7 @@ const BoatOwnerPage = () => {
   const fetchBoatDetails = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/boats/${boatId}`);
+      const response = await fetch(buildUrl(`/boats/${boatId}`));
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -200,7 +201,7 @@ const BoatOwnerPage = () => {
   // Fetch availabilities
   const fetchAvailabilities = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/boats/${boatId}/availability`);
+      const response = await fetch(buildUrl(`/boats/${boatId}/availability`));
       if (response.ok) {
         const data = await response.json();
         setAvailabilities(data);
@@ -224,7 +225,7 @@ const BoatOwnerPage = () => {
     
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/boats/${boat.id}`, {
+      const response = await fetch(buildUrl(`/boats/${boat.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -263,8 +264,8 @@ const BoatOwnerPage = () => {
         startDate: `${newAvailability.startDate}:00`,
         endDate: `${newAvailability.endDate}:00`,
       };
-      
-      const response = await fetch(`http://localhost:8080/api/boats/${boatId}/availability`, {
+
+      const response = await fetch(buildUrl(`/boats/${boatId}/availability`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -297,7 +298,7 @@ const BoatOwnerPage = () => {
     if (!confirm("Tem certeza que deseja excluir esta janela de disponibilidade?")) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/boats/${boatId}/availability/${id}`, {
+      const response = await fetch(buildUrl(`/boats/${boatId}/availability/${id}`), {
         method: "DELETE",
       });
 
