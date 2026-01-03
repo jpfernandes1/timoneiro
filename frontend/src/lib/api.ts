@@ -398,3 +398,15 @@ export const requireAuth = async (router: any): Promise<boolean> => {
 
   return true;
 };
+
+// Auxiliar method to generate Url with params
+export const buildUrlWithParams = (
+  endpoint: string, 
+  params?: Record<string, string>
+): string => {
+  const baseUrl = buildUrl(endpoint);
+  if (!params) return baseUrl;
+  
+  const queryString = new URLSearchParams(params).toString();
+  return `${baseUrl}?${queryString}`;
+};
