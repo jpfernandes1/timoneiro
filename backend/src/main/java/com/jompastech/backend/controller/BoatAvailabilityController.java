@@ -1,4 +1,3 @@
-// BoatAvailabilityController.java - Versão atualizada
 package com.jompastech.backend.controller;
 
 import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
