@@ -119,8 +119,10 @@ public class BoatAvailabilityService {
     public boolean isBoatAvailable(Long boatId, LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Checking availability for boat ID: {} from {} to {}", boatId, startDate, endDate);
 
-        return boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+        boolean hasOverlap = boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 boatId, endDate, startDate);
+        // If there is no overlap, the boat is available
+        return !hasOverlap;
     }
 
     /**
