@@ -315,10 +315,13 @@ class PaymentServiceUnitTest {
                     .amount(new BigDecimal("500.00"))
                     .paymentMethod(PaymentMethod.CREDIT_CARD)
                     .mockCardData(validCardData)
-                    .boatId(10L)
+                    .bookingId(10L)
                     .description("Boat maintenance payment")
                     .userEmail("owner@example.com")
                     .build();
+
+            Booking mockBooking = mock(Booking.class);
+            when(bookingRepository.findById(10L)).thenReturn(Optional.of(mockBooking));
 
             when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
                 Payment payment = invocation.getArgument(0);
@@ -326,13 +329,18 @@ class PaymentServiceUnitTest {
                 return payment;
             });
 
+            // Mock do Environment para passar na validação
+            when(env.getProperty("app.payments.max-amount", "10000")).thenReturn("10000");
+            when(env.getProperty("app.pagseguro.sandbox-url")).thenReturn("https://sandbox.example.com");
+            when(env.getProperty("app.pagseguro.sandbox-token")).thenReturn("test-token");
+
             // Act
             PaymentResult result = paymentService.processPayment(boatPaymentInfo);
 
             // Assert
             assertThat(result).isNotNull();
             assertThat(result.getTransactionId()).isNotNull();
-            verify(bookingRepository, never()).findById(anyLong());
+            verify(bookingRepository).findById(10L);
             verify(paymentRepository, times(2)).save(any(Payment.class));
         }
     }
