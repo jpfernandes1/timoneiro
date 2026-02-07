@@ -20,10 +20,7 @@ import com.jompastech.backend.service.BookingApplicationService;
 import com.jompastech.backend.service.BookingValidationService;
 import com.jompastech.backend.service.NotificationService;
 import com.jompastech.backend.service.PaymentService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -33,6 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,11 +128,13 @@ class BookingApplicationServiceTest {
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
             // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00")); // 4 hours * 125 = 500
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -144,9 +145,9 @@ class BookingApplicationServiceTest {
                     .build();
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
-            Booking savedBooking = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("500.00"));
-            savedBooking.confirm();
-            when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
+                return invocation.<Booking>getArgument(0);
+            });
 
             // Act
             Booking result = bookingApplicationService.createBooking(validRequest);
@@ -155,18 +156,17 @@ class BookingApplicationServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
 
-            // Verify interactions
-            verify(userRepository).findById(1L);
-            verify(boatRepository).findById(1L);
+           // Capture PaymentInfo
+            verify(paymentService).processPayment(paymentInfoCaptor.capture());
+            PaymentInfo capturedPaymentInfo = paymentInfoCaptor.getValue();
+
+            verify(bookingRepository, times(2)).save(any(Booking.class));
             verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
-            verify(paymentService).processPayment(paymentInfoCaptor.capture());
-            verify(bookingRepository).save(any(Booking.class));
             verify(notificationService).notifyOwner(any(Booking.class));
             verify(notificationService).notifyRenter(any(Booking.class));
 
             // Verify PaymentInfo built correctly
-            PaymentInfo capturedPaymentInfo = paymentInfoCaptor.getValue();
             assertThat(capturedPaymentInfo.getAmount()).isEqualByComparingTo(new BigDecimal("500.00"));
             assertThat(capturedPaymentInfo.getPaymentMethod()).isEqualTo(PaymentMethod.CREDIT_CARD);
             assertThat(capturedPaymentInfo.getUserEmail()).isEqualTo("test@example.com");
@@ -190,11 +190,13 @@ class BookingApplicationServiceTest {
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
             // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("75.00")); // 4 hours * 75 = 300
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("300.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -205,9 +207,9 @@ class BookingApplicationServiceTest {
                     .build();
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
-            Booking savedBooking = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("300.00"));
-            savedBooking.confirm();
-            when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation ->
+                            invocation.getArgument(0));
+
 
             // Act
             Booking result = bookingApplicationService.createBooking(pixRequest);
@@ -219,6 +221,8 @@ class BookingApplicationServiceTest {
             assertThat(paymentInfo.getPaymentMethod()).isEqualTo(PaymentMethod.PIX);
             assertThat(paymentInfo.getMockCardData()).isNull(); // PIX doesn't need card data
             assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+            verify(bookingRepository, times(2)).save(any(Booking.class));
         }
     }
 
@@ -265,12 +269,14 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-            // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            // Mock boat availability
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
 
             doThrow(new com.jompastech.backend.exception.BookingValidationException("Validation failed"))
                     .when(bookingValidationService).validateBookingCreation(any(Booking.class));
@@ -282,9 +288,13 @@ class BookingApplicationServiceTest {
 
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
-            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
+            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(testBoat, startDate, endDate);
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
-            verifyNoInteractions(paymentService, bookingRepository, notificationService);
+
+            verify(bookingRepository, never()).save(any(Booking.class));
+            verify(paymentService, never()).processPayment(any(PaymentInfo.class));
+            verify(notificationService, never()).notifyOwner(any(Booking.class));
+            verify(notificationService, never()).notifyRenter(any(Booking.class));
         }
 
         @Test
@@ -294,12 +304,18 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-            // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            // Mock boat availability
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
+
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation ->
+                    invocation.getArgument(0)
+            );
 
             PaymentResult failedPayment = PaymentResult.builder()
                     .success(false)
@@ -316,10 +332,16 @@ class BookingApplicationServiceTest {
 
             verify(userRepository).findById(1L);
             verify(boatRepository).findById(1L);
-            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(any(), any(), any());
+            verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(testBoat, startDate, endDate);
             verify(bookingValidationService).validateBookingCreation(any(Booking.class));
             verify(paymentService).processPayment(any(PaymentInfo.class));
-            verifyNoInteractions(bookingRepository, notificationService);
+
+            // should save twice: one for creating and the other for canceling before a payment fail
+            verify(bookingRepository, times(2)).save(any(Booking.class));
+
+            // Shouldn't send notifications when payment fails;
+            verify(notificationService, never()).notifyOwner(any(Booking.class));
+            verify(notificationService, never()).notifyRenter(any(Booking.class));
         }
 
         @Test
@@ -329,12 +351,18 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-            // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            // Mock boat availability
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
+
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation ->
+                    invocation.getArgument(0)
+            );
 
             // Simulate unexpected exception in PaymentService
             when(paymentService.processPayment(any(PaymentInfo.class)))
@@ -344,6 +372,13 @@ class BookingApplicationServiceTest {
             assertThatThrownBy(() -> bookingApplicationService.createBooking(validRequest))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Database connection failed");
+
+            // Verify if booking was saved at least once (before payment)
+            verify(bookingRepository, times(1)).save(any(Booking.class));
+
+            // Shouldn't send notifications when exception occur
+            verify(notificationService, never()).notifyOwner(any(Booking.class));
+            verify(notificationService, never()).notifyRenter(any(Booking.class));
         }
     }
 
@@ -351,19 +386,28 @@ class BookingApplicationServiceTest {
     @DisplayName("Business Logic Verification")
     class BusinessLogicVerification {
 
+        @AfterEach
+        void tearDown() {
+            // Resetar os captors para não acumular entre testes
+            bookingCaptor = ArgumentCaptor.forClass(Booking.class);
+            paymentInfoCaptor = ArgumentCaptor.forClass(PaymentInfo.class);
+        }
+
         @Test
-        @DisplayName("Should call confirm before saving booking")
+        @DisplayName("Should call confirm before saving")
         void createBooking_ShouldCallConfirmBeforeSaving() {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-            // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            // Mock boat availability
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -374,18 +418,18 @@ class BookingApplicationServiceTest {
                     .build();
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
-            // Use ArgumentCaptor to verify Booking status before saving
+            Booking mockBooking = mock(Booking.class);
+
             when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
-                Booking saved = invocation.getArgument(0);
-                assertThat(saved.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
-                return saved;
+                return mockBooking;
             });
 
             // Act
             bookingApplicationService.createBooking(validRequest);
 
             // Assert
-            verify(bookingRepository).save(any(Booking.class));
+            verify(mockBooking).confirm();
+            verify(bookingRepository, times(2)).save(any(Booking.class));
         }
 
         @Test
@@ -396,11 +440,15 @@ class BookingApplicationServiceTest {
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
             // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            BoatAvailability availability = mock(BoatAvailability.class);
+
+            when(availability.calculatePriceForPeriod(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(Boat.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -411,9 +459,9 @@ class BookingApplicationServiceTest {
                     .build();
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
-            Booking savedBooking = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("500.00"));
-            savedBooking.confirm();
-            when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation ->
+                    invocation.getArgument(0)
+            );
 
             // Act
             bookingApplicationService.createBooking(validRequest);
@@ -438,12 +486,14 @@ class BookingApplicationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-            // Mock boat availability repository
-            BoatAvailability availability =
-                    new BoatAvailability();
-            availability.setPricePerHour(new BigDecimal("125.00"));
-            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                    .thenReturn(java.util.Collections.singletonList(availability));
+            // Mock boat availability
+            BoatAvailability availability = mock(BoatAvailability.class);
+            when(availability.calculatePriceForPeriod(startDate, endDate))
+                    .thenReturn(new BigDecimal("500.00"));
+            when(availability.coversPeriod(startDate, endDate)).thenReturn(true);
+
+            when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat, startDate, endDate))
+                    .thenReturn(Collections.singletonList(availability));
 
             PaymentResult successfulPayment = PaymentResult.builder()
                     .success(true)
@@ -454,21 +504,20 @@ class BookingApplicationServiceTest {
                     .build();
             when(paymentService.processPayment(any(PaymentInfo.class))).thenReturn(successfulPayment);
 
-            Booking savedBooking = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("500.00"));
-            savedBooking.confirm();
-            when(bookingRepository.save(any(Booking.class))).thenReturn(savedBooking);
+            Booking realBooking = new Booking(testUser, testBoat, startDate, endDate, new BigDecimal("500.00"));
+
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
+                Booking bookingToSave = invocation.getArgument(0);
+                return realBooking;
+            });
 
             // Act
-            Booking result = bookingApplicationService.createBooking(validRequest);
+            bookingApplicationService.createBooking(validRequest);
 
             // Assert
-            assertThat(result).isNotNull();
-            verify(notificationService).notifyOwner(savedBooking);
-            verify(notificationService).notifyRenter(savedBooking);
-
-            // Verify order of calls (optional)
-            verify(notificationService, times(1)).notifyOwner(savedBooking);
-            verify(notificationService, times(1)).notifyRenter(savedBooking);
+            verify(bookingRepository, times(2)).save(any(Booking.class));
+            verify(notificationService).notifyOwner(realBooking);
+            verify(notificationService).notifyRenter(realBooking);
         }
     }
 
@@ -494,18 +543,24 @@ class BookingApplicationServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
 
-        // Mock boat availability repository
-        BoatAvailability availability =
-                new BoatAvailability();
-        availability.setPricePerHour(new BigDecimal("50.00"));
-        when(boatAvailabilityRepository.findCoveringAvailabilityWindow(any(), any(), any()))
-                .thenReturn(java.util.Collections.singletonList(availability));
+        BoatAvailability availability = mock(BoatAvailability.class);
+        when(availability.calculatePriceForPeriod(any(), any()))
+                .thenReturn(new BigDecimal("100.00"));
+        when(availability.coversPeriod(any(), any())).thenReturn(true);
+
+        when(boatAvailabilityRepository.findCoveringAvailabilityWindow(testBoat,
+                invalidDateRequest.getStartDate(), invalidDateRequest.getEndDate()))
+                .thenReturn(Collections.singletonList(availability));
 
         // Act & Assert
-        // Validation occurs inside Booking constructor (called by service)
-        // which throws IllegalArgumentException
         assertThatThrownBy(() -> bookingApplicationService.createBooking(invalidDateRequest))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Start date cannot be after end date");
+
+        verify(userRepository).findById(1L);
+        verify(boatRepository).findById(1L);
+        verify(boatAvailabilityRepository).findCoveringAvailabilityWindow(testBoat,
+                invalidDateRequest.getStartDate(), invalidDateRequest.getEndDate());
+        verifyNoInteractions(bookingRepository, paymentService, notificationService);
     }
 }
