@@ -1,4 +1,4 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.service.BookingQueryService;

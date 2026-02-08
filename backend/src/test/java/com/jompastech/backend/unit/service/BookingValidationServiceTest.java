@@ -1,4 +1,4 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
 import com.jompastech.backend.exception.BookingConflictException;
 import com.jompastech.backend.exception.BookingValidationException;

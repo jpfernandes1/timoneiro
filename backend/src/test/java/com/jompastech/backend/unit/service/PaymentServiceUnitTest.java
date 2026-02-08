@@ -1,6 +1,5 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
-import com.jompastech.backend.exception.PaymentGatewayException;
 import com.jompastech.backend.exception.PaymentValidationException;
 import com.jompastech.backend.model.dto.payment.*;
 import com.jompastech.backend.model.entity.Booking;
@@ -25,7 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
