@@ -60,7 +60,6 @@ import java.math.BigDecimal;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(BoatControllerIT.TestSecurityConfig.class)
 class BoatControllerIT {
 
     @Autowired
