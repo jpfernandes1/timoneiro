@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -38,28 +41,44 @@ public class SecurityConfig {
                         // Public endpoints - no authentication required
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // Authentication endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**", // Swagger UI
-                                         "/v3/api-docs/**", // API documentation
-                                         "/swagger-resources/**",
-                                         "/webjars/**",
-                                         "/api/boats",      // BOAT LIST (GET)
-                                         "/api/boats/{id}", // BOAT DETAILS (GET)
-                                         "/api/boats/{id}/availability/**", // BOAT AVAILABILITY (GET)
-                                         "/api/search/**"
+                                "/v3/api-docs/**", // API documentation
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
-                        .requestMatchers("/api/public/**").permitAll() // Public API endpoints
-                        .requestMatchers("/api/bookings/**").authenticated()
+
+                        // PUBLIC GET endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/boats").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boats/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boats/{id}/availability/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
 
                         // Protected endpoints with role-based authorization
-                        .requestMatchers("/api/boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/boats").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/boats/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/boats/my-boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+
+                        .requestMatchers("/api/bookings/**").authenticated()
+
+                        // User management
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN") // Only admins can delete users
                         .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN") // Both users and admins can access
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication required\"}");
+                        })
                 )
                 // Add JWT filter before Spring Security's authentication processing
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
