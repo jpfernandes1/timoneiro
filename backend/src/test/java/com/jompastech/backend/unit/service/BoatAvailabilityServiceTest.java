@@ -4,8 +4,10 @@ import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
 import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.BoatAvailability;
+import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.BoatAvailabilityRepository;
 import com.jompastech.backend.repository.BoatRepository;
+import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.service.BoatAvailabilityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +56,9 @@ class BoatAvailabilityServiceTest {
 
     @InjectMocks
     private BoatAvailabilityService boatAvailabilityService;
+
+    @Mock
+    private UserRepository userRepository;
 
     private Boat testBoat;
     private BoatAvailability testAvailability;
@@ -115,11 +120,23 @@ class BoatAvailabilityServiceTest {
     @DisplayName("CREATE - Should successfully create availability with DTO")
     void createAvailability_WhenValidData_ShouldSaveAndReturnDTO() {
         // Arrange
+        String email = "teste@teste.com";
+
+        // User entities - represents the boat owner
+        User testBoatOwner;
+        testBoatOwner = new User();
+        testBoatOwner.setId(1L);
+        testBoatOwner.setName("Test User");
+        testBoatOwner.setEmail("teste@teste.com");
+
+        testBoat.setOwner(testBoatOwner);
+
         when(boatRepository.findById(1L)).thenReturn(Optional.of(testBoat));
         when(boatAvailabilityRepository.save(any(BoatAvailability.class))).thenReturn(testAvailability);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(testBoatOwner));
 
         // Act
-        BoatAvailabilityResponseDTO result = boatAvailabilityService.createAvailability(1L, requestDTO);
+        BoatAvailabilityResponseDTO result = boatAvailabilityService.createAvailability(1L, requestDTO, email);
 
         // Assert
         assertNotNull(result);
@@ -148,10 +165,11 @@ class BoatAvailabilityServiceTest {
     void createAvailability_WhenBoatNotFound_ShouldThrowException() {
         // Arrange
         when(boatRepository.findById(999L)).thenReturn(Optional.empty());
+        String email = "teste@teste.com";
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            boatAvailabilityService.createAvailability(999L, requestDTO);
+            boatAvailabilityService.createAvailability(999L, requestDTO, email);
         });
 
         assertEquals("Boat not found with id: 999", exception.getMessage());
