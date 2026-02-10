@@ -6,6 +6,7 @@ import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.repository.BoatAvailabilityRepository;
 import com.jompastech.backend.repository.BoatRepository;
+import com.jompastech.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class BoatAvailabilityService {
 
     private final BoatAvailabilityRepository boatAvailabilityRepository;
     private final BoatRepository boatRepository;
+    private final UserRepository userRepository;
 
     /**
      * Creates and persists a new boat availability slot.
@@ -46,11 +48,21 @@ public class BoatAvailabilityService {
      * @return the created availability as a response DTO
      */
     @Transactional
-    public BoatAvailabilityResponseDTO createAvailability(Long boatId, BoatAvailabilityRequestDTO requestDTO) {
+    public BoatAvailabilityResponseDTO createAvailability(Long boatId, BoatAvailabilityRequestDTO requestDTO, String email) {
         log.info("Creating availability for boat ID: {}", boatId);
 
         var boat = boatRepository.findById(boatId)
                 .orElseThrow(() -> new RuntimeException("Boat not found with id: " + boatId));
+
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        boolean isOwner = boat.getOwner().getId().equals(user.getId());
+        boolean isAdmin = user.getRole().equals("ROLE_ADMIN");
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("User is not authorized to create availability for this boat");
+        }
 
         var availability = new BoatAvailability(
                 boat,
