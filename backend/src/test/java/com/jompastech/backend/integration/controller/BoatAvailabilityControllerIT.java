@@ -3,6 +3,8 @@ package com.jompastech.backend.integration.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
+import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.model.entity.User;
@@ -11,6 +13,7 @@ import com.jompastech.backend.repository.BoatRepository;
 import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.security.dto.AuthRequestDTO;
 import com.jompastech.backend.security.filter.JwtAuthenticationFilter;
+import com.jompastech.backend.service.BoatAvailabilityService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -34,6 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -48,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(BoatAvailabilityControllerIT.TestServiceConfig.class)
 class BoatAvailabilityControllerIT {
 
     @Autowired
@@ -752,6 +758,99 @@ class BoatAvailabilityControllerIT {
         }
     }
 
+    @Test
+    void shouldReturnInternalServerErrorWhenUpdateAvailabilityWithMissingPrice() throws Exception {
+        // Creates a valid availability
+        BoatAvailability availability = new BoatAvailability();
+        availability.setBoat(testBoat);
+        availability.setStartDate(LocalDateTime.parse("2024-12-01T10:00:00"));
+        availability.setEndDate(LocalDateTime.parse("2024-12-01T14:00:00"));
+        availability.setPricePerHour(BigDecimal.valueOf(150));
+        BoatAvailability saved = boatAvailabilityRepository.save(availability);
+
+        // JSON without pricePerHour → viola @Column(nullable = false)
+        String updateJson = """
+        {
+            "startDate": "2024-12-02T09:00:00",
+            "endDate": "2024-12-02T18:00:00"
+        }
+        """;
+
+        mockMvc.perform(put("/api/boats/{boatId}/availability/{id}", boatId, saved.getId())
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerErrorWhenGetBoatAvailabilitiesFails() throws Exception {
+        // Configure the service to throw an exception for this boatId.
+        THROW_FOR_BOAT_ID.set(boatId);
+        try {
+            mockMvc.perform(get("/api/boats/{boatId}/availability", boatId)
+                            .header("Authorization", "Bearer " + jwtToken))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$").doesNotExist()); // null body
+        } finally {
+            THROW_FOR_BOAT_ID.remove();
+        }
+    }
+
+    @Test
+    void shouldReturnInternalServerErrorWhenGetAvailabilityByIdFails() throws Exception {
+        // First, create a real availability.
+        BoatAvailability availability = new BoatAvailability();
+        availability.setBoat(testBoat);
+        availability.setStartDate(LocalDateTime.parse("2024-12-01T10:00:00"));
+        availability.setEndDate(LocalDateTime.parse("2024-12-01T14:00:00"));
+        availability.setPricePerHour(new BigDecimal(150));
+        BoatAvailability saved = boatAvailabilityRepository.save(availability);
+
+        // Set an exception for this ID.
+        THROW_FOR_AVAILABILITY_ID.set(saved.getId());
+        try {
+            mockMvc.perform(get("/api/boats/{boatId}/availability/{id}", boatId, saved.getId())
+                            .header("Authorization", "Bearer " + jwtToken))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$").doesNotExist());
+        } finally {
+            THROW_FOR_AVAILABILITY_ID.remove();
+        }
+    }
+
+    @Test
+    void shouldReturnInternalServerErrorWhenUpdateAvailabilityFails() throws Exception {
+        // Cria availability
+        BoatAvailability availability = new BoatAvailability();
+        availability.setBoat(testBoat);
+        availability.setStartDate(LocalDateTime.parse("2024-12-01T10:00:00"));
+        availability.setEndDate(LocalDateTime.parse("2024-12-01T14:00:00"));
+        availability.setPricePerHour(new BigDecimal(150));
+        BoatAvailability saved = boatAvailabilityRepository.save(availability);
+
+        String updateJson = """
+        {
+            "startDate": "2024-12-02T09:00:00",
+            "endDate": "2024-12-02T18:00:00",
+            "pricePerHour": 180.75
+        }
+        """;
+
+        THROW_FOR_AVAILABILITY_ID.set(saved.getId());
+        try {
+            mockMvc.perform(put("/api/boats/{boatId}/availability/{id}", boatId, saved.getId())
+                            .header("Authorization", "Bearer " + jwtToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(updateJson))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$").doesNotExist());
+        } finally {
+            THROW_FOR_AVAILABILITY_ID.remove();
+        }
+    }
+
+
     @TestConfiguration
     static class TestSecurityConfig {
 
@@ -825,6 +924,62 @@ class BoatAvailabilityControllerIT {
                     }
 
                     filterChain.doFilter(request, response);
+                }
+            };
+        }
+    }
+
+ // ==============================================
+ // TEST CONFIGURATION FOR SIMULATING EXCEPTIONS
+ // ==============================================
+
+    private static final ThreadLocal<Long> THROW_FOR_BOAT_ID = new ThreadLocal<>();
+    private static final ThreadLocal<Long> THROW_FOR_AVAILABILITY_ID = new ThreadLocal<>();
+
+    @TestConfiguration
+    static class TestServiceConfig {
+
+        @Bean
+        @Primary
+        public BoatAvailabilityService testBoatAvailabilityService(
+                BoatAvailabilityRepository boatAvailabilityRepository,
+                BoatRepository boatRepository,
+                UserRepository userRepository) {
+
+            return new BoatAvailabilityService(boatAvailabilityRepository, boatRepository, userRepository) {
+
+                @Override
+                public List<BoatAvailabilityResponseDTO> findAvailabilityByBoatId(Long boatId) {
+                    if (THROW_FOR_BOAT_ID.get() != null && THROW_FOR_BOAT_ID.get().equals(boatId)) {
+                        throw new RuntimeException("Simulated exception in findAvailabilityByBoatId");
+                    }
+                    return super.findAvailabilityByBoatId(boatId);
+                }
+
+                @Override
+                public BoatAvailabilityResponseDTO findById(Long id) {
+                    if (THROW_FOR_AVAILABILITY_ID.get() != null && THROW_FOR_AVAILABILITY_ID.get().equals(id)) {
+                        throw new RuntimeException("Simulated exception in findById");
+                    }
+                    return super.findById(id);
+                }
+
+                @Override
+                @Transactional
+                public BoatAvailabilityResponseDTO updateAvailability(Long id, BoatAvailabilityRequestDTO requestDTO) {
+                    if (THROW_FOR_AVAILABILITY_ID.get() != null && THROW_FOR_AVAILABILITY_ID.get().equals(id)) {
+                        throw new RuntimeException("Simulated exception in updateAvailability");
+                    }
+                    return super.updateAvailability(id, requestDTO);
+                }
+
+                @Override
+                @Transactional
+                public void deleteAvailability(Long id) {
+                    if (THROW_FOR_AVAILABILITY_ID.get() != null && THROW_FOR_AVAILABILITY_ID.get().equals(id)) {
+                        throw new RuntimeException("Simulated exception in deleteAvailability");
+                    }
+                    super.deleteAvailability(id);
                 }
             };
         }
