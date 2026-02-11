@@ -1,5 +1,6 @@
 package com.jompastech.backend.controller;
 
+import com.jompastech.backend.exception.AvailabilityNotFoundException;
 import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
 import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.service.BoatAvailabilityService;
@@ -45,7 +46,6 @@ public class BoatAvailabilityController {
     @GetMapping
     public ResponseEntity<List<BoatAvailabilityResponseDTO>> getBoatAvailabilities(@PathVariable Long boatId) {
         log.info("GET /api/boats/{}/availability called", boatId);
-
         try {
             var availabilities = availabilityService.findAvailabilityByBoatId(boatId);
             return ResponseEntity.ok(availabilities);
@@ -62,10 +62,10 @@ public class BoatAvailabilityController {
         try {
             var availability = availabilityService.findById(id);
             return ResponseEntity.ok(availability);
-        } catch (RuntimeException e) {
+        } catch (AvailabilityNotFoundException e) {
             log.error("Availability not found with ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Failed to get availability with ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -81,10 +81,10 @@ public class BoatAvailabilityController {
         try {
             var updatedAvailability = availabilityService.updateAvailability(id, requestDTO);
             return ResponseEntity.ok(updatedAvailability);
-        } catch (RuntimeException e) {
+        } catch (AvailabilityNotFoundException e) {
             log.error("Availability not found with ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Failed to update availability with ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -93,16 +93,12 @@ public class BoatAvailabilityController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAvailability(@PathVariable Long id) {
         log.info("DELETE /api/boats/{}/availability/{} called", "{boatId}", id);
-
         try {
             availabilityService.deleteAvailability(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
+        } catch (AvailabilityNotFoundException e) {
             log.error("Availability not found with ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception e) {
-            log.error("Failed to delete availability with ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -119,12 +115,7 @@ public class BoatAvailabilityController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
         }
 
-        try {
-            var isAvailable = availabilityService.isBoatAvailable(boatId, startDate, endDate);
-            return ResponseEntity.ok(isAvailable);
-        } catch (Exception e) {
-            log.error("Failed to check availability for boat ID {}: {}", boatId, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
-        }
+        var isAvailable = availabilityService.isBoatAvailable(boatId, startDate, endDate);
+        return ResponseEntity.ok(isAvailable);
     }
 }

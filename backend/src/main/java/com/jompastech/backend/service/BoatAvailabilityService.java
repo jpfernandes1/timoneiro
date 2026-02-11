@@ -1,6 +1,6 @@
-// BoatAvailabilityService.java - Versão atualizada
 package com.jompastech.backend.service;
 
+import com.jompastech.backend.exception.AvailabilityNotFoundException;
 import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
 import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.BoatAvailability;
@@ -88,7 +88,7 @@ public class BoatAvailabilityService {
         log.info("Finding availability by ID: {}", id);
 
         var availability = boatAvailabilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Availability not found with id: " + id));
+                .orElseThrow(() -> new AvailabilityNotFoundException("Availability not found with id: " + id));
 
         return convertToResponseDTO(availability);
     }
@@ -150,7 +150,7 @@ public class BoatAvailabilityService {
         log.info("Updating availability with ID: {}", id);
 
         var availability = boatAvailabilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Availability not found with id: " + id));
+                .orElseThrow(() -> new AvailabilityNotFoundException("Availability not found with id: " + id));
 
         availability.setStartDate(requestDTO.getStartDate());
         availability.setEndDate(requestDTO.getEndDate());
@@ -169,10 +169,8 @@ public class BoatAvailabilityService {
      */
     @Transactional
     public void deleteAvailability(Long id) {
-        log.info("Deleting availability with ID: {}", id);
-
         if (!boatAvailabilityRepository.existsById(id)) {
-            throw new RuntimeException("Availability not found with id: " + id);
+            throw new AvailabilityNotFoundException("Availability not found with id: " + id);
         }
         boatAvailabilityRepository.deleteById(id);
     }
