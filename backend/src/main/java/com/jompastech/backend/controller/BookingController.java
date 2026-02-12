@@ -132,12 +132,7 @@ public class BookingController {
      * the booking owner (renter) or the boat owner. Authorization logic
      * is enforced at the service layer to prevent unauthorized access.</p>
      *
-     * <p><b>Implementation Status:</b> This endpoint requires additional
-     * service methods for authorization checking and is marked for
-     * future implementation.</p>
-     *
      * @param bookingId Unique identifier of the booking to retrieve
-     * @param userId Authenticated user ID for authorization validation
      * @return ResponseEntity with booking details if authorized
      */
     @GetMapping("/{bookingId}")
@@ -154,17 +149,19 @@ public class BookingController {
     })
     public ResponseEntity<BookingResponseDTO> getBookingById(
             @PathVariable Long bookingId,
-            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal String email) {
 
-        log.info("Retrieving booking {} for user {}", bookingId, userId);
+        log.info("Retrieving booking {} for user {}", bookingId, email);
 
-        // TODO: Implement service method for authorized booking retrieval
-        // var booking = bookingQueryService.getBookingByIdAndAuthorize(bookingId, userId);
-        // var response = bookingMapper.toResponseDTO(booking);
-        // return ResponseEntity.ok(response);
+        // Busca o usuário autenticado pelo email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
-        log.warn("Booking retrieval endpoint not yet implemented - returning 501");
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        // Chama o service que valida autorização e retorna a reserva
+        Booking booking = bookingApplicationService.getBookingByIdAndAuthorize(bookingId, user.getId());
+
+        BookingResponseDTO response = bookingMapper.toResponseDTO(booking);
+        return ResponseEntity.ok(response);
     }
 
     /**
