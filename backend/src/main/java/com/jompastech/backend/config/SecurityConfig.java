@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
+                        .requestMatchers("/api/payments/webhook/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**", // Swagger UI
                                 "/v3/api-docs/**", // API documentation
