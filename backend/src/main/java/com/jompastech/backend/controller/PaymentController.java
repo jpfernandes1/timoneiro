@@ -1,18 +1,23 @@
 package com.jompastech.backend.controller;
 
+import com.jompastech.backend.exception.PaymentValidationException;
 import com.jompastech.backend.model.dto.payment.PaymentRequestDTO;
 import com.jompastech.backend.model.dto.payment.PaymentResponseDTO;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
 import com.jompastech.backend.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST Controller for payment processing operations.
@@ -84,6 +89,14 @@ public class PaymentController {
     @PostMapping("/direct")
     @Operation(summary = "Process direct payment",
             description = "Process payment without booking context. Typically for deposits or inquiries.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Payment completed"),
+            @ApiResponse(responseCode = "400", description = "Invalid Payment parameters or validation failed"),
+            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Boat or Booking not found"),
+            @ApiResponse(responseCode = "402", description = "Payment processing failed"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<PaymentResponseDTO> processDirectPayment(
             @Valid @RequestBody PaymentRequestDTO request,
             @AuthenticationPrincipal Long userId) {
@@ -92,6 +105,10 @@ public class PaymentController {
                 userId, request.getAmount(), request.getBoatId());
 
         PaymentInfo paymentInfo = PaymentInfo.fromPaymentRequest(request);
+        if (!paymentInfo.hasValidContext()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid Request: Provide bookingId or boatId, not both.");
+        }
         PaymentResult result = paymentService.processPayment(paymentInfo);
 
         PaymentResponseDTO response = PaymentResponseDTO.fromPaymentResult(
@@ -168,20 +185,35 @@ public class PaymentController {
     @PostMapping("/webhook/pagseguro")
     @Operation(summary = "Payment gateway webhook",
             description = "Webhook endpoint for asynchronous payment notifications from PagSeguro")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Webhook processed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid signature or malformed payload"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Void> handlePaymentWebhook(
             @RequestBody String payload,
             @RequestHeader("X-Signature") String signature) {
 
         log.info("Received payment webhook notification, verifying signature");
 
-        // Implementation pending webhook service
-        // boolean isValid = paymentService.verifyWebhookSignature(payload, signature);
-        // if (isValid) {
-        //     paymentService.processWebhookNotification(payload);
-        // }
+        // 1. Verify signature
+        boolean isValid = paymentService.verifyWebhookSignature(payload, signature);
+        if (!isValid) {
+            log.warn("Webhook signature verification failed");
+            return ResponseEntity.badRequest().build();
+        }
 
-        log.warn("Webhook processing not yet implemented");
-        return ResponseEntity.ok().build();
+        // 2. Process notification
+        try {
+            paymentService.processWebhookNotification(payload);
+            return ResponseEntity.ok().build();
+        } catch (PaymentValidationException e) {
+            log.error("Webhook processing failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error processing webhook", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -205,4 +237,6 @@ public class PaymentController {
             return ResponseEntity.status(503).body("Payment service unavailable");
         }
     }
+
+
 }
