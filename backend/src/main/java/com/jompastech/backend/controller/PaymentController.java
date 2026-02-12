@@ -210,9 +210,6 @@ public class PaymentController {
         } catch (PaymentValidationException e) {
             log.error("Webhook processing failed: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            log.error("Unexpected error processing webhook", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -230,13 +227,6 @@ public class PaymentController {
 
         // Basic health check - can be expanded with gateway connectivity tests
         boolean serviceHealthy = true; // Add actual health checks
-
-        if (serviceHealthy) {
-            return ResponseEntity.ok("Payment service is healthy");
-        } else {
-            return ResponseEntity.status(503).body("Payment service unavailable");
-        }
+        return ResponseEntity.ok("Payment service is healthy");
     }
-
-
 }
