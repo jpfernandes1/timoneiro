@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -154,5 +155,67 @@ public class GlobalExceptionHandler {
                 req.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
+    /**
+     * Handles PaymentProcessingException
+     * It throws this error when occur some error with payment on PaymentService
+     */
+    @ExceptionHandler(PaymentProcessingException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentProcessingException(
+            PaymentProcessingException ex, HttpServletRequest req) {
+        var body = new ErrorResponse(
+                Instant.now(),
+                402,
+                "Payment Required",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(
+            EntityNotFoundException ex, HttpServletRequest req) {
+        var body = new ErrorResponse(
+                Instant.now(),
+                404,
+                "Not Found",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest req) {
+        var body = new ErrorResponse(
+                Instant.now(),
+                403,
+                "Forbidden",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(BookingCreationException.class)
+    public ResponseEntity<ErrorResponse> handleBookingCreationException(
+            BookingCreationException ex, HttpServletRequest req) {
+        var body = new ErrorResponse(
+                Instant.now(),
+                404,
+                "Not Found",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        if (ex.getMessage().contains("Boat not found") || ex.getMessage().contains("User not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        if (ex.getMessage().contains("availability window")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body); // 409
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }
