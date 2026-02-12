@@ -6,7 +6,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jompastech.backend.model.dto.payment.MockCardData;
 import com.jompastech.backend.model.dto.payment.PaymentRequestDTO;
 import com.jompastech.backend.model.entity.*;
-import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.model.enums.PaymentMethod;
 import com.jompastech.backend.model.enums.PaymentStatus;
 import com.jompastech.backend.repository.*;
@@ -16,7 +15,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -299,7 +297,7 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Deve processar pagamento de booking com sucesso")
+    @DisplayName("You should be able to successfully process your booking payment.")
     void processBookingPayment_Success() throws Exception {
         // given
         PaymentRequestDTO request = new PaymentRequestDTO();
@@ -335,7 +333,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve retornar 400 quando request inválido (validation error)")
+    @DisplayName("It should return 400 when the request is invalid (validation error).")
     void processBookingPayment_ValidationError() throws Exception {
         // given: missing amount
         String invalidJson = """
@@ -353,7 +351,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve retornar 401 quando não autenticado")
+    @DisplayName("It should return a 401 error when not authenticated.")
     void processBookingPayment_Unauthorized() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("250.00"));
@@ -370,7 +368,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve processar pagamento com cartão recusado e retornar sucesso (status falha)")
+    @DisplayName("It must process the declined card payment and return success (failure status).")
     void processBookingPayment_DeclinedCard() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("250.00"));
@@ -394,7 +392,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve processar pagamento com cartão pendente")
+    @DisplayName("You must process the pending card payment.")
     void processBookingPayment_PendingCard() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("250.00"));
@@ -422,7 +420,7 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Deve processar pagamento direto com sucesso")
+    @DisplayName("You should be able to successfully process the direct payment.")
     void processDirectPayment_Success() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("150.00"));
@@ -446,7 +444,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve processar pagamento direto com PIX")
+    @DisplayName("You must process the payment directly using PIX.")
     void processDirectPayment_Pix() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("80.00"));
@@ -469,13 +467,13 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve processar pagamento direto com Boleto")
+    @DisplayName("You must process payment directly with Bank slip.")
     void processDirectPayment_Boleto() throws Exception {
         PaymentRequestDTO request = new PaymentRequestDTO();
         request.setAmount(new BigDecimal("120.00"));
         request.setPaymentMethod(PaymentMethod.BOLETO);
         request.setBoatId(testBoat.getId());
-        request.setDescription("Test Boleto payment");
+        request.setDescription("Test payment by bank slip");
         request.setMockCardData(null);
 
         String requestJson = objectMapper.writeValueAsString(request);
@@ -533,7 +531,7 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Deve retornar 404 (stubbed)")
+    @DisplayName("It should return a 404 (stubbed)")
     void getPaymentByTransactionId_NotFound() throws Exception {
         mockMvc.perform(get("/api/payments/transaction/TX123")
                         .header("Authorization", "Bearer " + jwtToken))
@@ -541,7 +539,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve retornar 401 quando não autenticado")
+    @DisplayName("It should return a 401 error when not authenticated.")
     void getPaymentByTransactionId_Unauthorized() throws Exception {
         mockMvc.perform(get("/api/payments/transaction/TX123"))
                 .andExpect(status().isUnauthorized());
@@ -552,7 +550,7 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Deve retornar 200 com body vazio (stubbed)")
+    @DisplayName("It should return 200 with an empty (stubbed) body.")
     void getPaymentHistory_Success() throws Exception {
         mockMvc.perform(get("/api/payments/history")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -563,7 +561,7 @@ class PaymentControllerIT {
     }
 
     @Test
-    @DisplayName("Deve retornar 401 quando não autenticado")
+    @DisplayName("It should return a 401 error when not authenticated.")
     void getPaymentHistory_Unauthorized() throws Exception {
         mockMvc.perform(get("/api/payments/history"))
                 .andExpect(status().isUnauthorized());
@@ -574,9 +572,9 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Webhook - deve processar notificação válida e atualizar status do pagamento")
+    @DisplayName("Webhook - must process valid notification and update payment status.")
     void handlePaymentWebhook_ValidSignatureAndTransaction_ShouldReturn200() throws Exception {
-        // 1. Cria uma reserva com PIX
+        // 1. Create a reservation with PIX.
         String newBookingStartStr = startDate.plusDays(5).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         String newBookingEndStr = startDate.plusDays(5).plusHours(6).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
@@ -597,13 +595,13 @@ class PaymentControllerIT {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        // 2. Extrai o ID da reserva e obtém o transactionId do pagamento via repositório
+        // 2. Extracts the reservation ID and retrieves the transaction ID of the payment via the repository.
 
         String bookingResponse = bookingResult.getResponse().getContentAsString();
         Long bookingId = ((Number) JsonPath.read(bookingResponse, "$.id")).longValue();
 
         Payment payment = paymentRepository.findByBookingId(bookingId)
-                .orElseThrow(() -> new AssertionError("Pagamento não encontrado para a reserva " + bookingId));
+                .orElseThrow(() -> new AssertionError("Payment not found for the reservation. " + bookingId));
         String transactionId = payment.getTransactionId();
 
         // 3. Monta o payload do webhook
@@ -616,18 +614,18 @@ class PaymentControllerIT {
         }
         """, System.currentTimeMillis(), transactionId);
 
-        // 4. Calcula a assinatura HMAC-SHA256
+        // 4. Calculate the HMAC-SHA256 signature.
         String secret = "chave_teste_sandbox";
         String signature = hmacSha256Base64(secret, webhookPayload);
 
-        // 5. Envia o webhook
+        // 5. Send the webhook
         mockMvc.perform(post("/api/payments/webhook/pagseguro")
                         .header("X-Signature", signature)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(webhookPayload))
                 .andExpect(status().isOk());
 
-        // 6. Verifica a atualização do status
+        // 6. Check the status update.
         Payment updatedPayment = paymentRepository.findByTransactionId(transactionId).orElseThrow();
         assertThat(updatedPayment.getStatus()).isEqualTo(PaymentStatus.CONFIRMED);
 
@@ -638,20 +636,13 @@ class PaymentControllerIT {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("Deve retornar 200 quando serviço saudável")
+    @DisplayName("It should return 200 when the service is healthy.")
     void healthCheck_Healthy() throws Exception {
         mockMvc.perform(get("/api/payments/health")
                 .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Payment service is healthy"));
     }
-
-    /*
-     * The else branch (503) is unreachable in the current implementation
-     * because serviceHealthy is hardcoded to true. To achieve 100% coverage
-     * this branch would need a refactoring (e.g., inject a HealthIndicator).
-     * Therefore we skip it in this integration test suite.
-     */
 
     // -----------------------------------------------------------------
     //  Test Security Configuration (adapted to provide Long userId)
