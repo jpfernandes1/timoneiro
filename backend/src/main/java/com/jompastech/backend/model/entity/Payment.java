@@ -44,7 +44,7 @@ public class Payment {
      * (e.g., partial payments, refunds) though business rules may restrict to one active payment.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @JoinColumn(name = "booking_id", nullable = true)
     private Booking booking;
 
     /**
