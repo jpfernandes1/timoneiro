@@ -51,6 +51,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             PaymentStatus status,
             LocalDateTime createdBefore);
 
+
+    /**
+     * Finds payment by bookingID
+     * @param bookingId
+     */
+    Optional<Payment> findByBookingId(Long bookingId);
+
     /**
      * Finds payments by user ID through booking relationship.
      */
