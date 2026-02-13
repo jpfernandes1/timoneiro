@@ -73,36 +73,39 @@ public class AuthController {
 
         String token = authHeader.substring(7);
 
-        try {
-            // Validate token
-            if (!jwtUtil.isValidToken(token)) {
-                log.warn("Invalid token provided");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Token is invalid or expired");
-            }
-
-            // Extract user information from token
-            String email = jwtUtil.getEmail(token);
-
-            // Get authentication from context (if available)
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            // Return basic user info
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", true);
-            response.put("email", email);
-            response.put("authenticated", authentication != null && authentication.isAuthenticated());
-            response.put("timestamp", java.time.Instant.now().toString());
-
-            log.debug("Token validated successfully for user: {}", email);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Error validating token: {}", e.getMessage());
+        // Validate token
+        if (!jwtUtil.isValidToken(token)) {
+            log.warn("Invalid token provided");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Token validation failed: " + e.getMessage());
+                    .body("Token is invalid or expired");
         }
+
+        // Extract user information from token
+        String email = jwtUtil.getEmail(token);
+
+        // Checks if the user exists
+        try {
+            userService.findByEmail(email);
+        } catch (Exception e) {
+            log.warn("User not found for email: {}", email);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User no longer exists");
+        }
+
+        // Get authentication from context (if available)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Return basic user info
+        Map<String, Object> response = new HashMap<>();
+        response.put("valid", true);
+        response.put("email", email);
+        response.put("authenticated", authentication != null && authentication.isAuthenticated());
+        response.put("timestamp", java.time.Instant.now().toString());
+
+        log.debug("Token validated successfully for user: {}", email);
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/me")
     @Operation(
@@ -116,26 +119,23 @@ public class AuthController {
     public ResponseEntity<UserBasicDTO> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null ||
+            !authentication.isAuthenticated() ||
+            "anonymousUser".equals(authentication.getName())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String email = authentication.getName();
 
-        try {
-            User user = userService.findByEmail(email);
+        User user = userService.findByEmail(email);
 
-            // Create UserBasicDTO
-            UserBasicDTO userDTO = new UserBasicDTO();
-            userDTO.setId(user.getId());
-            userDTO.setName(user.getName());
-            userDTO.setEmail(user.getEmail());
+        // Create UserBasicDTO
+        UserBasicDTO userDTO = new UserBasicDTO();
+        userDTO.setId(user.getId());
+        userDTO.setName(user.getName());
+        userDTO.setEmail(user.getEmail());
 
-            return ResponseEntity.ok(userDTO);
-        } catch (Exception e) {
-            log.error("Error getting current user: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(userDTO);
+
     }
-
 }
