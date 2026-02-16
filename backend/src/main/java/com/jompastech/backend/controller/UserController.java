@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,9 +51,8 @@ public class UserController {
                 .body(response);
     }
 
-    // CREATE ADMIN - apenas administradores
+    // CREATE ADMIN - Only Admin
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')") // Only ADMINS can create new users
     public ResponseEntity<AuthResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
         AuthResponseDTO createdUser = userService.register(dto);
         return ResponseEntity.created(URI.create("/api/users/" + createdUser.getUserId()))
@@ -64,22 +61,19 @@ public class UserController {
 
     // READ ALL - Only admins
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
     // READ BY NAME - Only admins
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getUsersByName(@RequestParam String name) {
         List<UserResponseDTO> users = userService.findUsersByName(name);
         return ResponseEntity.ok(users);
     }
 
-    // Search for emailemail (útil para admin)
+    // Search for email (admin)
     @GetMapping("/email/{email}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
         UserResponseDTO user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
@@ -87,7 +81,6 @@ public class UserController {
 
     // UPDATE - User can update his own profile or an admin
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO dto) {
         UserResponseDTO updatedUser = userService.updateUser(id, dto);
         return ResponseEntity.ok(updatedUser);
@@ -95,7 +88,6 @@ public class UserController {
 
     // DELETE - Only admins
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
         return ResponseEntity.noContent().build();
