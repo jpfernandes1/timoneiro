@@ -18,9 +18,11 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,19 +38,23 @@ class JwtAuthenticationFilterTest {
     @Mock
     private UserDetailsServiceImpl userDetailsService;
 
+    @Mock
+    private FilterChain filterChain;
+
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Mock
+    private UserDetails userDetails;
+
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
-    private FilterChain filterChain;
 
     @BeforeEach
     void setUp() {
-        request = new MockHttpServletRequest();
-        response = new MockHttpServletResponse();
-        filterChain = mock(FilterChain.class);
         SecurityContextHolder.clearContext();
+        request = new MockHttpServletRequest("GET", "/test");
+        response = new MockHttpServletResponse();
     }
 
     @AfterEach
@@ -68,7 +74,7 @@ class JwtAuthenticationFilterTest {
         // Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        // Assert - Apenas verifica o que realmente acontece
+        // Assert - It only verifies what actually happens.
         verify(jwtUtil).isValidToken(token);
         verify(jwtUtil).getEmail(token);
 
@@ -76,7 +82,7 @@ class JwtAuthenticationFilterTest {
         assertNotNull(authentication);
         assertEquals(email, authentication.getPrincipal());
 
-        // NÃO verifica userDetailsService porque não é usado!
+        // It does NOT check userDetailsService because it is not used!
         verify(filterChain).doFilter(request, response);
     }
 
@@ -84,6 +90,7 @@ class JwtAuthenticationFilterTest {
     void doFilter_withInvalidToken_shouldNotSetAuthentication() throws ServletException, IOException {
         // Arrange
         String token = "invalid.jwt.token";
+        request = new MockHttpServletRequest("GET", "/test");
         request.addHeader("Authorization", "Bearer " + token);
         when(jwtUtil.isValidToken(token)).thenReturn(false);
 
@@ -96,7 +103,8 @@ class JwtAuthenticationFilterTest {
         verify(userDetailsService, never()).loadUserByUsername(anyString());
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        assertEquals(401, response.getStatus());
     }
 
     @Test
@@ -169,7 +177,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void extractToken_withNullHeader_shouldReturnNull() {
-        // Arrange - Não setamos header, então será null
+        // Arrange - We didn't set a header, so it will be null.
 
         // Act
         String result = ReflectionTestUtils.invokeMethod(
@@ -244,6 +252,11 @@ class JwtAuthenticationFilterTest {
         when(jwtUtil.isValidToken(token)).thenReturn(true);
         when(jwtUtil.getEmail(token)).thenReturn(email);
 
+        // Mock UserDetailsService
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userDetails.getAuthorities()).thenReturn(Collections.emptyList());
+        when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
+
         // Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
@@ -254,14 +267,14 @@ class JwtAuthenticationFilterTest {
         Authentication newAuth = SecurityContextHolder.getContext().getAuthentication();
         assertNotNull(newAuth);
         assertNotSame(existingAuth, newAuth);
-        assertEquals(email, newAuth.getPrincipal());
+        assertEquals(userDetails, newAuth.getPrincipal()); // The main point should be UserDetails.
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
     void doFilter_whenAuthenticationAlreadyExistsAndInvalidToken_shouldNotOverride()
             throws ServletException, IOException {
-        // Arrange - Já existe uma autenticação no contexto
+        // Arrange - Authentication already exists in this context.
         Authentication existingAuth = mock(Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(existingAuth);
 
@@ -272,36 +285,37 @@ class JwtAuthenticationFilterTest {
         // Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        // Assert - Token inválido, não deve sobrescrever
+        // Assert - Invalid token, do not overwrite.
         verify(jwtUtil).isValidToken(token);
         verify(jwtUtil, never()).getEmail(anyString());
         verify(userDetailsService, never()).loadUserByUsername(anyString());
 
-        // A autenticação deve permanecer a mesma
+        // The authentication process should remain the same.
         Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        assertSame(existingAuth, currentAuth); // Deve ser a mesma
+        assertSame(existingAuth, currentAuth); // should be the same
 
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        assertEquals(401, response.getStatus());
     }
 
     @Test
     void doFilter_whenAuthenticationAlreadyExistsAndNoToken_shouldNotOverride()
             throws ServletException, IOException {
-        // Arrange - Já existe uma autenticação no contexto
+        // Arrange - Authentication already exists in this context.
         Authentication existingAuth = mock(Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(existingAuth);
 
-        // Não adiciona header Authorization
+        // It does not add the Authorization header.
 
         // Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        // Assert - Sem token, não deve sobrescrever
+        // Assert - Without a token, you shouldn't overwrite it.
         verify(jwtUtil, never()).isValidToken(anyString());
         verify(jwtUtil, never()).getEmail(anyString());
         verify(userDetailsService, never()).loadUserByUsername(anyString());
 
-        // A autenticação deve permanecer a mesma
+        // The authentication process should remain the same.
         Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
         assertSame(existingAuth, currentAuth);
 
@@ -324,28 +338,31 @@ class JwtAuthenticationFilterTest {
         verify(jwtUtil, never()).getEmail(anyString());
         verify(userDetailsService, never()).loadUserByUsername(anyString());
 
-        verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(filterChain, never()).doFilter(request, response);
+        assertEquals(401, response.getStatus());
     }
 
     @Test
     void shouldSetAuthenticationWhenValidToken() throws ServletException, IOException {
-        // Arrange
         String token = "valid.jwt.token";
         String email = "user@example.com";
 
+        // Arrange
         request.addHeader("Authorization", "Bearer " + token);
         when(jwtUtil.isValidToken(token)).thenReturn(true);
         when(jwtUtil.getEmail(token)).thenReturn(email);
+        when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
+        when(userDetails.getUsername()).thenReturn(email);
+        when(userDetails.getAuthorities()).thenReturn(null);
 
         // Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        // Assert -
+        // Assert
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        assertNotNull(authentication, "Authentication should be set");
-        assertEquals(email, authentication.getPrincipal(), "Principal should be the email");
-
+        assertNotNull(authentication);
+        assertSame(userDetails, authentication.getPrincipal()); // The main one is the mocked UserDetails.
+        assertEquals(email, ((UserDetails) authentication.getPrincipal()).getUsername());
         verify(filterChain).doFilter(request, response);
     }
 }
