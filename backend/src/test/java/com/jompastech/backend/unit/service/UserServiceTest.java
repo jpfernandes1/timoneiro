@@ -12,6 +12,7 @@ import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.security.dto.AuthResponseDTO;
 import com.jompastech.backend.security.util.JwtUtil;
 import com.jompastech.backend.service.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +26,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -357,6 +360,18 @@ public class UserServiceTest {
                 "11988888888"
         );
 
+        // SecurityContext configuration with authenticated user (can be admin ou itself)
+        User authenticatedUser = new User();
+        authenticatedUser.setId(userId); // same user id to be updated
+        authenticatedUser.setEmail("user@email.com");
+        authenticatedUser.setRole("ROLE_USER");
+        UserDetailsImpl userDetails = new UserDetailsImpl(authenticatedUser);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(auth);
+        SecurityContextHolder.setContext(securityContext);
+
+
         when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(savedUser));
         when(userRepository.existsByEmailIgnoreCaseAndIdNot("novo@email.com", userId)).thenReturn(false);
         when(passwordEncoder.encode("novaSenha123")).thenReturn("encodedNewPassword");
@@ -435,6 +450,17 @@ public class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(savedUser));
         when(userRepository.existsByEmailIgnoreCaseAndIdNot(updateDTO.getEmail(), userId)).thenReturn(true);
+
+        // SecurityContext configuration with authenticated user (can be admin ou itself)
+        User authenticatedUser = new User();
+        authenticatedUser.setId(userId); // same user id to be updated
+        authenticatedUser.setEmail("user@email.com");
+        authenticatedUser.setRole("ROLE_USER");
+        UserDetailsImpl userDetails = new UserDetailsImpl(authenticatedUser);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(auth);
+        SecurityContextHolder.setContext(securityContext);
 
         // Act
         EmailAlreadyInUseException exception = assertThrows(
@@ -570,14 +596,25 @@ public class UserServiceTest {
     @Test
     void updateCurrentUserProfile_WithValidData_ShouldReturnUpdatedProfile() {
         // Arrange
+        Long userId = 1L;
         String userEmail = "teste@teste.com";
-        setupSecurityContext(userEmail);
 
-        when(userRepository.findByEmailIgnoreCase(userEmail)).thenReturn(Optional.of(savedUser));
-        when(userRepository.findById(savedUser.getId())).thenReturn(Optional.ofNullable(savedUser));
-        lenient().when(userRepository.existsByEmailIgnoreCaseAndIdNot(anyString(), anyLong())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponseDTO);
+        User user = new User();
+        user.setId(userId);
+        user.setEmail(userEmail);
+        user.setRole("ROLE_USER");
+        UserDetailsImpl userDetails = new UserDetailsImpl(user);
+
+        // Configure the SecurityContext
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(userRepository.findByEmailIgnoreCase(userEmail)).thenReturn(Optional.of(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        lenient().when(userRepository.existsByEmailIgnoreCaseAndIdNot(anyString(), eq(userId))).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.toResponseDTO(user)).thenReturn(userResponseDTO);
 
         // Act
         UserResponseDTO result = userService.updateCurrentUserProfile(validUserRequest);
@@ -585,7 +622,7 @@ public class UserServiceTest {
         // Assert
         assertThat(result).isEqualTo(userResponseDTO);
         verify(userRepository).findByEmailIgnoreCase(userEmail);
-        verify(userRepository).findById(savedUser.getId());
+        verify(userRepository).findById(userId);
     }
 
     /**
@@ -646,12 +683,13 @@ public class UserServiceTest {
     /**
      * Sets up security context for authentication-dependent tests.
      *
-     * @param email the email to set as authenticated user
+     * @param userDetails the email to set as authenticated user
      */
-    private void setupSecurityContext(String email) {
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn(email);
+    private void setupSecurityContextWithUserDetails(UserDetailsImpl userDetails) {
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authentication.getName()).thenReturn(userDetails.getUsername());
         lenient().when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getAuthorities()).thenReturn((Collection) userDetails.getAuthorities());
         SecurityContextHolder.setContext(securityContext);
     }
 }
