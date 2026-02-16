@@ -9,13 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,6 +26,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -38,7 +39,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Public endpoints - no authentication required
+                        // ========== PUBLIC ENDPOINTS (no authentication required) ==========
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
@@ -51,29 +52,38 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // PUBLIC GET endpoints
+                        // Public GET endpoints for boats and search
                         .requestMatchers(HttpMethod.GET, "/api/boats").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boats/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boats/{id}/availability/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
 
-                        // Protected endpoints with role-based authorization
+                        // ========== BOAT MANAGEMENT (role-based) ==========
                         .requestMatchers(HttpMethod.POST, "/api/boats").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/boats/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/boats/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/boats/my-boats/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
+                        // ========== USER MANAGEMENT (specific rules) ==========
+                        // Admin-only endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/search").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/email/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        // Any authenticated user can access profile and update own profile (further authorization in service)
+                        .requestMatchers("/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated()
+                        // Catch-all for any other /api/users/** endpoints (e.g., GET /api/users/{id}) – requires authentication
+                        .requestMatchers("/api/users/**").authenticated()
+
+                        // ========== BOOKINGS ==========
                         .requestMatchers("/api/bookings/**").authenticated()
 
-                        // User management
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN") // Only admins can delete users
-                        .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN") // Both users and admins can access
-
-                        // All other endpoints require authentication
+                        // ========== DEFAULT ==========
                         .anyRequest().authenticated()
                 )
-
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -86,20 +96,20 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     /**
-     * Configures CORS settings for the application
-     * @return CorsConfigurationSource with allowed origins, methods, and headers
+     * Configures CORS settings for the application.
+     * In development profile, allows all origins; in production, restricts to specific origins.
+     *
+     * @return CorsConfigurationSource with the appropriate CORS configuration
      */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // DEVELOPMENT: Allows everything (use environment variable for control)
         String profile = System.getenv("SPRING_PROFILES_ACTIVE");
         if ("dev".equals(profile) || "local".equals(profile)) {
             configuration.setAllowedOriginPatterns(List.of("*"));
-        }
-        // PRODUCTION/DOCKER: specific origins
-        else {
+        } else {
             configuration.setAllowedOriginPatterns(Arrays.asList(
                     "http://localhost:*",          // Frontend on port 80
                     "http://localhost:3000",     // React dev server
