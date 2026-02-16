@@ -9,6 +9,7 @@ import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.UserRepository;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.BookingApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,12 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * REST Controller for managing boat rental bookings.
@@ -61,7 +58,7 @@ public class BookingController {
      * <p>This endpoint orchestrates the complete booking creation workflow:
      * 1. Validates the booking request parameters
      * 2. Checks boat availability for the requested period
-     * 3. Calculates dynamic pricing based on specific availability windows
+     * 3. Calculates dynamic pricing based on specific availability Windows
      * 4. Processes payment through the payment gateway
      * 5. Creates and persists the booking
      * 6. Sends notifications to both renter and boat owner</p>
@@ -72,7 +69,7 @@ public class BookingController {
      *
      * @param bookingRequest DTO containing booking details including boatId,
      *                      dates, and payment information
-     * @param email Authenticated user ID extracted from JWT token
+     * @param userDetails Authenticated user ID extracted from JWT token
      * @return ResponseEntity containing the created booking details with HTTP 201 status
      * @throws IllegalArgumentException if validation fails at parameter level
      * @throws IllegalStateException if business validation fails (availability, payment)
@@ -95,15 +92,16 @@ public class BookingController {
     })
     public ResponseEntity<BookingResponseDTO> createBooking(
             @Valid @RequestBody BookingRequestDTO bookingRequest,
-            @Parameter(hidden = true) @AuthenticationPrincipal String email) {
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+        String email = userDetails.getUsername();
         log.info("Booking creation requested by user {} for boat {} from {} to {}",
                 email,
                 bookingRequest.getBoatId(),
                 bookingRequest.getStartDate(),
                 bookingRequest.getEndDate());
 
-        // Search User Id by email
+        // Search User id by email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
@@ -149,15 +147,16 @@ public class BookingController {
     })
     public ResponseEntity<BookingResponseDTO> getBookingById(
             @PathVariable Long bookingId,
-            @Parameter(hidden = true) @AuthenticationPrincipal String email) {
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+        String email = userDetails.getUsername();
         log.info("Retrieving booking {} for user {}", bookingId, email);
 
-        // Busca o usuário autenticado pelo email
+        // Search for the authenticated user by its email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
-        // Chama o service que valida autorização e retorna a reserva
+        // Calls the service that validates the authorization and return the booking
         Booking booking = bookingApplicationService.getBookingByIdAndAuthorize(bookingId, user.getId());
 
         BookingResponseDTO response = bookingMapper.toResponseDTO(booking);
@@ -185,14 +184,16 @@ public class BookingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Bookings retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "User not authenticated"),
-            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters")
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
+            @ApiResponse(responseCode = "404", description = "User Not Found")
     })
     public ResponseEntity<Page<BookingResponseDTO>> getMyBookings(
-            @Parameter(hidden = true) @AuthenticationPrincipal String email,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) BookingStatus status) {
 
+        String email = userDetails.getUsername();
         log.info("📋 Retrieving bookings for user: {}", email);
 
         User user = userRepository.findByEmail(email)
@@ -231,7 +232,7 @@ public class BookingController {
      * service refund capabilities and is marked for future implementation.</p>
      *
      * @param bookingId ID of the booking to cancel
-     * @param userId Authenticated user ID for authorization
+     * @param userDetails Authenticated user ID for authorization
      * @return ResponseEntity with no content on successful cancellation
      */
     @PostMapping("/{bookingId}/cancel")
@@ -249,8 +250,9 @@ public class BookingController {
     })
     public ResponseEntity<Void> cancelBooking(
             @PathVariable Long bookingId,
-            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+        Long userId = userDetails.getId();
         log.info("Cancellation requested for booking {} by user {}", bookingId, userId);
 
         // TODO: Implement cancellation service method

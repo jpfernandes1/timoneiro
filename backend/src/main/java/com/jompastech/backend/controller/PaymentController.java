@@ -5,6 +5,7 @@ import com.jompastech.backend.model.dto.payment.PaymentRequestDTO;
 import com.jompastech.backend.model.dto.payment.PaymentResponseDTO;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -48,7 +49,7 @@ public class PaymentController {
      * Requires authentication and validates user authorization for the booking.
      *
      * @param request Payment details including amount, method, and context
-     * @param userId Authenticated user ID extracted from JWT token
+     * @param userDetails Authenticated user ID extracted from JWT token
      * @return Payment processing result with transaction details and status
      */
     @PostMapping("/booking")
@@ -56,8 +57,10 @@ public class PaymentController {
             description = "Process payment for an existing booking. Requires user authentication.")
     public ResponseEntity<PaymentResponseDTO> processBookingPayment(
             @Valid @RequestBody PaymentRequestDTO request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+
+        Long userId = userDetails.getId();
         log.info("Processing booking payment for user: {}, amount: {}, booking: {}",
                 userId, request.getAmount(), request.getBookingId());
 
@@ -83,7 +86,7 @@ public class PaymentController {
      * Used for deposits, service fees, or pre-booking inquiries.
      *
      * @param request Payment details and context
-     * @param userId Authenticated user ID from JWT token
+     * @param userDetails Authenticated user ID from JWT token
      * @return Payment processing result
      */
     @PostMapping("/direct")
@@ -99,7 +102,9 @@ public class PaymentController {
     })
     public ResponseEntity<PaymentResponseDTO> processDirectPayment(
             @Valid @RequestBody PaymentRequestDTO request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Long userId = userDetails.getId();
 
         log.info("Processing direct payment for user: {}, amount: {}, boat: {}",
                 userId, request.getAmount(), request.getBoatId());
@@ -128,7 +133,7 @@ public class PaymentController {
      * Validates user authorization to access the payment information.
      *
      * @param transactionId Unique gateway transaction identifier
-     * @param userId Authenticated user ID for authorization
+     * @param userDetails Authenticated user ID for authorization
      * @return Payment details and current status
      */
     @GetMapping("/transaction/{transactionId}")
@@ -136,7 +141,9 @@ public class PaymentController {
             description = "Retrieve payment details and status by gateway transaction ID")
     public ResponseEntity<PaymentResponseDTO> getPaymentByTransactionId(
             @PathVariable String transactionId,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Long userId = userDetails.getId();
 
         log.info("Retrieving payment details for transaction: {}, user: {}", transactionId, userId);
 
@@ -151,7 +158,7 @@ public class PaymentController {
      * Retrieves payment history for authenticated user.
      * Supports pagination for large result sets.
      *
-     * @param userId Authenticated user ID
+     * @param userDetails Authenticated user ID
      * @param page Page number for pagination (default: 0)
      * @param size Page size for pagination (default: 20)
      * @return Paginated list of user's payments
@@ -160,9 +167,11 @@ public class PaymentController {
     @Operation(summary = "Get payment history",
             description = "Retrieve paginated payment history for authenticated user")
     public ResponseEntity<?> getPaymentHistory(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+
+        Long userId = userDetails.getId();
 
         log.info("Retrieving payment history for user: {}, page: {}, size: {}", userId, page, size);
 

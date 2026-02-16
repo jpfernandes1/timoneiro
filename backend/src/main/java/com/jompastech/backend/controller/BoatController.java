@@ -8,6 +8,7 @@ import com.jompastech.backend.model.dto.BoatResponseDTO;
 import com.jompastech.backend.model.dto.cloudinary.BoatPhotoResponseDTO;
 import com.jompastech.backend.model.dto.cloudinary.PhotoOrderUpdateDTO;
 import com.jompastech.backend.model.entity.BoatPhoto;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.BoatService;
 import com.jompastech.backend.service.CloudinaryService;
 import com.jompastech.backend.model.dto.cloudinary.CloudinaryUploadResult;
@@ -86,7 +87,9 @@ public class BoatController {
             )
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
 
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        String email = userDetails.getUsername();
 
         log.info("Creating new boat. JSON received: {} chars, for user: {}", boatJson.length(), email);
 
@@ -252,7 +255,9 @@ public class BoatController {
             @Parameter(description = "Images to upload (max 10 files, 10MB each)")
             @RequestPart(value = "images", required = true) List<MultipartFile> images,
 
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        String email = userDetails.getUsername();
 
         log.info("Adding {} photos to boat ID: {}, user: {}", images.size(), boatId, email);
 
@@ -297,7 +302,8 @@ public class BoatController {
             @Parameter(description = "ID of the photo to delete", required = true)
             @PathVariable Long photoId,
 
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String email = userDetails.getUsername();
 
         log.info("Deleting photo ID: {} from boat ID: {}, user: {}", photoId, boatId, email);
 
@@ -337,7 +343,8 @@ public class BoatController {
             @Parameter(description = "Photo order update data", required = true)
             @Valid @RequestBody PhotoOrderUpdateDTO orderUpdate,
 
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String email = userDetails.getUsername();
 
         log.info("Updating photo order for boat ID: {}, user: {}", boatId, email);
 
@@ -371,10 +378,12 @@ public class BoatController {
     })
     @GetMapping("/my-boats")
     public ResponseEntity<Page<BoatResponseDTO>> getMyBoatsPaginated(
-            @Parameter(hidden = true) @AuthenticationPrincipal String email,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sort) {
+
+        String email = userDetails.getUsername();
 
         log.info("GET /api/boats/my-boats requested by user: {}", email);
 
@@ -415,7 +424,8 @@ public class BoatController {
             @Parameter(description = "Updated boat data", required = true)
             @Valid @RequestBody BoatRequestDTO boatDTO,
 
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String email = userDetails.getUsername();
 
         log.info("Updating boat ID: {}, user: {}", id, email);
 
