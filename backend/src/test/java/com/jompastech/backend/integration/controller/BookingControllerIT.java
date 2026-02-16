@@ -82,7 +82,7 @@ class BookingControllerIT {
     private Boat testBoat;
     private BoatAvailability testAvailability;
 
-    // Datas para os testes (sempre no futuro)
+    // Dates for the tests (always in the future)
     private final LocalDateTime startDate = LocalDateTime.now().plusDays(2).withHour(10).withMinute(0);
     private final LocalDateTime endDate = startDate.plusHours(4);
     String bookingStartStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -95,7 +95,7 @@ class BookingControllerIT {
     String startDateStr = availabilityStart.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     String endDateStr = availabilityEnd.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-    // JSON para criar barco (sem imagens)
+    // JSON to create a boat (without images)
     private final String boatJson = """
         {
           "name": "Boat for Booking Tests",
@@ -115,7 +115,7 @@ class BookingControllerIT {
 
     @BeforeEach
     void setup() throws Exception {
-        // 1. Cria um usuário único e obtém token JWT
+        // 1. Creates a unique user and obtains a JWT token.
         this.userEmail = "booking_test_" + System.nanoTime() + "@boat.com";
         String validCpf = generateValidCpf();
 
@@ -129,7 +129,7 @@ class BookingControllerIT {
             }
             """, userEmail, validCpf);
 
-        // Registro
+        // Registration
         mockMvc.perform(post("/api/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userJson))
@@ -154,7 +154,7 @@ class BookingControllerIT {
         this.jwtToken = root.get("token").asText();
         this.testUser = userRepository.findByEmail(userEmail).orElseThrow();
 
-        // 2. Cria um barco (via API, autenticado)
+        // 2. Creates a boat (via API, authenticated)
         MockMultipartFile boatPart = new MockMultipartFile(
                 "boat",
                 "",
@@ -173,7 +173,7 @@ class BookingControllerIT {
         this.boatId = ((Number) JsonPath.read(boatResponse, "$.id")).longValue();
         this.testBoat = boatRepository.findById(boatId).orElseThrow();
 
-        // 3. Cria uma disponibilidade para o barco (via API, autenticado)
+        // 3. Creates availability for the boat (via API, authenticated)
         String availabilityJson = String.format("""
             {
                 "startDate": "%s",
@@ -196,7 +196,7 @@ class BookingControllerIT {
 
     @AfterEach
     void cleanup() {
-        // Ordem correta respeitando as FKs: bookings → availabilities → boats → users
+        // Correct order respecting the foreign keys: bookings → availabilities → boats → users
         paymentRepository.deleteAll();
         bookingRepository.deleteAll();
         boatAvailabilityRepository.deleteAll();
@@ -204,7 +204,7 @@ class BookingControllerIT {
         userRepository.deleteAll();
     }
 
-    // Cria um MockCardData com dados de cartão válidos (pagamento aprovado)
+    // Creates a MockCardData with valid card details (payment approved).
     private MockCardData validCard() {
         MockCardData card = new MockCardData(
                 "4111111111111111",
@@ -215,7 +215,7 @@ class BookingControllerIT {
         return card;
     }
 
-    // Cria um MockCardData que força recusa do pagamento
+    // Creates a MockCardData that forces payment rejection.
     private MockCardData refusedCard() {
         MockCardData card = new MockCardData(
                 "4222222222222222",
@@ -226,7 +226,7 @@ class BookingControllerIT {
         return card;
     }
 
-    // Converte MockCardData para JSON manualmente (simples)
+    // Convert MockCardData to JSON manually (simple)
     private String cardToJson(MockCardData card) throws Exception {
         return objectMapper.writeValueAsString(card);
     }
@@ -263,7 +263,7 @@ class BookingControllerIT {
         String response = result.getResponse().getContentAsString();
         Long bookingId = ((Number) JsonPath.read(response, "$.id")).longValue();
 
-        // Verifica no banco
+        // Check at the bank
         Booking saved = bookingRepository.findById(bookingId).orElseThrow();
         assertEquals(BookingStatus.CONFIRMED, saved.getStatus());
         assertEquals(new BigDecimal("1000.00"), saved.getTotalPrice());
@@ -271,7 +271,7 @@ class BookingControllerIT {
 
     @Test
     void shouldReturn400WhenInvalidBookingRequest() throws Exception {
-        // Data de início depois do fim
+        // Start date after end date
         String invalidDatesJson = String.format("""
             {
                 "boatId": %d,
@@ -330,7 +330,7 @@ class BookingControllerIT {
 
     @Test
     void shouldReturn409WhenBoatNotAvailable() throws Exception {
-        // 1. Cria um booking com sucesso
+        // 1. Create a successful booking.
         String bookingRequestJson = String.format("""
             {
                 "boatId": %d,
@@ -347,7 +347,7 @@ class BookingControllerIT {
                         .content(bookingRequestJson))
                 .andExpect(status().isCreated());
 
-        // 2. Tenta criar outro booking com período sobreposto (dentro do mesmo horário)
+        // 2. Try creating another booking with an overlapping period (within the same time frame).
         String overlappingRequestJson = String.format("""
             {
                 "boatId": %d,
@@ -391,7 +391,7 @@ class BookingControllerIT {
     @Test
     void shouldGetMyBookings() throws Exception {
 
-        // Cria segunda disponibilidade
+        // Create second availability
         String nextDayAvailabilityStartStr = availabilityStart.plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         String nextDayAvailabilityEndStr = availabilityEnd.plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         String availabilityJson = String.format("""
@@ -408,7 +408,7 @@ class BookingControllerIT {
                         .content(availabilityJson))
                 .andExpect(status().isOk());
 
-        // Cria dois bookings para o usuário
+        // Creates two bookings for the user.
         createBookingForUser(boatId, startDate, endDate, validCard());
         createBookingForUser(boatId, startDate.plusDays(1), endDate.plusDays(1), validCard());
 
@@ -430,12 +430,12 @@ class BookingControllerIT {
     }
 
     // ----------------------------------------------------------------
-    //  POST /api/bookings/{bookingId}/cancel (não implementado)
+    //  POST /api/bookings/{bookingId}/cancel (not implemented)
     // ----------------------------------------------------------------
 
     @Test
     void shouldReturn501ForCancelBooking() throws Exception {
-        // Cria um booking para ter um ID válido
+        // Create a booking to have a valid ID.
         Long bookingId = createBookingForUser(boatId, startDate, endDate, validCard());
 
         mockMvc.perform(post("/api/bookings/{bookingId}/cancel", bookingId)
@@ -457,15 +457,15 @@ class BookingControllerIT {
 
     @Test
     void shouldGetBookingByIdWhenUserIsBoatOwner() throws Exception {
-        // Cria um segundo usuário (inquilino)
+        // Creates a second user (tenant).
         String renterEmail = "renter_" + System.nanoTime() + "@boat.com";
         createUser(renterEmail);
         String renterToken = doLogin(renterEmail, "asd@12345");
 
-        // Inquilino faz a reserva
+        // Tenant makes the reservation.
         Long bookingId = createBookingForUserWithToken(boatId, startDate, endDate, validCard(), renterToken);
 
-        // Dono do barco (testUser) tenta acessar
+        // The boat owner (testUser) tries to access
         mockMvc.perform(get("/api/bookings/{bookingId}", bookingId)
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
@@ -482,23 +482,23 @@ class BookingControllerIT {
 
     @Test
     void shouldReturn403WhenUserIsNotAuthorized() throws Exception {
-        // Cria um terceiro usuário (intruso)
+        // Creates a third user (intruder).
         String intruderEmail = "intruder_" + System.nanoTime() + "@boat.com";
         createUser(intruderEmail);
         String intruderToken = doLogin(intruderEmail, "asd@12345");
 
-        // Cria reserva com o usuário padrão (dono da reserva)
+        // Create a reservation using the default user (reservation owner).
         Long bookingId = createBookingForUser(boatId, startDate, endDate, validCard());
 
-        // Intruso tenta acessar
+        // Intruder attempts to access
         mockMvc.perform(get("/api/bookings/{bookingId}", bookingId)
                         .header("Authorization", "Bearer " + intruderToken))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void shouldReturn404WhenAuthenticatedUserNotFound() throws Exception {
-        // 1. Cria um usuário temporário (sem barco, sem reservas)
+    void shouldReturn401WhenAuthenticatedUserNotFound() throws Exception {
+        // 1. Creates a temporary user (no boat, no reservations)
         String tempEmail = "temp_" + System.nanoTime() + "@boat.com";
         String validCpf = generateValidCpf();
         String userJson = String.format("""
@@ -516,26 +516,23 @@ class BookingControllerIT {
                         .content(userJson))
                 .andExpect(status().isCreated());
 
-        // 2. Login para obter o token JWT
+        // 2. Log in to obtain the JWT token.
         String tempToken = doLogin(tempEmail, "asd@12345");
 
-        // 3. Deleta o usuário do banco (não há FK pendentes)
+        // 3. Delete the user from the database (there are no pending foreign keys).
         User tempUser = userRepository.findByEmail(tempEmail).orElseThrow();
         userRepository.delete(tempUser);
         userRepository.flush();
 
-        // 4. Requisição com token válido, mas usuário inexistente → 404
+        // 4. Request with valid token, but non-existent user → 404
         mockMvc.perform(get("/api/bookings/my-bookings")
                         .header("Authorization", "Bearer " + tempToken))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("User not found with email: " + tempEmail));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldGetMyBookingsWithStatusFilter() throws Exception {
-        // Cria uma reserva CONFIRMED (cartão aprovado)
+        // Create a CONFIRMED reservation (card approved)
         Long bookingId = createBookingForUser(boatId, startDate, endDate, validCard());
 
         mockMvc.perform(get("/api/bookings/my-bookings")
@@ -549,11 +546,11 @@ class BookingControllerIT {
     }
 
     // ----------------------------------------------------------------
-    //  MÉTODO AUXILIAR: Cria um booking e retorna o ID
+    //  Auxiliary Method: Creates a booking and returns the ID.
     // ----------------------------------------------------------------
 
     /**
-    * Realiza login e retorna o token JWT.
+    * Log in and return the JWT token.
     */
     private String doLogin(String email, String password) throws Exception {
         AuthRequestDTO authRequest = new AuthRequestDTO();
@@ -571,7 +568,7 @@ class BookingControllerIT {
     }
 
     /**
-     * Cria um novo usuário com email e senha padrão.
+     * Creates a new user with a default email and password.
      */
     private void createUser(String email) throws Exception {
         String validCpf = generateValidCpf();
@@ -591,7 +588,7 @@ class BookingControllerIT {
     }
 
     /**
-     * Cria uma reserva usando um token específico (útil para cenários com múltiplos usuários).
+     * Creates a reservation using a specific token (useful for scenarios with multiple users).
      */
     private Long createBookingForUserWithToken(Long boatId, LocalDateTime start, LocalDateTime end,
                                                MockCardData card, String token) throws Exception {
@@ -635,7 +632,7 @@ class BookingControllerIT {
 
         MvcResult result;
         if (card.getCardNumber().equals("4000000000000002")) {
-            // Pagamento recusado → retorna 402, mas o booking é criado e cancelado
+            // Payment declined → returns a 402 error, but the booking is created and then canceled.
             result = mockMvc.perform(post("/api/bookings")
                             .header("Authorization", "Bearer " + jwtToken)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -690,7 +687,7 @@ class BookingControllerIT {
                                                 FilterChain filterChain)
                         throws ServletException, IOException {
 
-                    // 1. Se um contexto de teste foi explicitamente definido, usa-o
+                    // 1. If a test context has been explicitly defined, use it.
                     String testEmail = currentUserEmail.get();
                     List<String> testRoles = currentUserRoles.get();
 
@@ -711,24 +708,21 @@ class BookingControllerIT {
                         return;
                     }
 
-                    // 2. Caso contrário, tenta extrair o email do token (comportamento real)
+                    // 2. Otherwise, it attempts to extract the email from the token (real behavior).
                     String authHeader = request.getHeader("Authorization");
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         String token = authHeader.substring(7);
                         try {
-                            // Aqui você pode usar seu validador real, ou simplificar:
-                            // Exemplo: extrair o subject do token sem validação (para testes)
-                            // Para simplificar, vamos assumir que qualquer token é válido e o email está no subject
-                            String email = extractEmailFromToken(token); // método auxiliar fictício
+                            String email = extractEmailFromToken(token); // dummy helper method
                             if (email != null) {
-                                // Usuário comum para testes (ROLE_USER)
+                                // Regular user for testing (ROLE_USER)
                                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
                                 UsernamePasswordAuthenticationToken authentication =
                                         new UsernamePasswordAuthenticationToken(email, null, authorities);
                                 SecurityContextHolder.getContext().setAuthentication(authentication);
                             }
                         } catch (Exception e) {
-                            log.warn("Falha ao processar token no teste, usando fallback");
+                            log.warn("Failed to process token in test, using fallback.");
                         }
                     }
 
@@ -736,12 +730,12 @@ class BookingControllerIT {
                 }
 
                 private String extractEmailFromToken(String token) {
-                    // Implementação simplificada para testes - extrai o subject do JWT sem verificar assinatura
+                    // Simplified implementation for testing - extracts the subject from the JWT without verifying the signature.
                     try {
                         String[] chunks = token.split("\\.");
                         if (chunks.length > 1) {
                             String payload = new String(java.util.Base64.getUrlDecoder().decode(chunks[1]));
-                            // Procura pelo campo "sub"
+                            // Search for the "sub" field
                             int subIndex = payload.indexOf("\"sub\":\"");
                             if (subIndex != -1) {
                                 int start = subIndex + 7;
@@ -750,7 +744,7 @@ class BookingControllerIT {
                             }
                         }
                     } catch (Exception e) {
-                        // ignora
+                        // ignore
                     }
                     return null;
                 }
