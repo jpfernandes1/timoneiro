@@ -3,6 +3,7 @@ package com.jompastech.backend.controller;
 import com.jompastech.backend.exception.AvailabilityNotFoundException;
 import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
 import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.BoatAvailabilityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,8 @@ public class BoatAvailabilityController {
     public ResponseEntity<BoatAvailabilityResponseDTO> createAvailability(
             @PathVariable Long boatId,
             @RequestBody BoatAvailabilityRequestDTO requestDTO,
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String email = userDetails.getUsername();
 
         log.info("POST /api/boats/{}/availability called", boatId);
 
