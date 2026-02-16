@@ -557,7 +557,9 @@ class BoatAvailabilityControllerIT {
                         .header("Authorization", "Bearer invalid_token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnauthorized());
+
+
     }
 
     // ===========================

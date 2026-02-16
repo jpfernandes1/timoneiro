@@ -875,7 +875,7 @@ class BoatControllerIT {
     JwtUtil jwtUtil;
 
     @Test
-    void shouldReturnServerErrorWhenGetMyBoatsWithNonExistentUser() throws Exception {
+    void shouldReturnUnauthorizedWhenGetMyBoatsWithNonExistentUser() throws Exception {
         // Generate a token to an email that doesn't exist on DB
         String nonExistentEmail = "ghost_" + System.currentTimeMillis() + "@test.com";
         String ghostToken = jwtUtil.generateToken(nonExistentEmail);
@@ -885,11 +885,11 @@ class BoatControllerIT {
                         .param("page", "0")
                         .param("size", "5")
                         .header("Authorization", "Bearer " + ghostToken))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void shouldReturnInternalServerErrorWhenUserIsDeletedAfterLogin() throws Exception {
+    void shouldReturnUnauthorizedWhenUserIsDeletedAfterLogin() throws Exception {
 
         String testEmail = "delete_test_" + System.nanoTime() + "@boat.com";
         String testCpf = generateValidCpf();
@@ -937,7 +937,7 @@ class BoatControllerIT {
                         .param("page", "0")
                         .param("size", "5")
                         .header("Authorization", "Bearer " + testToken))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
