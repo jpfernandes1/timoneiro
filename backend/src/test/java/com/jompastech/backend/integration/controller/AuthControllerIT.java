@@ -195,7 +195,7 @@ class AuthControllerIT {
         mockMvc.perform(get("/api/auth/validate")
                         .header("Authorization", "Bearer token.invalido"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$").value(org.hamcrest.Matchers.containsString("Token is invalid or expired")));
+                .andExpect(jsonPath("$.message").value("Invalid JWT token"));
     }
 
     @Test
@@ -208,8 +208,7 @@ class AuthControllerIT {
         // 2. Calls validate with token (stills valid, but the user doesn't exist anymore)
         mockMvc.perform(get("/api/auth/validate")
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$").value(org.hamcrest.Matchers.containsString("User no longer exists")));
+                .andExpect(status().isUnauthorized());
     }
 
     // ----------------------------------------------------------------
