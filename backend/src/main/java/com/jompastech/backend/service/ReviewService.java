@@ -96,7 +96,7 @@ public class ReviewService {
 
         // Authorization check: only review author can update
         if (!existingReview.getUser().getId().equals(authenticatedUserId)) {
-            throw new SecurityException("User is not authorized to update this review");
+            throw new AccessDeniedException("Only the creator user is authorized to update this review");
         }
 
         // Update fields

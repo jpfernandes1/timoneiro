@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Collections;
 import java.util.List;
@@ -249,7 +250,7 @@ class ReviewServiceTest {
      * Validates authorization boundary enforcement.
      */
     @Test
-    void updateReview_WhenUserNotOwner_ShouldThrowSecurityException() {
+    void updateReview_WhenUserNotOwner_ShouldThrowAccessDeniedException() {
         // Arrange - Mock review owned by different user
         User differentUser = new User();
         differentUser.setId(2L);
@@ -258,7 +259,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(1L)).thenReturn(Optional.of(testReview));
 
         // Act & Assert - Verify authorization failure
-        assertThrows(SecurityException.class,
+        assertThrows(AccessDeniedException.class,
                 () -> reviewService.updateReview(1L, testRequestDTO, 1L),
                 "Should throw SecurityException when user is not review owner"
         );
