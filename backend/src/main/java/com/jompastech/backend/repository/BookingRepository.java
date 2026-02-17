@@ -1,6 +1,5 @@
 package com.jompastech.backend.repository;
 
-import com.jompastech.backend.model.dto.booking.BookingResponseDTO;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.enums.BookingStatus;
@@ -54,13 +53,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Checks if a completed booking exists for the user-boat combination.
      * Used for review eligibility validation.
      */
-    boolean existsByUserIdAndBoatIdAndStatus(Long userId, Long boatId, String status);
+    boolean existsByUserIdAndBoatIdAndStatus(Long userId, Long boatId, BookingStatus status);
 
     /**
      * Counts completed bookings for user-boat combination.
      * Provides additional business context for validation.
      */
-    long countByUserIdAndBoatIdAndStatus(Long userId, Long boatId, String status);
+    long countByUserIdAndBoatIdAndStatus(Long userId, Long boatId, BookingStatus status);
 
     // Search for all of a user's bookings.
     Page<Booking> findByUserId(Long userId, Pageable pageable);

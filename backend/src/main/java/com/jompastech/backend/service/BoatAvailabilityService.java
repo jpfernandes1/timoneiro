@@ -1,11 +1,12 @@
-// BoatAvailabilityService.java - Versão atualizada
 package com.jompastech.backend.service;
 
+import com.jompastech.backend.exception.AvailabilityNotFoundException;
 import com.jompastech.backend.model.dto.BoatAvailabilityRequestDTO;
 import com.jompastech.backend.model.dto.BoatAvailabilityResponseDTO;
 import com.jompastech.backend.model.entity.BoatAvailability;
 import com.jompastech.backend.repository.BoatAvailabilityRepository;
 import com.jompastech.backend.repository.BoatRepository;
+import com.jompastech.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class BoatAvailabilityService {
 
     private final BoatAvailabilityRepository boatAvailabilityRepository;
     private final BoatRepository boatRepository;
+    private final UserRepository userRepository;
 
     /**
      * Creates and persists a new boat availability slot.
@@ -46,11 +48,21 @@ public class BoatAvailabilityService {
      * @return the created availability as a response DTO
      */
     @Transactional
-    public BoatAvailabilityResponseDTO createAvailability(Long boatId, BoatAvailabilityRequestDTO requestDTO) {
+    public BoatAvailabilityResponseDTO createAvailability(Long boatId, BoatAvailabilityRequestDTO requestDTO, String email) {
         log.info("Creating availability for boat ID: {}", boatId);
 
         var boat = boatRepository.findById(boatId)
                 .orElseThrow(() -> new RuntimeException("Boat not found with id: " + boatId));
+
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        boolean isOwner = boat.getOwner().getId().equals(user.getId());
+        boolean isAdmin = user.getRole().equals("ROLE_ADMIN");
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("User is not authorized to create availability for this boat");
+        }
 
         var availability = new BoatAvailability(
                 boat,
@@ -76,7 +88,7 @@ public class BoatAvailabilityService {
         log.info("Finding availability by ID: {}", id);
 
         var availability = boatAvailabilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Availability not found with id: " + id));
+                .orElseThrow(() -> new AvailabilityNotFoundException("Availability not found with id: " + id));
 
         return convertToResponseDTO(availability);
     }
@@ -119,8 +131,10 @@ public class BoatAvailabilityService {
     public boolean isBoatAvailable(Long boatId, LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Checking availability for boat ID: {} from {} to {}", boatId, startDate, endDate);
 
-        return boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+        boolean hasOverlap = boatAvailabilityRepository.existsByBoatIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 boatId, endDate, startDate);
+        // If there is no overlap, the boat is available
+        return !hasOverlap;
     }
 
     /**
@@ -136,7 +150,7 @@ public class BoatAvailabilityService {
         log.info("Updating availability with ID: {}", id);
 
         var availability = boatAvailabilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Availability not found with id: " + id));
+                .orElseThrow(() -> new AvailabilityNotFoundException("Availability not found with id: " + id));
 
         availability.setStartDate(requestDTO.getStartDate());
         availability.setEndDate(requestDTO.getEndDate());
@@ -155,10 +169,8 @@ public class BoatAvailabilityService {
      */
     @Transactional
     public void deleteAvailability(Long id) {
-        log.info("Deleting availability with ID: {}", id);
-
         if (!boatAvailabilityRepository.existsById(id)) {
-            throw new RuntimeException("Availability not found with id: " + id);
+            throw new AvailabilityNotFoundException("Availability not found with id: " + id);
         }
         boatAvailabilityRepository.deleteById(id);
     }

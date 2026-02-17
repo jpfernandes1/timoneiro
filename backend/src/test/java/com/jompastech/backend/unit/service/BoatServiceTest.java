@@ -1,9 +1,11 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
 import com.jompastech.backend.mapper.BoatMapper;
 import com.jompastech.backend.model.dto.BoatRequestDTO;
 import com.jompastech.backend.model.dto.BoatResponseDTO;
+import com.jompastech.backend.model.entity.Address;
 import com.jompastech.backend.model.entity.Boat;
+import com.jompastech.backend.model.entity.BoatPhoto;
 import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.AddressRepository;
 import com.jompastech.backend.repository.BoatRepository;
@@ -16,17 +18,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
+import java.util.function.Function;
 
 /**
  * Unit tests for BoatService business logic.
@@ -421,5 +424,263 @@ public class BoatServiceTest {
         verify(boatRepository).findAll();
         verify(boatMapper).toResponseDTO(testBoat);
         verify(boatMapper).toResponseDTO(testBoat2);
+    }
+
+    @Test
+    void findByIdOptional_WhenBoatExists_ShouldReturnOptionalOfBoat() {
+        // Arrange
+        Long boatId = 1L;
+        when(boatRepository.findById(boatId)).thenReturn(Optional.of(testBoat));
+
+        // Act
+        Optional<Boat> result = boatService.findByIdOptional(boatId);
+
+        // Assert
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(boatId);
+        verify(boatRepository).findById(boatId);
+    }
+
+    @Test
+    void findByIdOptional_WhenBoatNotExists_ShouldReturnEmptyOptional() {
+        // Arrange
+        Long boatId = 99L;
+        when(boatRepository.findById(boatId)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Boat> result = boatService.findByIdOptional(boatId);
+
+        // Assert
+        assertThat(result).isEmpty();
+        verify(boatRepository).findById(boatId);
+    }
+
+    @Test
+    void getBoatEntity_WhenBoatExists_ShouldReturnBoat() {
+        // Arrange
+        Long boatId = 1L;
+        when(boatRepository.findById(boatId)).thenReturn(Optional.of(testBoat));
+
+        // Act
+        Boat result = boatService.getBoatEntity(boatId);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(boatId);
+        verify(boatRepository).findById(boatId);
+    }
+
+    @Test
+    void getBoatEntity_WhenBoatNotExists_ShouldThrowEntityNotFoundException() {
+        // Arrange
+        Long boatId = 99L;
+        when(boatRepository.findById(boatId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(EntityNotFoundException.class,
+                () -> boatService.getBoatEntity(boatId),
+                "Should throw EntityNotFoundException when boat doesn't exist"
+        );
+        verify(boatRepository).findById(boatId);
+    }
+
+    @Test
+    void findBoatsByUserPaginated_WhenUserExists_ShouldReturnPageOfBoats() {
+        // Arrange
+        String email = "teste@teste.com";
+        Pageable pageable = Pageable.ofSize(10).withPage(0);
+
+        Page<Boat> boatPage = mock(Page.class);
+        when(boatPage.getTotalElements()).thenReturn(1L);
+        when(boatPage.map(any())).thenAnswer(invocation -> {
+            Function<Boat, BoatResponseDTO> mapper = invocation.getArgument(0);
+            return Page.empty();
+        });
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(testBoatOwner));
+        when(boatRepository.findByOwner(testBoatOwner, pageable)).thenReturn(boatPage);
+
+        // Act
+        Page<BoatResponseDTO> result = boatService.findBoatsByUserPaginated(email, pageable);
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(userRepository).findByEmail(email);
+        verify(boatRepository).findByOwner(testBoatOwner, pageable);
+    }
+
+    @Test
+    void findBoatsByUserPaginated_WhenUserNotExists_ShouldThrowEntityNotFoundException() {
+        // Arrange
+        String email = "nonexistent@teste.com";
+        Pageable pageable = Pageable.ofSize(10).withPage(0);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(EntityNotFoundException.class,
+                () -> boatService.findBoatsByUserPaginated(email, pageable),
+                "Should throw EntityNotFoundException when user doesn't exist"
+        );
+        verify(userRepository).findByEmail(email);
+        verify(boatRepository, never()).findByOwner(any(), any());
+    }
+
+    @Test
+    void updateBoat_WhenUserIsOwner_ShouldUpdateBoat() {
+        // Arrange
+        Long boatId = 1L;
+        String email = "teste@teste.com";
+
+        BoatRequestDTO updateDTO = new BoatRequestDTO(
+                "UpdatedName",
+                "UpdatedType",
+                "Updated Description",
+                12,
+                30.5,
+                25.0,
+                2020,
+                Collections.singletonList("Updated amenities"),
+                new BigDecimal("150.00"),
+                "12345-678",
+                "123",
+                "Updated Street",
+                "Updated Neighborhood",
+                "Updated City",
+                "SP",
+                "Updated Marina"
+        );
+
+        // Configure existent boat with owner
+        testBoat.setOwner(testBoatOwner);
+        testBoatOwner.setEmail(email);
+
+        // Configure address
+        Address existingAddress = new Address();
+        existingAddress.setId(1L);
+        testBoat.setAddress(existingAddress);
+
+        when(boatRepository.findById(boatId)).thenReturn(Optional.of(testBoat));
+        when(boatRepository.save(any(Boat.class))).thenReturn(testBoat);
+        when(boatMapper.toResponseDTO(any(Boat.class))).thenReturn(testResponseDTO);
+
+        // Act
+        BoatResponseDTO result = boatService.updateBoat(boatId, updateDTO, email);
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(boatRepository).findById(boatId);
+        verify(boatRepository).save(any(Boat.class));
+        verify(boatMapper).toResponseDTO(any(Boat.class));
+    }
+
+    @Test
+    void updateBoat_WhenBoatNotExists_ShouldThrowRuntimeException() {
+        // Arrange
+        Long boatId = 99L;
+        String email = "teste@teste.com";
+        BoatRequestDTO updateDTO = new BoatRequestDTO();
+        when(boatRepository.findById(boatId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> boatService.updateBoat(boatId, updateDTO, email),
+                "Should throw RuntimeException when boat doesn't exist"
+        );
+        verify(boatRepository).findById(boatId);
+        verify(boatRepository, never()).save(any(Boat.class));
+    }
+
+    @Test
+    void updateBoat_WhenUserIsNotOwner_ShouldThrowRuntimeException() {
+        // Arrange
+        Long boatId = 1L;
+        String email = "other@teste.com";
+        BoatRequestDTO updateDTO = new BoatRequestDTO();
+
+        // Configure owner with different email
+        User differentOwner = new User();
+        differentOwner.setId(2L);
+        differentOwner.setEmail("teste@teste.com");
+        testBoat.setOwner(differentOwner);
+
+        when(boatRepository.findById(boatId)).thenReturn(Optional.of(testBoat));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> boatService.updateBoat(boatId, updateDTO, email),
+                "Should throw RuntimeException when user is not the owner"
+        );
+        verify(boatRepository).findById(boatId);
+        verify(boatRepository, never()).save(any(Boat.class));
+    }
+    @Test
+    void saveWithPhotos_ShouldSaveBoatWithPhotos() {
+        // Arrange
+        String email = "teste@teste.com";
+        
+        BoatPhoto photo1 = mock(BoatPhoto.class);
+        BoatPhoto photo2 = mock(BoatPhoto.class);
+        List<BoatPhoto> photos = List.of(photo1, photo2);
+
+        // Address Mock
+        Address savedAddress = new Address();
+        savedAddress.setId(1L);
+
+        // Boat Mock
+        Boat savedBoat = new Boat();
+        savedBoat.setId(1L);
+        savedBoat.setName("Test Boat");
+        savedBoat.setOwner(testBoatOwner);
+        savedBoat.setAddress(savedAddress);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(testBoatOwner));
+        when(addressRepository.save(any(Address.class))).thenReturn(savedAddress);
+
+        // Mapper return a boat that will be notified by the service
+        Boat boatFromMapper = new Boat();
+        boatFromMapper.setName(testRequestDTO.getName());
+        boatFromMapper.setType(testRequestDTO.getType());
+        when(boatMapper.toEntity(testRequestDTO)).thenReturn(boatFromMapper);
+
+        when(boatRepository.save(any(Boat.class))).thenReturn(savedBoat);
+        when(boatMapper.toResponseDTO(any(Boat.class))).thenReturn(testResponseDTO);
+
+        // Act
+        BoatResponseDTO result = boatService.saveWithPhotos(testRequestDTO, photos, email);
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(userRepository).findByEmail(email);
+        verify(addressRepository).save(any(Address.class));
+        verify(boatMapper).toEntity(testRequestDTO);
+        verify(boatRepository).save(any(Boat.class));
+        verify(boatMapper).toResponseDTO(any(Boat.class));
+    }
+
+    @Test
+    void save_ShouldCallSaveWithPhotosWithEmptyList() {
+        // Arrange
+        UserDetails mockUserDetails = mock(UserDetails.class);
+        when(mockUserDetails.getUsername()).thenReturn("teste@teste.com");
+
+        Boat savedBoat = new Boat();
+        savedBoat.setId(1L);
+        savedBoat.setName("Test Boat");
+        savedBoat.setOwner(testBoatOwner);
+
+        when(userRepository.findByEmail("teste@teste.com")).thenReturn(Optional.of(testBoatOwner));
+        when(addressRepository.save(any(Address.class))).thenReturn(new Address());
+        when(boatMapper.toEntity(testRequestDTO)).thenReturn(testBoat);
+        when(boatRepository.save(any(Boat.class))).thenReturn(savedBoat);
+        when(boatMapper.toResponseDTO(any(Boat.class))).thenReturn(testResponseDTO);
+
+        // Act
+        BoatResponseDTO result = boatService.save(testRequestDTO, mockUserDetails);
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(userRepository).findByEmail("teste@teste.com");
+        verify(addressRepository).save(any(Address.class));
+        verify(boatRepository).save(any(Boat.class));
     }
 }

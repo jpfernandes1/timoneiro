@@ -1,18 +1,24 @@
 package com.jompastech.backend.controller;
 
+import com.jompastech.backend.exception.PaymentValidationException;
 import com.jompastech.backend.model.dto.payment.PaymentRequestDTO;
 import com.jompastech.backend.model.dto.payment.PaymentResponseDTO;
 import com.jompastech.backend.model.dto.payment.PaymentInfo;
 import com.jompastech.backend.model.dto.payment.PaymentResult;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST Controller for payment processing operations.
@@ -43,7 +49,7 @@ public class PaymentController {
      * Requires authentication and validates user authorization for the booking.
      *
      * @param request Payment details including amount, method, and context
-     * @param userId Authenticated user ID extracted from JWT token
+     * @param userDetails Authenticated user ID extracted from JWT token
      * @return Payment processing result with transaction details and status
      */
     @PostMapping("/booking")
@@ -51,8 +57,10 @@ public class PaymentController {
             description = "Process payment for an existing booking. Requires user authentication.")
     public ResponseEntity<PaymentResponseDTO> processBookingPayment(
             @Valid @RequestBody PaymentRequestDTO request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+
+        Long userId = userDetails.getId();
         log.info("Processing booking payment for user: {}, amount: {}, booking: {}",
                 userId, request.getAmount(), request.getBookingId());
 
@@ -78,20 +86,34 @@ public class PaymentController {
      * Used for deposits, service fees, or pre-booking inquiries.
      *
      * @param request Payment details and context
-     * @param userId Authenticated user ID from JWT token
+     * @param userDetails Authenticated user ID from JWT token
      * @return Payment processing result
      */
     @PostMapping("/direct")
     @Operation(summary = "Process direct payment",
             description = "Process payment without booking context. Typically for deposits or inquiries.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Payment completed"),
+            @ApiResponse(responseCode = "400", description = "Invalid Payment parameters or validation failed"),
+            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Boat or Booking not found"),
+            @ApiResponse(responseCode = "402", description = "Payment processing failed"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<PaymentResponseDTO> processDirectPayment(
             @Valid @RequestBody PaymentRequestDTO request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Long userId = userDetails.getId();
 
         log.info("Processing direct payment for user: {}, amount: {}, boat: {}",
                 userId, request.getAmount(), request.getBoatId());
 
         PaymentInfo paymentInfo = PaymentInfo.fromPaymentRequest(request);
+        if (!paymentInfo.hasValidContext()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid Request: Provide bookingId or boatId, not both.");
+        }
         PaymentResult result = paymentService.processPayment(paymentInfo);
 
         PaymentResponseDTO response = PaymentResponseDTO.fromPaymentResult(
@@ -111,7 +133,7 @@ public class PaymentController {
      * Validates user authorization to access the payment information.
      *
      * @param transactionId Unique gateway transaction identifier
-     * @param userId Authenticated user ID for authorization
+     * @param userDetails Authenticated user ID for authorization
      * @return Payment details and current status
      */
     @GetMapping("/transaction/{transactionId}")
@@ -119,7 +141,9 @@ public class PaymentController {
             description = "Retrieve payment details and status by gateway transaction ID")
     public ResponseEntity<PaymentResponseDTO> getPaymentByTransactionId(
             @PathVariable String transactionId,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Long userId = userDetails.getId();
 
         log.info("Retrieving payment details for transaction: {}, user: {}", transactionId, userId);
 
@@ -134,7 +158,7 @@ public class PaymentController {
      * Retrieves payment history for authenticated user.
      * Supports pagination for large result sets.
      *
-     * @param userId Authenticated user ID
+     * @param userDetails Authenticated user ID
      * @param page Page number for pagination (default: 0)
      * @param size Page size for pagination (default: 20)
      * @return Paginated list of user's payments
@@ -143,9 +167,11 @@ public class PaymentController {
     @Operation(summary = "Get payment history",
             description = "Retrieve paginated payment history for authenticated user")
     public ResponseEntity<?> getPaymentHistory(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+
+        Long userId = userDetails.getId();
 
         log.info("Retrieving payment history for user: {}, page: {}, size: {}", userId, page, size);
 
@@ -168,20 +194,32 @@ public class PaymentController {
     @PostMapping("/webhook/pagseguro")
     @Operation(summary = "Payment gateway webhook",
             description = "Webhook endpoint for asynchronous payment notifications from PagSeguro")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Webhook processed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid signature or malformed payload"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Void> handlePaymentWebhook(
             @RequestBody String payload,
             @RequestHeader("X-Signature") String signature) {
 
         log.info("Received payment webhook notification, verifying signature");
 
-        // Implementation pending webhook service
-        // boolean isValid = paymentService.verifyWebhookSignature(payload, signature);
-        // if (isValid) {
-        //     paymentService.processWebhookNotification(payload);
-        // }
+        // 1. Verify signature
+        boolean isValid = paymentService.verifyWebhookSignature(payload, signature);
+        if (!isValid) {
+            log.warn("Webhook signature verification failed");
+            return ResponseEntity.badRequest().build();
+        }
 
-        log.warn("Webhook processing not yet implemented");
-        return ResponseEntity.ok().build();
+        // 2. Process notification
+        try {
+            paymentService.processWebhookNotification(payload);
+            return ResponseEntity.ok().build();
+        } catch (PaymentValidationException e) {
+            log.error("Webhook processing failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -198,11 +236,6 @@ public class PaymentController {
 
         // Basic health check - can be expanded with gateway connectivity tests
         boolean serviceHealthy = true; // Add actual health checks
-
-        if (serviceHealthy) {
-            return ResponseEntity.ok("Payment service is healthy");
-        } else {
-            return ResponseEntity.status(503).body("Payment service unavailable");
-        }
+        return ResponseEntity.ok("Payment service is healthy");
     }
 }

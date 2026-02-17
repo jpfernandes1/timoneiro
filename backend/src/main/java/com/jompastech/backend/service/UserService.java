@@ -10,9 +10,13 @@ import com.jompastech.backend.model.dto.UserResponseDTO;
 import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.repository.UserRepository;
 import com.jompastech.backend.security.dto.AuthResponseDTO;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.security.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -94,6 +98,32 @@ public class UserService {
     public UserResponseDTO updateUser(Long id, UserRequestDTO dto) {
         User existing = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("User not Found");
+        }
+
+        Object principal = auth.getPrincipal();
+        Long currentUserId;
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (principal instanceof UserDetailsImpl) {
+            currentUserId = ((UserDetailsImpl) principal).getId();
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            User user = userRepository.findByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new AccessDeniedException("User not found"));
+            currentUserId = user.getId();
+        } else {
+            throw new AccessDeniedException("Unknown principal type");
+        }
+
+        // If you are not an admin, and you are not the user yourself, denies access
+        if (!isAdmin && !currentUserId.equals(id)) {
+            throw new AccessDeniedException("You can only update your own profile");
+        }
+
         // If the email has changed,  guarantee uniqueness
         if (dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase(existing.getEmail())) {
             if (userRepository.existsByEmailIgnoreCaseAndIdNot(dto.getEmail(), id)) {
@@ -172,6 +202,4 @@ public class UserService {
         return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
-
-
 }

@@ -20,13 +20,6 @@ import lombok.Data;
 public class ReviewRequestDTO {
 
     /**
-     * Id of the user making the review
-     * Required to associate the review with an existing user.
-     */
-    @NotNull(message = "User ID is required")
-    private Long userID;
-
-    /**
      * ID of the boat being reviewed.
      * Required to associate the review with the correct boat rental experience.
      * Must reference an existing boat that the authenticated user has rented.

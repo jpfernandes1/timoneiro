@@ -1,5 +1,6 @@
 package com.jompastech.backend.service;
 
+import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class BookingQueryService {
      * @return true if user has completed a booking for this boat, false otherwise
      */
     public boolean hasUserRentedBoat(Long userId, Long boatId) {
-        return bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED");
+        return bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED);
     }
 
     /**
@@ -45,6 +46,6 @@ public class BookingQueryService {
      * @return number of completed bookings matching the criteria
      */
     public long countCompletedBookingsByUserAndBoat(Long userId, Long boatId) {
-        return bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED");
+        return bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED);
     }
 }

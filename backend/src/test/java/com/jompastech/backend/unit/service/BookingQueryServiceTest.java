@@ -1,5 +1,6 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
+import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.service.BookingQueryService;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class BookingQueryServiceTest {
         // Arrange
         Long userId = 1L;
         Long boatId = 2L;
-        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED"))
+        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED))
                 .thenReturn(true);
 
         // Act
@@ -61,7 +62,7 @@ class BookingQueryServiceTest {
 
         // Assert
         assertTrue(result);
-        verify(bookingRepository).existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED");
+        verify(bookingRepository).existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED);
     }
 
     /**
@@ -77,7 +78,7 @@ class BookingQueryServiceTest {
         // Arrange
         Long userId = 1L;
         Long boatId = 2L;
-        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED"))
+        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED))
                 .thenReturn(false);
 
         // Act
@@ -85,7 +86,7 @@ class BookingQueryServiceTest {
 
         // Assert
         assertFalse(result);
-        verify(bookingRepository).existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED");
+        verify(bookingRepository).existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED);
     }
 
     /**
@@ -99,7 +100,7 @@ class BookingQueryServiceTest {
     @Test
     void hasUserRentedBoat_WhenNullParameters_ShouldHandleGracefully() {
         // Arrange
-        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(null, null, "FINISHED"))
+        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(null, null, BookingStatus.FINISHED))
                 .thenReturn(false);
 
         // Act
@@ -123,7 +124,7 @@ class BookingQueryServiceTest {
         Long userId = 1L;
         Long boatId = 2L;
         long expectedCount = 3L;
-        when(bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED"))
+        when(bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED))
                 .thenReturn(expectedCount);
 
         // Act
@@ -131,7 +132,7 @@ class BookingQueryServiceTest {
 
         // Assert
         assertEquals(expectedCount, result);
-        verify(bookingRepository).countByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED");
+        verify(bookingRepository).countByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED);
     }
 
     /**
@@ -147,7 +148,7 @@ class BookingQueryServiceTest {
         // Arrange
         Long userId = 1L;
         Long boatId = 2L;
-        when(bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED"))
+        when(bookingRepository.countByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED))
                 .thenReturn(0L);
 
         // Act
@@ -168,7 +169,7 @@ class BookingQueryServiceTest {
     @Test
     void countCompletedBookingsByUserAndBoat_WithNullParameters_ShouldHandleGracefully() {
         // Arrange
-        when(bookingRepository.countByUserIdAndBoatIdAndStatus(null, null, "FINISHED"))
+        when(bookingRepository.countByUserIdAndBoatIdAndStatus(null, null, BookingStatus.FINISHED))
                 .thenReturn(0L);
 
         // Act
@@ -191,7 +192,7 @@ class BookingQueryServiceTest {
         // Arrange
         Long userId = 1L;
         Long boatId = 2L;
-        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, "FINISHED"))
+        when(bookingRepository.existsByUserIdAndBoatIdAndStatus(userId, boatId, BookingStatus.FINISHED))
                 .thenReturn(true);
 
         // Act

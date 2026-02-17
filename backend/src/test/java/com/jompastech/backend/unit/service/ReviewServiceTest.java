@@ -1,4 +1,4 @@
-package com.jompastech.backend.Unit.service;
+package com.jompastech.backend.unit.service;
 
 import com.jompastech.backend.exception.BusinessValidationException;
 import com.jompastech.backend.exception.EntityNotFoundException;
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Collections;
 import java.util.List;
@@ -118,15 +119,16 @@ class ReviewServiceTest {
     void createReview_WithValidData_ShouldReturnReviewResponse() {
         // Arrange - Configure all required mocks for successful flow
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
+        when(boatService.getBoatEntity(1L)).thenReturn(testBoat);
+
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(true);
         when(reviewRepository.existsByUserIdAndBoatId(1L, 1L)).thenReturn(false);
 
         // Mock mapper to return basic review (without relationships)
-        Review basicReview = new Review();
+        Review basicReview = mock(Review.class);
+        when(reviewMapper.toEntity(testRequestDTO)).thenReturn(basicReview);
         basicReview.setRating(5);
         basicReview.setComment("Excellent experience!");
-        when(reviewMapper.toEntity(testRequestDTO)).thenReturn(basicReview);
 
         // Mock repository to return complete review (with relationships)
         when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
@@ -142,7 +144,8 @@ class ReviewServiceTest {
 
         // Verify interactions with dependencies
         verify(userService, times(1)).findById(1L);
-        verify(boatService, times(1)).findById(1L);
+        verify(boatService, times(1)).getBoatEntity(1L);
+        verify(boatService, times(1)).getBoatEntity(1L);
         verify(bookingQueryService, times(1)).hasUserRentedBoat(1L, 1L);
         verify(reviewRepository, times(1)).existsByUserIdAndBoatId(1L, 1L);
         verify(reviewRepository, times(1)).save(any(Review.class));
@@ -172,7 +175,7 @@ class ReviewServiceTest {
     void createReview_WhenBoatNotFound_ShouldThrowEntityNotFoundException() {
         // Arrange - Mock boat service to throw exception
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenThrow(new EntityNotFoundException("Boat not found"));
+        when(boatService.getBoatEntity(1L)).thenThrow(new EntityNotFoundException("Boat not found"));
 
         // Act & Assert - Verify exception is thrown
         assertThrows(EntityNotFoundException.class,
@@ -189,7 +192,7 @@ class ReviewServiceTest {
     void createReview_WhenUserNotRentedBoat_ShouldThrowBusinessValidationException() {
         // Arrange - Mock rental validation to return false
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
+        when(boatService.getBoatEntity(1L)).thenReturn(testBoat);
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(false);
 
         // Act & Assert - Verify business rule violation
@@ -207,7 +210,7 @@ class ReviewServiceTest {
     void createReview_WhenDuplicateReview_ShouldThrowBusinessValidationException() {
         // Arrange - Mock duplicate review check to return true
         when(userService.findById(1L)).thenReturn(testUser);
-        when(boatService.findById(1L)).thenReturn(testBoatResponseDTO);
+        when(boatService.getBoatEntity(1L)).thenReturn(testBoat);
         when(bookingQueryService.hasUserRentedBoat(1L, 1L)).thenReturn(true);
         when(reviewRepository.existsByUserIdAndBoatId(1L, 1L)).thenReturn(true);
 
@@ -247,7 +250,7 @@ class ReviewServiceTest {
      * Validates authorization boundary enforcement.
      */
     @Test
-    void updateReview_WhenUserNotOwner_ShouldThrowSecurityException() {
+    void updateReview_WhenUserNotOwner_ShouldThrowAccessDeniedException() {
         // Arrange - Mock review owned by different user
         User differentUser = new User();
         differentUser.setId(2L);
@@ -256,7 +259,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(1L)).thenReturn(Optional.of(testReview));
 
         // Act & Assert - Verify authorization failure
-        assertThrows(SecurityException.class,
+        assertThrows(AccessDeniedException.class,
                 () -> reviewService.updateReview(1L, testRequestDTO, 1L),
                 "Should throw SecurityException when user is not review owner"
         );

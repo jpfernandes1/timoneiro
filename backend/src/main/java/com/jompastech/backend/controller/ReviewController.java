@@ -2,6 +2,7 @@ package com.jompastech.backend.controller;
 
 import com.jompastech.backend.model.dto.ReviewRequestDTO;
 import com.jompastech.backend.model.dto.ReviewResponseDTO;
+import com.jompastech.backend.security.service.UserDetailsImpl;
 import com.jompastech.backend.service.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ import java.util.List;
  * authenticated user's identity from Spring Security context.</p>
  */
 @RestController
-@RequestMapping("/api/v1/reviews")
+@RequestMapping("/api/reviews")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -40,15 +41,19 @@ public class ReviewController {
      * Creates a new review for a boat.
      *
      * @param reviewRequest the review data
-     * @param userId authenticated user ID from security context
+     * @param userDetails authenticated user ID from security context
      * @return created review with 201 status
      */
     @PostMapping
     public ResponseEntity<ReviewResponseDTO> createReview(
             @Valid @RequestBody ReviewRequestDTO reviewRequest,
-            @AuthenticationPrincipal Long userId) {
-        ReviewResponseDTO createdReview = reviewService.createReview(reviewRequest, userId);
-        return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(reviewService.createReview(
+                        reviewRequest,
+                        userDetails.getId()
+                ));
     }
 
     /**
@@ -56,14 +61,16 @@ public class ReviewController {
      *
      * @param reviewId the review ID to update
      * @param reviewRequest updated review data
-     * @param userId authenticated user ID for authorization
+     * @param userDetails authenticated user ID for authorization
      * @return updated review
      */
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewResponseDTO> updateReview(
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewRequestDTO reviewRequest,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long userId = userDetails.getId();
         ReviewResponseDTO updatedReview = reviewService.updateReview(reviewId, reviewRequest, userId);
         return ResponseEntity.ok(updatedReview);
     }
@@ -90,7 +97,9 @@ public class ReviewController {
      * Retrieves all reviews by the authenticated user.
      */
     @GetMapping("/my-reviews")
-    public ResponseEntity<List<ReviewResponseDTO>> getMyReviews(@AuthenticationPrincipal Long userId) {
+    public ResponseEntity<List<ReviewResponseDTO>> getMyReviews(@AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long userId = userDetails.getId();
         List<ReviewResponseDTO> reviews = reviewService.findByUserId(userId);
         return ResponseEntity.ok(reviews);
     }
@@ -99,15 +108,16 @@ public class ReviewController {
      * Deletes a review.
      *
      * @param reviewId the review to delete
-     * @param userId authenticated user ID for authorization
+     * @param userDetails authenticated user ID for authorization
      * @param isAdmin whether user has admin role (from security context)
      * @return 204 No Content on success
      */
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(required = false, defaultValue = "false") Boolean isAdmin) {
+        Long userId = userDetails.getId();
         reviewService.deleteReview(reviewId, userId, isAdmin);
         return ResponseEntity.noContent().build();
     }

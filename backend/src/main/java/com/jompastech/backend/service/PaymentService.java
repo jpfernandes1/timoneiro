@@ -1,16 +1,19 @@
 package com.jompastech.backend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jompastech.backend.exception.PaymentGatewayException;
 import com.jompastech.backend.exception.PaymentValidationException;
 import com.jompastech.backend.model.dto.payment.*;
 import com.jompastech.backend.model.entity.Booking;
 import com.jompastech.backend.model.entity.Payment;
+import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.model.enums.PaymentMethod;
 import com.jompastech.backend.model.enums.PaymentStatus;
 import com.jompastech.backend.repository.BookingRepository;
 import com.jompastech.backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,8 +22,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -48,6 +57,7 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final Environment env;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     /**
      * Processes payment with full persistence integration.
@@ -109,10 +119,11 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.PENDING);
         payment.setPaymentDate(LocalDateTime.now());
 
-        // Set booking relationship
-        Booking booking = bookingRepository.findById(paymentInfo.getBookingId())
-                .orElseThrow(() -> new PaymentValidationException("Booking not found with ID: " + paymentInfo.getBookingId()));
-        payment.setBooking(booking);
+        if (paymentInfo.getBookingId() != null) {
+            Booking booking = bookingRepository.findById(paymentInfo.getBookingId())
+                    .orElseThrow(() -> new PaymentValidationException("Booking not found with ID: " + paymentInfo.getBookingId()));
+            payment.setBooking(booking);
+        }
 
         // Set description from payment info or default
         if (paymentInfo.getDescription() != null) {
@@ -254,28 +265,36 @@ public class PaymentService {
      * Determines response based on test scenarios and mock data.
      */
     private PagSeguroSandboxResponse callPagSeguroSandbox(PaymentInfo paymentInfo) {
+        log.debug("Processing payment with gateway simulation");
+
         String sandboxUrl = env.getProperty("app.pagseguro.sandbox-url",
                 "https://sandbox.pagseguro.uol.com.br/v2/transactions");
-
         HttpHeaders headers = createPagSeguroHeaders();
 
         log.debug("Simulating PagSeguro API call to: {}", sandboxUrl);
-
-        // Simulate processing delay
         simulateProcessingDelay();
 
-        // Determine response based on test scenarios
-        String mockCardNumber = paymentInfo.getMockCardData() != null
-                ? paymentInfo.getMockCardData().getCardNumber()
-                : "";
+        // 1. If it's a credit card, check for special scenarios.
+        if (paymentInfo.getPaymentMethod() == PaymentMethod.CREDIT_CARD) {
+            String mockCardNumber = paymentInfo.getMockCardData() != null
+                    ? paymentInfo.getMockCardData().getCardNumber()
+                    : "";
 
-        if (isApprovedScenario(mockCardNumber, paymentInfo.getAmount())) {
-            return createApprovedResponse(paymentInfo);
-        } else if (isPendingScenario(mockCardNumber)) {
-            return createPendingResponse(paymentInfo);
-        } else {
-            return createDeclinedResponse(paymentInfo);
+            // Pending scenario (ex.: 4333...)
+            if (isPendingScenario(mockCardNumber)) {
+                return createPendingResponse(paymentInfo);
+            }
+
+            // Normal scenario: approved or rejected
+            if (isApprovedScenario(mockCardNumber, paymentInfo.getAmount())) {
+                return createApprovedResponse(paymentInfo);
+            } else {
+                return createDeclinedResponse(paymentInfo);
+            }
         }
+
+        // 2. Bank slip, PIX, etc. → always approved in the sandbox.
+        return createApprovedResponse(paymentInfo);
     }
 
     /**
@@ -311,7 +330,7 @@ public class PaymentService {
         if ("4222222222222222".equals(cardNumber)) return false; // Test failure card
 
         // Random approval for demo (90% success rate for amounts under limit)
-        return Math.random() > 0.1 && amount.compareTo(new BigDecimal("10000")) < 0;
+        return amount.compareTo(new BigDecimal("10000")) < 0;
     }
 
     private boolean isPendingScenario(String cardNumber) {
@@ -414,5 +433,121 @@ public class PaymentService {
         return payments.stream()
                 .map(this::mapToPaymentResult)
                 .toList();
+    }
+
+    /**
+     * Verifies the webhook signature using HMAC-SHA256.
+     * The signature is expected to be a base64-encoded HMAC of the payload body.
+     */
+    public boolean verifyWebhookSignature(String payload, String signature) {
+        if (!StringUtils.hasText(payload) || !StringUtils.hasText(signature)) {
+            log.warn("Webhook signature verification failed: missing payload or signature");
+            return false;
+        }
+
+        String secret = env.getProperty("app.pagseguro.webhook-secret");
+        if (secret == null || secret.isBlank()) {
+            log.error("Webhook secret is not configured");
+            return false;
+        }
+
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+            mac.init(keySpec);
+            byte[] hmac = mac.doFinal(payload.getBytes());
+            String expectedSignature = Base64.getEncoder().encodeToString(hmac);
+
+            boolean isValid = expectedSignature.equals(signature);
+            log.info("Webhook signature verification: {}", isValid ? "SUCCESS" : "FAILURE");
+            return isValid;
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Error verifying webhook signature", e);
+            return false;
+        }
+    }
+
+    /**
+     * Processes a webhook notification: updates payment status.
+     * Idempotent: if the payment was already updated with the same status, does nothing.
+     *
+     * @param payload raw JSON payload
+     * @throws PaymentValidationException if payload is invalid or payment not found
+     */
+    @Transactional
+    public void processWebhookNotification(String payload) {
+        log.debug("Processing webhook notification: {}", payload);
+
+        try {
+            // 1. Parse payload
+            PagSeguroWebhookDTO notification = objectMapper.readValue(payload, PagSeguroWebhookDTO.class);
+            String transactionId = notification.transactionCode();
+            if (transactionId == null || transactionId.isBlank()) {
+                throw new PaymentValidationException("Missing transaction code in webhook payload");
+            }
+
+            // 2. Find payment by transaction ID
+            Payment payment = paymentRepository.findByTransactionId(transactionId)
+                    .orElseThrow(() -> new PaymentValidationException(
+                            "Payment not found for transaction: " + transactionId));
+
+            // 3. Determine new status from PagSeguro status code
+            PaymentStatus newStatus = mapWebhookStatus(notification.status());
+            if (newStatus == null) {
+                log.warn("Unknown webhook status code: {} for transaction {}", notification.status(), transactionId);
+                return; // ignore unsupported status
+            }
+
+            // 4. Idempotency: skip if already in the same status
+            if (payment.getStatus() == newStatus) {
+                log.info("Payment {} already has status {}, skipping update", transactionId, newStatus);
+                return;
+            }
+
+            // 5. Update payment entity
+            payment.setStatus(newStatus);
+            payment.setGatewayMessage("Webhook update: " + notification.notificationCode());
+            payment.setProcessedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+
+            log.info("Payment {} status updated from {} to {} via webhook",
+                    transactionId, payment.getStatus(), newStatus);
+
+            // 6. Additional business logic (e.g., update booking status)
+            if (newStatus == PaymentStatus.CONFIRMED) {
+                // Confirm booking if not already confirmed
+                Booking booking = payment.getBooking();
+                if (booking != null && booking.getStatus() != BookingStatus.CONFIRMED) {
+                    booking.confirm();
+                    // save booking if cascade not configured
+                }
+            } else if (newStatus == PaymentStatus.CANCELLED || newStatus == PaymentStatus.REFUNDED) {
+                // Cancel booking or mark as failed
+                Booking booking = payment.getBooking();
+                if (booking != null && booking.getStatus() == BookingStatus.CONFIRMED) {
+                    booking.cancel();
+                }
+            }
+
+        } catch (IOException e) {
+            log.error("Failed to parse webhook payload", e);
+            throw new PaymentValidationException("Invalid webhook payload format");
+        }
+    }
+
+    /**
+     * Maps PagSeguro status integer to internal PaymentStatus enum.
+     * PagSeguro statuses: 1 = waiting, 2 = under review, 3 = paid, 4 = available, 5 = dispute,
+     * 6 = returned, 7 = canceled, 8 = chargedback, 9 = hold
+     */
+    private PaymentStatus mapWebhookStatus(Integer pagSeguroStatus) {
+        if (pagSeguroStatus == null) return null;
+        return switch (pagSeguroStatus) {
+            case 1, 2 -> PaymentStatus.PENDING;
+            case 3, 4 -> PaymentStatus.CONFIRMED;
+            case 6, 7, 8 -> PaymentStatus.CANCELLED;
+            case 5, 9 -> PaymentStatus.PENDING; // dispute/hold
+            default -> null;
+        };
     }
 }

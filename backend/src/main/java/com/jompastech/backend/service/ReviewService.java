@@ -9,6 +9,7 @@ import com.jompastech.backend.model.entity.User;
 import com.jompastech.backend.model.entity.Boat;
 import com.jompastech.backend.mapper.ReviewMapper;
 import com.jompastech.backend.repository.ReviewRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +62,17 @@ public class ReviewService {
      * @throws BusinessValidationException if business rules are violated
      * @throws EntityNotFoundException if referenced entities don't exist
      */
-    public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequest, Long authenticatedUserId) {
+    public ReviewResponseDTO createReview(
+            ReviewRequestDTO reviewRequest,
+            Long authenticatedUserId) {
+
+        if (authenticatedUserId == null) {
+            throw new BusinessValidationException("Authenticated user not found");
+        }
+
+        if (reviewRequest.getBoatId() == null) {
+            throw new BusinessValidationException("Boat ID is required");
+        }
 
         User user = userService.findById(authenticatedUserId);
         Boat boat = boatService.getBoatEntity(reviewRequest.getBoatId());
@@ -72,7 +83,6 @@ public class ReviewService {
         // Business rule: prevent duplicate reviews
         validateNoDuplicateReview(authenticatedUserId, reviewRequest.getBoatId());
 
-        // Create and save review
         Review review = reviewMapper.toEntity(reviewRequest);
         review.setUser(user);
         review.setBoat(boat);
@@ -96,7 +106,7 @@ public class ReviewService {
 
         // Authorization check: only review author can update
         if (!existingReview.getUser().getId().equals(authenticatedUserId)) {
-            throw new SecurityException("User is not authorized to update this review");
+            throw new AccessDeniedException("Only the creator user is authorized to update this review");
         }
 
         // Update fields

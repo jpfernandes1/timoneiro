@@ -1,6 +1,7 @@
 package com.jompastech.backend.service;
 
 import com.jompastech.backend.exception.BookingCreationException;
+import com.jompastech.backend.exception.EntityNotFoundException;
 import com.jompastech.backend.exception.PaymentProcessingException;
 import com.jompastech.backend.model.dto.basicDTO.UserBasicDTO;
 import com.jompastech.backend.model.dto.booking.BookingRequestDTO;
@@ -20,6 +21,7 @@ import com.jompastech.backend.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -192,5 +194,24 @@ public class BookingApplicationService {
         } else {
             return bookingRepository.findByUserId(userId, pageable);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Booking getBookingByIdAndAuthorize(Long bookingId, Long currentUserId) {
+        log.info("Fetching booking {} for authorization check of user {}", bookingId, currentUserId);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Verifica se o usuário atual é o dono da reserva OU o dono do barco
+        boolean isBookingOwner = booking.getUser().getId().equals(currentUserId);
+        boolean isBoatOwner = booking.getBoat().getOwner().getId().equals(currentUserId);
+
+        if (!isBookingOwner && !isBoatOwner) {
+            log.warn("User {} is not authorized to view booking {}", currentUserId, bookingId);
+            throw new AccessDeniedException("You are not authorized to view this booking");
+        }
+
+        return booking;
     }
 }
