@@ -78,10 +78,17 @@ public class Booking {
     }
 
     public void cancel() {
-        if (this.status == BookingStatus.CANCELLED || this.status == BookingStatus.CONFIRMED) {
+        if (this.status == BookingStatus.CANCELLED || this.status == BookingStatus.FINISHED) {
             throw new IllegalStateException("Reservation is already canceled or completed");
         }
         this.status = BookingStatus.CANCELLED;
+    }
+
+    public void finish() {
+        if (this.status != BookingStatus.CONFIRMED) {
+            throw new IllegalStateException("Only confirmed reservations can be finished.");
+        }
+        this.status = BookingStatus.FINISHED;
     }
 
     public Long getId() { return id; }
