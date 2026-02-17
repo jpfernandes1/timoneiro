@@ -1,12 +1,9 @@
 package com.jompastech.backend.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.jompastech.backend.integration.controller.util.*;
 import com.jompastech.backend.model.entity.*;
-import com.jompastech.backend.model.enums.BookingStatus;
 import com.jompastech.backend.repository.*;
-import com.jompastech.backend.security.dto.AuthRequestDTO;
 import com.jompastech.backend.security.filter.JwtAuthenticationFilter;
 import com.jompastech.backend.service.CloudinaryService;
 import jakarta.servlet.FilterChain;
@@ -24,7 +21,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -469,7 +465,7 @@ class ReviewControllerIT {
                 "My review"
         );
 
-        // Outra review de outro usuário (se permitido no seu domínio)
+        // Another review from another user (if allowed on your domain)
         Long boatId2 = boatGenerator.createBoat("Bearer " + owner.token());
 
         availabilityGenerator.createAvailability(
